@@ -1,0 +1,22 @@
+---
+source: src/shape.rs
+expression: outline
+---
+[
+    RelativeCoordinate {
+        x: -2,
+        y: 0,
+    },
+    RelativeCoordinate {
+        x: 2,
+        y: 0,
+    },
+    RelativeCoordinate {
+        x: 2,
+        y: 1,
+    },
+    RelativeCoordinate {
+        x: -2,
+        y: 1,
+    },
+]

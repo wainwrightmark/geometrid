@@ -1,0 +1,45 @@
+[package]
+name = "geometrid"
+version = "0.1.0"
+authors = ["Mark Wainwright <wainwrightml@gmail.com>"]
+description = "Methods for returning random elements from an iterator."
+documentation = "https://docs.rs/geometrid"
+repository = "https://github.com/wainwrightmark/geometrid"
+readme = "README.md"
+keywords = ["2d", "grid", "coordinate", "polyomino", "game", "puzzle"]
+categories = [
+    # "api-bindings"
+]
+license = "MIT"
+edition = "2021"
+exclude = [
+    # (optional) list any files we don't want to publish to crates.io
+    # for example, assume the below is a folder which contains large `mp4` files:
+    #   "examples/assets"
+]
+
+# See here for more info: https://blog.rust-lang.org/2020/03/15/docs-rs-opt-into-fewer-targets.html
+
+[package.metadata.docs.rs]
+all-features = true
+targets = ["x86_64-unknown-linux-gnu"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+itertools = { version = "0.10.5", default-features = false }
+strum = { version = "0.24.1", default-features = false, features = ["derive"] }
+
+[dev-dependencies]
+# version_sync: to ensure versions in `Cargo.toml` and `README.md` are in sync
+version-sync = "0.9.4"
+insta = "1.21.1" # default features needed for testing
+# Some useful libraries - uncomment if needed :-)
+# tabled = "0.4.2"
+# indoc = "1.0.4"
+criterion = "0.4"
+
+
+
+[features]
+std = []
