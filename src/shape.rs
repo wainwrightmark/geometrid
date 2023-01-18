@@ -3,59 +3,7 @@ use itertools::Itertools;
 use strum::Display;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct Shape<const POINTS: usize>([RelativeCoordinate; POINTS]);
-
-impl<const P: usize> Shape<P> {
-    pub fn deconstruct_into_rectangles(&self) -> Vec<(RelativeCoordinate, RelativeCoordinate)> {
-        let mut results = vec![];
-
-        let mut remaining_points = self.0.to_vec();
-
-        while let Some(p1) = remaining_points.pop() {
-            let mut min_x = p1.x();
-            let mut max_x = p1.x();
-            let mut min_y = p1.y();
-
-            while let Some((index, &p2)) = remaining_points
-                .iter()
-                .find_position(|p2| p2.y() == min_y && (p2.x() == max_x + 1 || p2.x() == min_x - 1))
-            {
-                remaining_points.swap_remove(index);
-                min_x = min_x.min(p2.x());
-                max_x = max_x.max(p2.x());
-            }
-            let range = min_x..=max_x;
-
-            let mut max_y = p1.y();
-
-            'outer: loop {
-                for is_max in [false, true] {
-                    let y = if is_max { max_y + 1 } else { min_y - 1 };
-                    let condition = |p2: &&RelativeCoordinate| p2.y() == y && range.contains(&p2.x());
-                    if remaining_points.iter().filter(condition).count() == range.len() {
-                        while let Some((position, _)) =
-                            remaining_points.iter().find_position(condition)
-                        {
-                            remaining_points.swap_remove(position);
-                        }
-                        if is_max {
-                            max_y += 1;
-                        } else {
-                            min_y -= 1;
-                        }
-
-                        continue 'outer;
-                    }
-                }
-                break 'outer;
-            }
-
-            results.push((RelativeCoordinate::new(min_x, min_y), RelativeCoordinate::new(max_x, max_y)));
-        }
-
-        results
-    }
-}
+pub struct Shape<const POINTS: usize>(pub [RelativeCoordinate; POINTS]);
 
 impl<const P: usize> IntoIterator for Shape<P> {
     type Item = RelativeCoordinate;
@@ -310,6 +258,7 @@ impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
+    use crate::rectangle_iter::*;
 
     #[test]
     fn test_basic_outlines() {
@@ -334,6 +283,16 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_pentomino_rectangles(){
+        for (shape, name) in Shape::FREE_PENTOMINOS
+        .iter()
+        .zip(Shape::FREE_PENTOMINO_NAMES)
+    {
+        test_deconstruct_into_rectangles(shape, (name.to_string() + " pentomino rectangles").as_str())
+    }
+    }
+
     fn test_outline<P: PolyominoShape>(shape: &'static P, name: &str) {
         let outline: Vec<_> = shape.draw_outline().take(100).collect();
         assert!(outline.len() < 100);
@@ -352,10 +311,14 @@ mod tests {
         assert!(centre_y > min_y);
 
         insta::assert_debug_snapshot!(name, outline);
+    }
 
-        // for o in outline{
-        //     println!("{:?}", o);
-        // }
-        // println!("{},{}", center.0, center.1);
+    
+
+    fn test_deconstruct_into_rectangles<const P : usize>(shape: &'static Shape<P>, name: &str) {
+
+        let rectangles = shape.deconstruct_into_rectangles();
+
+        insta::assert_debug_snapshot!(name, rectangles);
     }
 }

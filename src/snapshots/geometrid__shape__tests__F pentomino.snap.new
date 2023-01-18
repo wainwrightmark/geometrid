@@ -1,0 +1,25 @@
+---
+source: src/shape.rs
+assertion_line: 322
+expression: rectangles
+---
+[
+    Rectangle {
+        min_x: 0,
+        max_x: 0,
+        min_y: -1,
+        max_y: 1,
+    },
+    Rectangle {
+        min_x: 1,
+        max_x: 1,
+        min_y: -1,
+        max_y: -1,
+    },
+    Rectangle {
+        min_x: -1,
+        max_x: -1,
+        min_y: 0,
+        max_y: 0,
+    },
+]

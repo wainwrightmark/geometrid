@@ -36,3 +36,4 @@
 
 pub mod shape;
 pub mod relative_coordinate;
+pub mod rectangle_iter;
