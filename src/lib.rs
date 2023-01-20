@@ -1,4 +1,4 @@
-// #![cfg_attr(not(any(test, feature = "std")), no_std)]
+#![cfg_attr(not(any(test, feature = "std")), no_std)]
 #![doc(html_root_url = "https://docs.rs/geometrid/0.1.0")]
 // #![deny(missing_docs)]
 #![allow(warnings, dead_code, unused_imports, unused_mut)]

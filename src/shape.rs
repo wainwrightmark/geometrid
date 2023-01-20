@@ -115,7 +115,7 @@ impl<const P: usize> PolyominoShape for Shape<P> {
 
     fn draw_outline(&self) -> Self::OutlineIter {
         let mut arr = self.0;
-        arr.sort();
+        arr.sort_unstable();
         OutlineIter {
             arr,
             next: Some((arr[0], Corner::NorthWest)),
@@ -317,7 +317,7 @@ mod tests {
 
     fn test_deconstruct_into_rectangles<const P : usize>(shape: &'static Shape<P>, name: &str) {
 
-        let rectangles = shape.deconstruct_into_rectangles();
+        let rectangles = shape.deconstruct_into_rectangles().collect_vec();
 
         insta::assert_debug_snapshot!(name, rectangles);
     }

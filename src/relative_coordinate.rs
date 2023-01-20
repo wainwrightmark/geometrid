@@ -5,7 +5,7 @@ use core::{
 
 // use super::grid_error::GridError;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
 pub struct RelativeCoordinate {
     x: i16,
     y: i16,
