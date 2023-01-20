@@ -35,7 +35,7 @@
 //! [`README.md`]: https://github.com/wainwrightmark/geometrid
 
 pub mod polyomino;
-pub mod relative_coordinate;
+pub mod point_relative;
 pub mod rectangle;
-pub mod absolute_coordinate;
+pub mod point_absolute;
 pub mod grid;

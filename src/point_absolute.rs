@@ -1,27 +1,27 @@
 use core::{fmt, ops::Add};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)] //TODO make inner type generic
-pub struct AbsoluteCoordinate<const WIDTH: u16, const HEIGHT: u16> {
+pub struct PointAbsolute<const WIDTH: u16, const HEIGHT: u16> {
     inner: u16,
 }
 
 
-impl<const W: u16, const H: u16> fmt::Display for AbsoluteCoordinate<W, H> {
+impl<const W: u16, const H: u16> fmt::Display for PointAbsolute<W, H> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({},{})", self.x(), self.y())
     }
 }
 
-impl<const W: u16, const H: u16> AbsoluteCoordinate<W, H> {
+impl<const W: u16, const H: u16> PointAbsolute<W, H> {
     pub const WIDTH: u16 = W;
     pub const HEIGHT: u16 = H;
     pub const SIZE: usize = W as usize * H as usize;
-    pub const CENTER: AbsoluteCoordinate<W, H> = Self::new_unchecked(W / 2, H / 2);
+    pub const CENTER: PointAbsolute<W, H> = Self::new_unchecked(W / 2, H / 2);
 
-    pub const TOP_LEFT: AbsoluteCoordinate<W, H> = Self::new_const::<0, 0>();
-    pub const TOP_RIGHT: AbsoluteCoordinate<W, H> = Self::new_unchecked(W - 1, 0);
-    pub const BOTTOM_LEFT: AbsoluteCoordinate<W, H> = Self::new_unchecked(0, H - 1);
-    pub const BOTTOM_RIGHT: AbsoluteCoordinate<W, H> = Self::new_unchecked(W - 1, H - 1);
+    pub const TOP_LEFT: PointAbsolute<W, H> = Self::new_const::<0, 0>();
+    pub const TOP_RIGHT: PointAbsolute<W, H> = Self::new_unchecked(W - 1, 0);
+    pub const BOTTOM_LEFT: PointAbsolute<W, H> = Self::new_unchecked(0, H - 1);
+    pub const BOTTOM_RIGHT: PointAbsolute<W, H> = Self::new_unchecked(W - 1, H - 1);
 
     pub const fn new_const<const X: u16, const Y: u16>() -> Self {
         assert!(X < W);
@@ -81,12 +81,12 @@ impl<const W: u16, const H: u16> AbsoluteCoordinate<W, H> {
     }
 
     #[inline]
-    pub const fn flip_horizontal(&self) -> AbsoluteCoordinate<W, H> {
+    pub const fn flip_horizontal(&self) -> PointAbsolute<W, H> {
         Self::new_unchecked(W - self.x() - 1, self.y())
     }
 
     #[inline]
-    pub const fn flip_vertical(&self) -> AbsoluteCoordinate<W, H> {
+    pub const fn flip_vertical(&self) -> PointAbsolute<W, H> {
         Self::new_unchecked(self.x(), H - self.y() - 1)
     }
 
@@ -123,7 +123,7 @@ impl<const W: u16, const H: u16> AbsoluteCoordinate<W, H> {
     }
 }
 
-impl<const L: u16> AbsoluteCoordinate<L, L> {
+impl<const L: u16> PointAbsolute<L, L> {
     /// Rotate the coordinate clockwise
     #[inline]
     pub fn rotate(&self, quarter_turns: usize) -> Self {
@@ -150,22 +150,22 @@ impl<const L: u16> AbsoluteCoordinate<L, L> {
 //     }
 // }
 
-impl<const W: u16, const H: u16> From<AbsoluteCoordinate<W, H>> for usize {
-    fn from(val: AbsoluteCoordinate<W, H>) -> Self {
+impl<const W: u16, const H: u16> From<PointAbsolute<W, H>> for usize {
+    fn from(val: PointAbsolute<W, H>) -> Self {
         val.inner as usize
     }
 }
 
-impl<const W: u16, const H: u16> From<&AbsoluteCoordinate<W, H>> for usize {
-    fn from(val: &AbsoluteCoordinate<W, H>) -> Self {
+impl<const W: u16, const H: u16> From<&PointAbsolute<W, H>> for usize {
+    fn from(val: &PointAbsolute<W, H>) -> Self {
         val.inner as usize
     }
 }
 
-impl<const W: u16, const H: u16> Add<super::relative_coordinate::RelativeCoordinate> for AbsoluteCoordinate<W, H> {
+impl<const W: u16, const H: u16> Add<super::point_relative::PointRelative> for PointAbsolute<W, H> {
     type Output = Option<Self>;
 
-    fn add(self, rhs: super::relative_coordinate::RelativeCoordinate) -> Self::Output {
+    fn add(self, rhs: super::point_relative::PointRelative) -> Self::Output {
         let x = (self.x() as i16) + rhs.x();
         let y = (self.y() as i16) + rhs.y();
         if x >= 0 && y >= 0 {

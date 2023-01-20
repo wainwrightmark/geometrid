@@ -6,17 +6,17 @@ use core::{
 // use super::grid_error::GridError;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
-pub struct RelativeCoordinate {
+pub struct PointRelative {
     x: i16,
     y: i16,
 }
 
-impl core::fmt::Display for RelativeCoordinate {
+impl core::fmt::Display for PointRelative {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        if *self == RelativeCoordinate::ZERO {
+        if *self == PointRelative::ZERO {
             write!(f, "Zero")
-        } else if let Some(index) = RelativeCoordinate::UNITS.iter().position(|x| x == self) {
-            let name = RelativeCoordinate::UNIT_NAMES[index];
+        } else if let Some(index) = PointRelative::UNITS.iter().position(|x| x == self) {
+            let name = PointRelative::UNIT_NAMES[index];
             write!(f, "{name}")
         } else {
             f.debug_struct("RelativeCoordinate")
@@ -27,7 +27,7 @@ impl core::fmt::Display for RelativeCoordinate {
     }
 }
 
-impl RelativeCoordinate {
+impl PointRelative {
     pub const ZERO: Self = Self { x: 0, y: 0 };
     pub const NORTH: Self = Self { x: 0, y: -1 };
     pub const NORTH_TWO: Self = Self { x: 0, y: -2 };
@@ -114,22 +114,22 @@ impl RelativeCoordinate {
     }
 }
 
-impl Neg for RelativeCoordinate {
+impl Neg for PointRelative {
     type Output = Self;
     fn neg(self) -> Self::Output {
         self.flip()
     }
 }
 
-impl Neg for &RelativeCoordinate {
-    type Output = RelativeCoordinate;
+impl Neg for &PointRelative {
+    type Output = PointRelative;
     fn neg(self) -> Self::Output {
         self.flip()
     }
 }
 
-impl Add for RelativeCoordinate {
-    type Output = RelativeCoordinate;
+impl Add for PointRelative {
+    type Output = PointRelative;
 
     fn add(self, rhs: Self) -> Self::Output {
         Self {
@@ -139,19 +139,19 @@ impl Add for RelativeCoordinate {
     }
 }
 
-impl Add for &RelativeCoordinate {
-    type Output = RelativeCoordinate;
+impl Add for &PointRelative {
+    type Output = PointRelative;
 
     fn add(self, rhs: Self) -> Self::Output {
-        RelativeCoordinate {
+        PointRelative {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
         }
     }
 }
 
-impl Mul<i16> for RelativeCoordinate {
-    type Output = RelativeCoordinate;
+impl Mul<i16> for PointRelative {
+    type Output = PointRelative;
 
     fn mul(self, rhs: i16) -> Self::Output {
         Self {

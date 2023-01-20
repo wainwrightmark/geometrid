@@ -3,7 +3,7 @@ use core::{
     ops::{Index, IndexMut},
 };
 
-use super::absolute_coordinate::AbsoluteCoordinate;
+use super::point_absolute::PointAbsolute;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Grid<T, const WIDTH: u16, const HEIGHT: u16, const SIZE: usize>([T; SIZE]);
@@ -16,21 +16,21 @@ impl<T: Default + Copy, const W: u16, const H: u16, const SIZE: usize> Default
     }
 }
 
-impl<T, const W: u16, const H: u16, const SIZE: usize> Index<AbsoluteCoordinate<W, H>>
+impl<T, const W: u16, const H: u16, const SIZE: usize> Index<PointAbsolute<W, H>>
     for Grid<T, W, H, SIZE>
 {
     type Output = T;
 
-    fn index(&self, index: AbsoluteCoordinate<W, H>) -> &Self::Output {
+    fn index(&self, index: PointAbsolute<W, H>) -> &Self::Output {
         let u: usize = index.into();
         &self.0[u]
     }
 }
 
-impl<T, const W: u16, const H: u16, const SIZE: usize> IndexMut<AbsoluteCoordinate<W, H>>
+impl<T, const W: u16, const H: u16, const SIZE: usize> IndexMut<PointAbsolute<W, H>>
     for Grid<T, W, H, SIZE>
 {
-    fn index_mut(&mut self, index: AbsoluteCoordinate<W, H>) -> &mut Self::Output {
+    fn index_mut(&mut self, index: PointAbsolute<W, H>) -> &mut Self::Output {
         let u: usize = index.into();
         &mut self.0[u]
     }
@@ -46,17 +46,17 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> Grid<T, W, H, SIZE> {
     }
 
     #[inline]
-    pub fn enumerate(&self) -> impl iter::Iterator<Item = (AbsoluteCoordinate<W, H>, &'_ T)> {
+    pub fn enumerate(&self) -> impl iter::Iterator<Item = (PointAbsolute<W, H>, &'_ T)> {
         self.0
             .iter()
             .enumerate()
-            .map(|(inner, x)| (AbsoluteCoordinate::try_from_usize(inner).unwrap(), x))
+            .map(|(inner, x)| (PointAbsolute::try_from_usize(inner).unwrap(), x))
     }
 
     pub fn flip_horizontal(&mut self) {
         for y in 0..H {
             for x in 0..W / 2 {
-                let qa1 = AbsoluteCoordinate::<W, H>::try_new(x, y).unwrap();
+                let qa1 = PointAbsolute::<W, H>::try_new(x, y).unwrap();
                 let qa2 = qa1.flip_horizontal();
                 self.0.swap(qa1.into(), qa2.into());
             }
@@ -67,7 +67,7 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> Grid<T, W, H, SIZE> {
     pub fn flip_vertical(&mut self) {
         for y in 0..H / 2 {
             for x in 0..W {
-                let qa1 = AbsoluteCoordinate::<W, H>::try_new(x, y).unwrap();
+                let qa1 = PointAbsolute::<W, H>::try_new(x, y).unwrap();
                 let qa2 = qa1.flip_vertical();
                 self.0.swap(qa1.into(), qa2.into());
             }
@@ -190,7 +190,7 @@ mod tests {
         }
 
         for i in 0..9{
-            assert_eq!(grid[AbsoluteCoordinate::try_from_usize(i).unwrap()], i)
+            assert_eq!(grid[PointAbsolute::try_from_usize(i).unwrap()], i)
         }
 
         let str = grid.to_string();

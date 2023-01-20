@@ -1,13 +1,13 @@
-use super::relative_coordinate::RelativeCoordinate;
+use super::point_relative::PointRelative;
 use strum::Display;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct Polyomino<const POINTS: usize>(pub [RelativeCoordinate; POINTS]);
+pub struct Polyomino<const POINTS: usize>(pub [PointRelative; POINTS]);
 
 impl<const P: usize> IntoIterator for Polyomino<P> {
-    type Item = RelativeCoordinate;
+    type Item = PointRelative;
 
-    type IntoIter = core::array::IntoIter<RelativeCoordinate, P>;
+    type IntoIter = core::array::IntoIter<PointRelative, P>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -15,26 +15,26 @@ impl<const P: usize> IntoIterator for Polyomino<P> {
 }
 
 impl Polyomino<1> {
-    pub const MONOMINO: Self = Self([RelativeCoordinate::ZERO]);
+    pub const MONOMINO: Self = Self([PointRelative::ZERO]);
 }
 
 impl Polyomino<2> {
-    pub const DOMINO: Self = Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH]);
+    pub const DOMINO: Self = Self([PointRelative::ZERO, PointRelative::NORTH]);
 }
 
 impl Polyomino<3> {
-    pub const I_TROMINO: Self = Self([RelativeCoordinate::EAST, RelativeCoordinate::ZERO, RelativeCoordinate::WEST]);
-    pub const V_TROMINO: Self = Self([RelativeCoordinate::EAST, RelativeCoordinate::ZERO, RelativeCoordinate::NORTH]);
+    pub const I_TROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::WEST]);
+    pub const V_TROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::NORTH]);
 }
 
 impl Polyomino<4> {
-    pub const I_TETROMINO: Self = Self([RelativeCoordinate::EAST, RelativeCoordinate::ZERO, RelativeCoordinate::WEST, RelativeCoordinate::WEST_TWO]);
-    pub const O_TETROMINO: Self = Self([RelativeCoordinate::ZERO, RelativeCoordinate::EAST, RelativeCoordinate::NORTHEAST, RelativeCoordinate::NORTH]);
-    pub const T_TETROMINO: Self = Self([RelativeCoordinate::EAST, RelativeCoordinate::ZERO, RelativeCoordinate::WEST, RelativeCoordinate::SOUTH]);
-    pub const J_TETROMINO: Self = Self([RelativeCoordinate::WEST, RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTH_TWO]);
-    pub const L_TETROMINO: Self = Self([RelativeCoordinate::EAST, RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTH_TWO]);
-    pub const S_TETROMINO: Self = Self([RelativeCoordinate::WEST, RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTHEAST]);
-    pub const Z_TETROMINO: Self = Self([RelativeCoordinate::EAST, RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTHWEST]);
+    pub const I_TETROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::WEST, PointRelative::WEST_TWO]);
+    pub const O_TETROMINO: Self = Self([PointRelative::ZERO, PointRelative::EAST, PointRelative::NORTHEAST, PointRelative::NORTH]);
+    pub const T_TETROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::WEST, PointRelative::SOUTH]);
+    pub const J_TETROMINO: Self = Self([PointRelative::WEST, PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO]);
+    pub const L_TETROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO]);
+    pub const S_TETROMINO: Self = Self([PointRelative::WEST, PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTHEAST]);
+    pub const Z_TETROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTHWEST]);
 
     pub const TETROMINOS: [Self; 7] = [
         Self::I_TETROMINO,
@@ -60,26 +60,26 @@ impl Polyomino<4> {
 }
 
 impl Polyomino<5> {
-    pub const F_PENTOMINO: Self = Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTHEAST, RelativeCoordinate::WEST, RelativeCoordinate::SOUTH]);
+    pub const F_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTHEAST, PointRelative::WEST, PointRelative::SOUTH]);
     pub const I_PENTOMINO: Self =
-        Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTH_TWO, RelativeCoordinate::SOUTH, RelativeCoordinate::SOUTH_TWO]);
+        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO, PointRelative::SOUTH, PointRelative::SOUTH_TWO]);
     pub const L_PENTOMINO: Self =
-        Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTH_TWO, RelativeCoordinate::SOUTH, RelativeCoordinate::SOUTHEAST]);
+        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO, PointRelative::SOUTH, PointRelative::SOUTHEAST]);
     pub const N_PENTOMINO: Self =
-        Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTH_TWO, RelativeCoordinate::WEST, RelativeCoordinate::SOUTHWEST]);
-    pub const P_PENTOMINO: Self = Self([RelativeCoordinate::NORTH, RelativeCoordinate::ZERO, RelativeCoordinate::NORTHEAST, RelativeCoordinate::EAST, RelativeCoordinate::SOUTH]);
+        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO, PointRelative::WEST, PointRelative::SOUTHWEST]);
+    pub const P_PENTOMINO: Self = Self([PointRelative::NORTH, PointRelative::ZERO, PointRelative::NORTHEAST, PointRelative::EAST, PointRelative::SOUTH]);
     pub const T_PENTOMINO: Self =
-        Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTHEAST, RelativeCoordinate::NORTHWEST, RelativeCoordinate::SOUTH]);
+        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTHEAST, PointRelative::NORTHWEST, PointRelative::SOUTH]);
     pub const U_PENTOMINO: Self =
-        Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTHEAST, RelativeCoordinate::EAST, RelativeCoordinate::NORTHWEST, RelativeCoordinate::WEST]);
+        Self([PointRelative::ZERO, PointRelative::NORTHEAST, PointRelative::EAST, PointRelative::NORTHWEST, PointRelative::WEST]);
     pub const V_PENTOMINO: Self =
-        Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTH_TWO, RelativeCoordinate::WEST, RelativeCoordinate::WEST_TWO]);
+        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO, PointRelative::WEST, PointRelative::WEST_TWO]);
     pub const W_PENTOMINO: Self =
-        Self([RelativeCoordinate::ZERO, RelativeCoordinate::EAST, RelativeCoordinate::NORTHEAST, RelativeCoordinate::SOUTH, RelativeCoordinate::SOUTHWEST]);
-    pub const X_PENTOMINO: Self = Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::EAST, RelativeCoordinate::SOUTH, RelativeCoordinate::WEST]);
-    pub const Y_PENTOMINO: Self = Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::EAST, RelativeCoordinate::WEST, RelativeCoordinate::WEST_TWO]);
+        Self([PointRelative::ZERO, PointRelative::EAST, PointRelative::NORTHEAST, PointRelative::SOUTH, PointRelative::SOUTHWEST]);
+    pub const X_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::EAST, PointRelative::SOUTH, PointRelative::WEST]);
+    pub const Y_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::EAST, PointRelative::WEST, PointRelative::WEST_TWO]);
     pub const Z_PENTOMINO: Self =
-        Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTHWEST, RelativeCoordinate::SOUTH, RelativeCoordinate::SOUTHEAST]);
+        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTHWEST, PointRelative::SOUTH, PointRelative::SOUTHEAST]);
 
     pub const FREE_PENTOMINOS: [Self; 12] = [
         Self::F_PENTOMINO,
@@ -101,12 +101,12 @@ impl Polyomino<5> {
 }
 
 pub trait PolyominoShape {
-    type OutlineIter: Iterator<Item = RelativeCoordinate>;
+    type OutlineIter: Iterator<Item = PointRelative>;
     fn draw_outline(&self) -> Self::OutlineIter;
 
     fn get_centre(&self) -> (f32, f32);
 
-    fn first_point(&self) -> RelativeCoordinate;
+    fn first_point(&self) -> PointRelative;
 }
 
 impl<const P: usize> PolyominoShape for Polyomino<P> {
@@ -136,14 +136,14 @@ impl<const P: usize> PolyominoShape for Polyomino<P> {
         )
     }
 
-    fn first_point(&self) -> RelativeCoordinate {
+    fn first_point(&self) -> PointRelative {
         self.0[0]
     }
 }
 
 pub struct OutlineIter<const POINTS: usize> {
-    arr: [RelativeCoordinate; POINTS],
-    next: Option<(RelativeCoordinate, Corner)>,
+    arr: [PointRelative; POINTS],
+    next: Option<(PointRelative, Corner)>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Display)]
@@ -155,12 +155,12 @@ enum Corner {
 }
 
 impl Corner {
-    pub fn clockwise_direction(&self) -> RelativeCoordinate {
+    pub fn clockwise_direction(&self) -> PointRelative {
         match self {
-            Corner::NorthWest => RelativeCoordinate::NORTH,
-            Corner::NorthEast => RelativeCoordinate::EAST,
-            Corner::SouthEast => RelativeCoordinate::SOUTH,
-            Corner::SouthWest => RelativeCoordinate::WEST,
+            Corner::NorthWest => PointRelative::NORTH,
+            Corner::NorthEast => PointRelative::EAST,
+            Corner::SouthEast => PointRelative::SOUTH,
+            Corner::SouthWest => PointRelative::WEST,
         }
     }
 
@@ -184,21 +184,21 @@ impl Corner {
         }
     }
 
-    pub fn direction_of_northwest_corner(&self) -> RelativeCoordinate {
+    pub fn direction_of_northwest_corner(&self) -> PointRelative {
         match self {
-            Corner::NorthWest => RelativeCoordinate::ZERO,
-            Corner::NorthEast => RelativeCoordinate::EAST,
-            Corner::SouthEast => RelativeCoordinate::SOUTHEAST,
-            Corner::SouthWest => RelativeCoordinate::SOUTH,
+            Corner::NorthWest => PointRelative::ZERO,
+            Corner::NorthEast => PointRelative::EAST,
+            Corner::SouthEast => PointRelative::SOUTHEAST,
+            Corner::SouthWest => PointRelative::SOUTH,
         }
     }
 }
 
 impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
-    type Item = RelativeCoordinate;
+    type Item = PointRelative;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut direction_so_far: Option<RelativeCoordinate> = None;
+        let mut direction_so_far: Option<PointRelative> = None;
         let (coordinate_to_return, corner_to_return) = self.next?;
 
         let mut next_coordinate = coordinate_to_return;
@@ -313,7 +313,7 @@ mod tests {
         insta::assert_debug_snapshot!(name, outline);
     }
 
-    
+
 
     fn test_deconstruct_into_rectangles<const P : usize>(shape: &'static Polyomino<P>, name: &str) {
 
