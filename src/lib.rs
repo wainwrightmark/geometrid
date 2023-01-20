@@ -37,3 +37,5 @@
 pub mod polyomino;
 pub mod relative_coordinate;
 pub mod rectangle;
+pub mod absolute_coordinate;
+pub mod grid;

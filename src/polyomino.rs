@@ -1,5 +1,4 @@
 use super::relative_coordinate::RelativeCoordinate;
-use itertools::Itertools;
 use strum::Display;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -259,17 +258,18 @@ mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
     use crate::rectangle::*;
+    use itertools::Itertools;
 
     #[test]
     fn test_basic_outlines() {
-        test_outline(&Polyomino::MONOMINO, "Square");
-        test_outline(&Polyomino::DOMINO, "Domino");
+        test_outline(&Polyomino::MONOMINO, "Square outline");
+        test_outline(&Polyomino::DOMINO, "Domino outline");
     }
 
     #[test]
     fn test_tetromino_outlines() {
         for (shape, name) in Polyomino::TETROMINOS.iter().zip(Polyomino::TETROMINO_NAMES) {
-            test_outline(shape, (name.to_string() + " tetromino").as_str())
+            test_outline(shape, (name.to_string() + " tetromino outline").as_str())
         }
     }
 
@@ -279,7 +279,7 @@ mod tests {
             .iter()
             .zip(Polyomino::FREE_PENTOMINO_NAMES)
         {
-            test_outline(shape, (name.to_string() + " pentomino").as_str())
+            test_outline(shape, (name.to_string() + " pentomino outline").as_str())
         }
     }
 

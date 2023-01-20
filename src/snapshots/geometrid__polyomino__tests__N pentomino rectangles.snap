@@ -1,0 +1,18 @@
+---
+source: src/polyomino.rs
+expression: rectangles
+---
+[
+    Rectangle {
+        x: -1,
+        y: 0,
+        width: 1,
+        height: 2,
+    },
+    Rectangle {
+        x: 0,
+        y: -2,
+        width: 1,
+        height: 3,
+    },
+]
