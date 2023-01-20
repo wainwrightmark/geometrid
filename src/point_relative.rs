@@ -3,8 +3,7 @@ use core::{
     ops::{Add, Mul, Neg},
 };
 
-// use super::grid_error::GridError;
-
+#[must_use]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
 pub struct PointRelative {
     x: i16,
@@ -61,36 +60,43 @@ impl PointRelative {
         "Up Left",
     ];
 
+    #[must_use]
     #[inline]
     pub const fn new(x: i16, y: i16) -> Self {
         Self { x, y }
     }
 
+    #[must_use]
     #[inline]
     pub const fn x(&self) -> i16 {
         self.x
     }
 
+    #[must_use]
     #[inline]
     pub const fn y(&self) -> i16 {
         self.y
     }
 
+    #[must_use]
     #[inline]
     pub const fn is_zero(&self) -> bool {
         self.x == 0 && self.y == 0
     }
 
+    #[must_use]
     #[inline]
     pub const fn is_unit(&self) -> bool {
         self.x.abs() <= 1 && self.y.abs() <= 1 && !self.is_zero()
     }
 
+    #[must_use]
     #[inline]
     pub const fn is_diagonal(&self) -> bool {
         self.x != 0 && self.y != 0
     }
     /// Flip the direction: Up -> Down, Left -> Right, etc.
+    #[must_use]
     #[inline]
     pub fn flip(&self) -> Self {
         Self {
@@ -99,6 +105,7 @@ impl PointRelative {
         }
     }
 
+    #[must_use]
     #[inline]
     pub fn rotate(&self, quarter_turns: u8) -> Self {
         match quarter_turns % 4 {
@@ -109,6 +116,7 @@ impl PointRelative {
         }
     }
 
+    #[must_use]
     #[inline]
     pub const fn const_mul(self, rhs: isize) -> Self {
         Self {
@@ -134,7 +142,6 @@ impl Neg for &PointRelative {
 
 impl Add for PointRelative {
     type Output = PointRelative;
-
     fn add(self, rhs: Self) -> Self::Output {
         Self {
             x: self.x + rhs.x,

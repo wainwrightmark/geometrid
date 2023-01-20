@@ -1,5 +1,6 @@
 use core::{fmt, ops::Add};
 
+#[must_use]
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)] //TODO make inner type generic
 pub struct PointAbsolute<const WIDTH: u16, const HEIGHT: u16> {
     inner: u16,
@@ -23,17 +24,20 @@ impl<const W: u16, const H: u16> PointAbsolute<W, H> {
     pub const BOTTOM_LEFT: PointAbsolute<W, H> = Self::new_unchecked(0, H - 1);
     pub const BOTTOM_RIGHT: PointAbsolute<W, H> = Self::new_unchecked(W - 1, H - 1);
 
+    #[must_use]
     pub const fn new_const<const X: u16, const Y: u16>() -> Self {
         assert!(X < W);
         assert!(Y < H);
         Self::new_unchecked(X, Y)
     }
 
+    #[must_use]
     #[inline]
     const fn new_unchecked(x: u16, y: u16) -> Self {
         Self { inner: x + (W * y) }
     }
 
+    #[must_use]
     #[inline]
     pub const fn try_new(x: u16, y: u16) -> Option<Self> {
         if x >= W || y >= H {
@@ -43,6 +47,7 @@ impl<const W: u16, const H: u16> PointAbsolute<W, H> {
         }
     }
 
+    #[must_use]
     pub const fn try_from_usize(value: usize)-> Option<Self>{
         if value < Self::SIZE{
             Some(Self{inner: value as u16})
@@ -51,6 +56,7 @@ impl<const W: u16, const H: u16> PointAbsolute<W, H> {
         }
     }
 
+    #[must_use]
     pub const fn try_next(&self) -> Option<Self> {
         let new_index = self.inner + 1;
         if new_index >= W * H {
@@ -60,36 +66,43 @@ impl<const W: u16, const H: u16> PointAbsolute<W, H> {
         }
     }
 
+    #[must_use]
     #[inline]
     pub const fn x(&self) -> u16 {
         self.inner % W
     }
 
+    #[must_use]
     #[inline]
     pub const fn y(&self) -> u16 {
         self.inner / W
     }
 
+    #[must_use]
     #[inline]
     pub const fn is_corner(&self) -> bool {
         (self.x() == 0 || self.x() == W - 1) && (self.y() == 0 || self.y() == H - 1)
     }
 
+    #[must_use]
     #[inline]
     pub const fn is_edge(&self) -> bool {
         self.x() == 0 || self.x() == W - 1 || self.y() == 0 || self.y() == H - 1
     }
 
+    #[must_use]
     #[inline]
     pub const fn flip_horizontal(&self) -> PointAbsolute<W, H> {
         Self::new_unchecked(W - self.x() - 1, self.y())
     }
 
+    #[must_use]
     #[inline]
     pub const fn flip_vertical(&self) -> PointAbsolute<W, H> {
         Self::new_unchecked(self.x(), H - self.y() - 1)
     }
 
+    #[must_use]
     #[inline]
     /// The distance, disallowing, diagonal moves
     pub const fn manhattan_distance(&self, other: &Self) -> u16 {
@@ -100,6 +113,7 @@ impl<const W: u16, const H: u16> PointAbsolute<W, H> {
 
     #[cfg(std)]
     #[inline]
+    #[must_use]
     /// The distance, allowing diagonal moves
     /// Requires std
     pub fn distance(&self, other: &Self) -> f32 {
@@ -108,6 +122,7 @@ impl<const W: u16, const H: u16> PointAbsolute<W, H> {
         f32::sqrt((dx * dx) + (dy * dy))
     }
 
+    #[must_use]
     pub fn get_length_multiplier(total_width: f32, total_height: f32) -> f32 {
         let x_multiplier = total_width / W as f32;
         let y_multiplier = total_height / H as f32;
@@ -115,6 +130,7 @@ impl<const W: u16, const H: u16> PointAbsolute<W, H> {
         x_multiplier.min(y_multiplier)
     }
 
+    #[must_use]
     pub fn get_location(&self, multiplier: f32, x_ratio: f32, y_ratio: f32) -> (f32, f32) {
         let x = multiplier * ((self.x() as f32) + x_ratio);
         let y = multiplier * ((self.y() as f32) + y_ratio);
@@ -135,20 +151,6 @@ impl<const L: u16> PointAbsolute<L, L> {
         }
     }
 }
-
-// impl<const W: u16, const H: u16> TryFrom<usize> for Qa<W, H> {
-//     type Error = GridError;
-
-//     fn try_from(value: usize) -> Result<Self, Self::Error> {
-//         if value >= Self::SIZE {
-//             Err(GridError::OutOfBounds)
-//         } else {
-//             Ok(Self {
-//                 inner: value as u16,
-//             })
-//         }
-//     }
-// }
 
 impl<const W: u16, const H: u16> From<PointAbsolute<W, H>> for usize {
     fn from(val: PointAbsolute<W, H>) -> Self {

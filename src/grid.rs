@@ -5,8 +5,10 @@ use core::{
 
 use super::point_absolute::PointAbsolute;
 
+#[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Grid<T, const WIDTH: u16, const HEIGHT: u16, const SIZE: usize>([T; SIZE]);
+
 
 impl<T: Default + Copy, const W: u16, const H: u16, const SIZE: usize> Default
     for Grid<T, W, H, SIZE>
@@ -40,11 +42,13 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> Grid<T, W, H, SIZE> {
     const _ASSERTION1: usize = SIZE - ((W * H) as usize);
     const _ASSERTION2: usize = ((W * H) as usize) - SIZE;
 
+    #[must_use]
     #[inline]
     pub fn into_inner(self) -> [T; SIZE] {
         self.0
     }
 
+    #[must_use]
     #[inline]
     pub fn enumerate(&self) -> impl iter::Iterator<Item = (PointAbsolute<W, H>, &'_ T)> {
         self.0
@@ -74,16 +78,19 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> Grid<T, W, H, SIZE> {
         }
     }
 
+    #[must_use]
     #[inline]
     pub fn iter(&self) -> core::slice::Iter<'_, T> {
         self.0.iter()
     }
 
+    #[must_use]
     #[inline]
     pub fn iter_mut(&mut self) -> core::slice::IterMut<'_, T> {
         self.0.iter_mut()
     }
 
+    #[must_use]
     #[inline]
     pub fn row(&self, row: u16) -> &[T] {
         let start = row * W;
@@ -91,6 +98,7 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> Grid<T, W, H, SIZE> {
         &self.0[(start as usize)..(end as usize)]
     }
 
+    #[must_use]
     #[inline]
     pub fn row_mut(&mut self, row: u16) -> &mut [T] {
         let start = row * W;
@@ -98,6 +106,7 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> Grid<T, W, H, SIZE> {
         &mut self.0[(start as usize)..(end as usize)]
     }
 
+    #[must_use]
     pub fn column_iter(&self, column: u16) -> impl DoubleEndedIterator<Item = &T> + '_ {
         (0..H)
             .map(move |row| column + (row * W))
