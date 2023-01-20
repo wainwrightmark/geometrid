@@ -6,10 +6,10 @@ use core::{
 use super::absolute_coordinate::AbsoluteCoordinate;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct QGrid<T, const WIDTH: u16, const HEIGHT: u16, const SIZE: usize>([T; SIZE]);
+pub struct Grid<T, const WIDTH: u16, const HEIGHT: u16, const SIZE: usize>([T; SIZE]);
 
 impl<T: Default + Copy, const W: u16, const H: u16, const SIZE: usize> Default
-    for QGrid<T, W, H, SIZE>
+    for Grid<T, W, H, SIZE>
 {
     fn default() -> Self {
         Self([T::default(); SIZE])
@@ -17,7 +17,7 @@ impl<T: Default + Copy, const W: u16, const H: u16, const SIZE: usize> Default
 }
 
 impl<T, const W: u16, const H: u16, const SIZE: usize> Index<AbsoluteCoordinate<W, H>>
-    for QGrid<T, W, H, SIZE>
+    for Grid<T, W, H, SIZE>
 {
     type Output = T;
 
@@ -28,7 +28,7 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> Index<AbsoluteCoordinate<
 }
 
 impl<T, const W: u16, const H: u16, const SIZE: usize> IndexMut<AbsoluteCoordinate<W, H>>
-    for QGrid<T, W, H, SIZE>
+    for Grid<T, W, H, SIZE>
 {
     fn index_mut(&mut self, index: AbsoluteCoordinate<W, H>) -> &mut Self::Output {
         let u: usize = index.into();
@@ -36,7 +36,7 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> IndexMut<AbsoluteCoordina
     }
 }
 
-impl<T, const W: u16, const H: u16, const SIZE: usize> QGrid<T, W, H, SIZE> {
+impl<T, const W: u16, const H: u16, const SIZE: usize> Grid<T, W, H, SIZE> {
     const _ASSERTION1: usize = SIZE - ((W * H) as usize);
     const _ASSERTION2: usize = ((W * H) as usize) - SIZE;
 
@@ -105,14 +105,14 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> QGrid<T, W, H, SIZE> {
     }
 }
 
-impl<T, const W: u16, const H: u16, const SIZE: usize> AsRef<[T; SIZE]> for QGrid<T, W, H, SIZE> {
+impl<T, const W: u16, const H: u16, const SIZE: usize> AsRef<[T; SIZE]> for Grid<T, W, H, SIZE> {
     #[inline]
     fn as_ref(&self) -> &[T; SIZE] {
         &self.0
     }
 }
 
-impl<T, const W: u16, const H: u16, const SIZE: usize> AsMut<[T; SIZE]> for QGrid<T, W, H, SIZE> {
+impl<T, const W: u16, const H: u16, const SIZE: usize> AsMut<[T; SIZE]> for Grid<T, W, H, SIZE> {
     #[inline]
     fn as_mut(&mut self) -> &mut [T; SIZE] {
         &mut self.0
@@ -120,7 +120,7 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> AsMut<[T; SIZE]> for QGri
 }
 
 impl<'a, T, const W: u16, const H: u16, const SIZE: usize> IntoIterator
-    for &'a QGrid<T, W, H, SIZE>
+    for &'a Grid<T, W, H, SIZE>
 {
     type Item = &'a T;
     type IntoIter = core::slice::Iter<'a, T>;
@@ -131,7 +131,7 @@ impl<'a, T, const W: u16, const H: u16, const SIZE: usize> IntoIterator
 }
 
 impl<'a, T, const W: u16, const H: u16, const SIZE: usize> IntoIterator
-    for &'a mut QGrid<T, W, H, SIZE>
+    for &'a mut Grid<T, W, H, SIZE>
 {
     type Item = &'a mut T;
     type IntoIter = core::slice::IterMut<'a, T>;
@@ -141,7 +141,7 @@ impl<'a, T, const W: u16, const H: u16, const SIZE: usize> IntoIterator
     }
 }
 
-impl<T, const W: u16, const H: u16, const SIZE: usize> IntoIterator for QGrid<T, W, H, SIZE> {
+impl<T, const W: u16, const H: u16, const SIZE: usize> IntoIterator for Grid<T, W, H, SIZE> {
     type Item = T;
     type IntoIter = core::array::IntoIter<T, SIZE>;
     #[inline]
@@ -152,7 +152,7 @@ impl<T, const W: u16, const H: u16, const SIZE: usize> IntoIterator for QGrid<T,
 
 
 impl<T: fmt::Display, const W: u16, const H: u16, const SIZE: usize> fmt::Display
-    for QGrid<T, W, H, SIZE>
+    for Grid<T, W, H, SIZE>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut iter = self.0.iter().enumerate();
@@ -171,4 +171,30 @@ impl<T: fmt::Display, const W: u16, const H: u16, const SIZE: usize> fmt::Displa
 
         Ok(())
     }
+}
+
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+    use crate::rectangle::*;
+    use itertools::Itertools;
+
+    #[test]
+    fn basic_tests() {
+        let mut grid: Grid<usize, 3, 3, 9> = Grid::default();
+
+        for  (i, mut m) in grid.iter_mut().enumerate(){
+            *m = i;
+        }
+
+        for i in 0..9{
+            assert_eq!(grid[AbsoluteCoordinate::try_from_usize(i).unwrap()], i)
+        }
+
+        let str = grid.to_string();
+        assert_eq!(str, "0|1|2\n3|4|5\n6|7|8");
+    }
+
 }

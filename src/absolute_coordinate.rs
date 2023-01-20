@@ -5,6 +5,7 @@ pub struct AbsoluteCoordinate<const WIDTH: u16, const HEIGHT: u16> {
     inner: u16,
 }
 
+
 impl<const W: u16, const H: u16> fmt::Display for AbsoluteCoordinate<W, H> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({},{})", self.x(), self.y())
