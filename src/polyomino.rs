@@ -3,9 +3,9 @@ use itertools::Itertools;
 use strum::Display;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct Shape<const POINTS: usize>(pub [RelativeCoordinate; POINTS]);
+pub struct Polyomino<const POINTS: usize>(pub [RelativeCoordinate; POINTS]);
 
-impl<const P: usize> IntoIterator for Shape<P> {
+impl<const P: usize> IntoIterator for Polyomino<P> {
     type Item = RelativeCoordinate;
 
     type IntoIter = core::array::IntoIter<RelativeCoordinate, P>;
@@ -15,20 +15,20 @@ impl<const P: usize> IntoIterator for Shape<P> {
     }
 }
 
-impl Shape<1> {
+impl Polyomino<1> {
     pub const MONOMINO: Self = Self([RelativeCoordinate::ZERO]);
 }
 
-impl Shape<2> {
+impl Polyomino<2> {
     pub const DOMINO: Self = Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH]);
 }
 
-impl Shape<3> {
+impl Polyomino<3> {
     pub const I_TROMINO: Self = Self([RelativeCoordinate::EAST, RelativeCoordinate::ZERO, RelativeCoordinate::WEST]);
     pub const V_TROMINO: Self = Self([RelativeCoordinate::EAST, RelativeCoordinate::ZERO, RelativeCoordinate::NORTH]);
 }
 
-impl Shape<4> {
+impl Polyomino<4> {
     pub const I_TETROMINO: Self = Self([RelativeCoordinate::EAST, RelativeCoordinate::ZERO, RelativeCoordinate::WEST, RelativeCoordinate::WEST_TWO]);
     pub const O_TETROMINO: Self = Self([RelativeCoordinate::ZERO, RelativeCoordinate::EAST, RelativeCoordinate::NORTHEAST, RelativeCoordinate::NORTH]);
     pub const T_TETROMINO: Self = Self([RelativeCoordinate::EAST, RelativeCoordinate::ZERO, RelativeCoordinate::WEST, RelativeCoordinate::SOUTH]);
@@ -60,7 +60,7 @@ impl Shape<4> {
     pub const FREE_TETROMINO_NAMES: [&'static str; 5] = ["I", "O", "T", "L", "S"];
 }
 
-impl Shape<5> {
+impl Polyomino<5> {
     pub const F_PENTOMINO: Self = Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTHEAST, RelativeCoordinate::WEST, RelativeCoordinate::SOUTH]);
     pub const I_PENTOMINO: Self =
         Self([RelativeCoordinate::ZERO, RelativeCoordinate::NORTH, RelativeCoordinate::NORTH_TWO, RelativeCoordinate::SOUTH, RelativeCoordinate::SOUTH_TWO]);
@@ -110,7 +110,7 @@ pub trait PolyominoShape {
     fn first_point(&self) -> RelativeCoordinate;
 }
 
-impl<const P: usize> PolyominoShape for Shape<P> {
+impl<const P: usize> PolyominoShape for Polyomino<P> {
     type OutlineIter = OutlineIter<P>;
 
     fn draw_outline(&self) -> Self::OutlineIter {
@@ -258,26 +258,26 @@ impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-    use crate::rectangle_iter::*;
+    use crate::rectangle::*;
 
     #[test]
     fn test_basic_outlines() {
-        test_outline(&Shape::MONOMINO, "Square");
-        test_outline(&Shape::DOMINO, "Domino");
+        test_outline(&Polyomino::MONOMINO, "Square");
+        test_outline(&Polyomino::DOMINO, "Domino");
     }
 
     #[test]
     fn test_tetromino_outlines() {
-        for (shape, name) in Shape::TETROMINOS.iter().zip(Shape::TETROMINO_NAMES) {
+        for (shape, name) in Polyomino::TETROMINOS.iter().zip(Polyomino::TETROMINO_NAMES) {
             test_outline(shape, (name.to_string() + " tetromino").as_str())
         }
     }
 
     #[test]
     fn test_pentomino_outlines() {
-        for (shape, name) in Shape::FREE_PENTOMINOS
+        for (shape, name) in Polyomino::FREE_PENTOMINOS
             .iter()
-            .zip(Shape::FREE_PENTOMINO_NAMES)
+            .zip(Polyomino::FREE_PENTOMINO_NAMES)
         {
             test_outline(shape, (name.to_string() + " pentomino").as_str())
         }
@@ -285,9 +285,9 @@ mod tests {
 
     #[test]
     fn test_pentomino_rectangles(){
-        for (shape, name) in Shape::FREE_PENTOMINOS
+        for (shape, name) in Polyomino::FREE_PENTOMINOS
         .iter()
-        .zip(Shape::FREE_PENTOMINO_NAMES)
+        .zip(Polyomino::FREE_PENTOMINO_NAMES)
     {
         test_deconstruct_into_rectangles(shape, (name.to_string() + " pentomino rectangles").as_str())
     }
@@ -315,7 +315,7 @@ mod tests {
 
     
 
-    fn test_deconstruct_into_rectangles<const P : usize>(shape: &'static Shape<P>, name: &str) {
+    fn test_deconstruct_into_rectangles<const P : usize>(shape: &'static Polyomino<P>, name: &str) {
 
         let rectangles = shape.deconstruct_into_rectangles().collect_vec();
 

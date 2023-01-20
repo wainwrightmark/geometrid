@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use tinyvec::ArrayVec;
 
-use crate::{relative_coordinate::RelativeCoordinate, shape::Shape};
+use crate::{relative_coordinate::RelativeCoordinate, polyomino::Polyomino};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Rectangle {
@@ -13,12 +13,12 @@ pub struct Rectangle {
 
 /// Iterator for deconstructing polyominos to rectangles
 pub struct RectangleIter<const P: usize> {
-    shape: Shape<P>,
+    shape: Polyomino<P>,
     remaining_points: ArrayVec<[RelativeCoordinate; P]>,
 }
 
-impl<const P: usize> From<Shape<P>> for RectangleIter<P> {
-    fn from(shape: Shape<P>) -> Self {
+impl<const P: usize> From<Polyomino<P>> for RectangleIter<P> {
+    fn from(shape: Polyomino<P>) -> Self {
         Self { shape, remaining_points: ArrayVec::from(shape.0) }
     }
 }
@@ -81,7 +81,7 @@ impl<const P: usize> Iterator for RectangleIter<P> {
     }
 }
 
-impl<const P: usize> Shape<P> {
+impl<const P: usize> Polyomino<P> {
     pub fn deconstruct_into_rectangles(&self) -> impl Iterator<Item = Rectangle> {
         RectangleIter::from(self.clone())
     }

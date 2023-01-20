@@ -34,6 +34,6 @@
 //! [crates.io]: https://crates.io/crates/geometrid
 //! [`README.md`]: https://github.com/wainwrightmark/geometrid
 
-pub mod shape;
+pub mod polyomino;
 pub mod relative_coordinate;
-pub mod rectangle_iter;
+pub mod rectangle;
