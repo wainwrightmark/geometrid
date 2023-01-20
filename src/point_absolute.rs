@@ -2,9 +2,7 @@ use core::{fmt, ops::Add};
 
 #[must_use]
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)] //TODO make inner type generic
-pub struct PointAbsolute<const WIDTH: u16, const HEIGHT: u16> {
-    inner: u16,
-}
+pub struct PointAbsolute<const WIDTH: u16, const HEIGHT: u16>(u16);
 
 
 impl<const W: u16, const H: u16> fmt::Display for PointAbsolute<W, H> {
@@ -34,7 +32,7 @@ impl<const W: u16, const H: u16> PointAbsolute<W, H> {
     #[must_use]
     #[inline]
     const fn new_unchecked(x: u16, y: u16) -> Self {
-        Self { inner: x + (W * y) }
+        Self(x + (W * y))
     }
 
     #[must_use]
@@ -50,7 +48,7 @@ impl<const W: u16, const H: u16> PointAbsolute<W, H> {
     #[must_use]
     pub const fn try_from_usize(value: usize)-> Option<Self>{
         if value < Self::SIZE{
-            Some(Self{inner: value as u16})
+            Some(Self(value as u16))
         }else{
             None
         }
@@ -58,24 +56,24 @@ impl<const W: u16, const H: u16> PointAbsolute<W, H> {
 
     #[must_use]
     pub const fn try_next(&self) -> Option<Self> {
-        let new_index = self.inner + 1;
+        let new_index = self.0 + 1;
         if new_index >= W * H {
             None
         } else {
-            Some(Self { inner: new_index })
+            Some(Self(new_index))
         }
     }
 
     #[must_use]
     #[inline]
     pub const fn x(&self) -> u16 {
-        self.inner % W
+        self.0 % W
     }
 
     #[must_use]
     #[inline]
     pub const fn y(&self) -> u16 {
-        self.inner / W
+        self.0 / W
     }
 
     #[must_use]
@@ -154,13 +152,13 @@ impl<const L: u16> PointAbsolute<L, L> {
 
 impl<const W: u16, const H: u16> From<PointAbsolute<W, H>> for usize {
     fn from(val: PointAbsolute<W, H>) -> Self {
-        val.inner as usize
+        val.0 as usize
     }
 }
 
 impl<const W: u16, const H: u16> From<&PointAbsolute<W, H>> for usize {
     fn from(val: &PointAbsolute<W, H>) -> Self {
-        val.inner as usize
+        val.0 as usize
     }
 }
 
