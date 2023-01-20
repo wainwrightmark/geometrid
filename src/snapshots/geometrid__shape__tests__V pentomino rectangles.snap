@@ -1,0 +1,18 @@
+---
+source: src/shape.rs
+expression: rectangles
+---
+[
+    Rectangle {
+        x: -2,
+        y: 0,
+        width: 3,
+        height: 1,
+    },
+    Rectangle {
+        x: 0,
+        y: -2,
+        width: 1,
+        height: 2,
+    },
+]

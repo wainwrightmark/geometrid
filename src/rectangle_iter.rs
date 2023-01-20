@@ -4,10 +4,10 @@ use crate::{relative_coordinate::RelativeCoordinate, shape::Shape};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Rectangle{
-    pub min_x: i16,
-    pub max_x: i16,
-    pub min_y: i16,
-    pub max_y: i16,
+    pub x: i16,
+    pub y: i16,
+    pub width: u16,
+    pub height: u16,
 }
 
 
@@ -60,7 +60,9 @@ impl<const P: usize> Shape<P> {
                 break 'outer;
             }
 
-            results.push(Rectangle{min_x, max_x,  min_y,max_y});
+            let width = (max_x + 1 - min_x) as u16;
+            let height = (max_y + 1 - min_y) as u16;
+            results.push(Rectangle{x: min_x, y:min_y, width, height});
         }
 
         results
