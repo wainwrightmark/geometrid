@@ -26,7 +26,7 @@
 //! }
 //! ```
 //!
-//! ## Readme Docs
+//! ## Readme DocsLine
 //!
 //! You can find the crate's readme documentation on the
 //! [crates.io] page, or alternatively in the [`README.md`] file on the GitHub project repo.
@@ -35,8 +35,33 @@
 //! [`README.md`]: https://github.com/wainwrightmark/geometrid
 
 pub mod grid;
+pub mod line_finder;
 pub mod point_absolute;
 pub mod point_relative;
 pub mod polyomino;
 pub mod rectangle;
-pub mod line_finder;
+
+pub mod prelude8 {
+    use crate::grid::Grid8;
+    use crate::line_finder::Line8;
+    use crate::point_absolute::PointAbsolute8;
+    use crate::point_relative::PointRelative8;
+}
+pub mod prelude16 {
+    use crate::grid::Grid16;
+    use crate::line_finder::Line16;
+    use crate::point_absolute::PointAbsolute16;
+    use crate::point_relative::PointRelative16;
+}
+pub mod prelude32 {
+    use crate::grid::Grid32;
+    use crate::line_finder::Line32;
+    use crate::point_absolute::PointAbsolute32;
+    use crate::point_relative::PointRelative32;
+}
+pub mod prelude64 {
+    use crate::grid::Grid64;
+    use crate::line_finder::Line64;
+    use crate::point_absolute::PointAbsolute64;
+    use crate::point_relative::PointRelative64;
+}
