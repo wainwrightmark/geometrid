@@ -223,6 +223,16 @@ point_relative!(PointRelative16, i16);
 point_relative!(PointRelative8, i8);
 
 point_add!(PointAbsolute64, PointRelative64, u64, i64);
+point_add!(PointAbsolute64, PointRelative32, u64, i32);
+point_add!(PointAbsolute64, PointRelative16, u64, i16);
+point_add!(PointAbsolute64, PointRelative8, u64, i8);
+
+
 point_add!(PointAbsolute32, PointRelative32, u32, i32);
+point_add!(PointAbsolute32, PointRelative16, u32, i16);
+point_add!(PointAbsolute32, PointRelative8, u32, i8);
+
 point_add!(PointAbsolute16, PointRelative16, u16, i16);
+point_add!(PointAbsolute16, PointRelative8, u16, i8);
+
 point_add!(PointAbsolute8, PointRelative8, u8, i8);
