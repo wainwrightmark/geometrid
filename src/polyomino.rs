@@ -1,13 +1,13 @@
-use super::point_relative::PointRelative;
+type PR = super::point_relative::PointRelative8;
 use strum::Display;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct Polyomino<const POINTS: usize>(pub [PointRelative; POINTS]);
+pub struct Polyomino<const POINTS: usize>(pub [PR; POINTS]);
 
 impl<const P: usize> IntoIterator for Polyomino<P> {
-    type Item = PointRelative;
+    type Item = PR;
 
-    type IntoIter = core::array::IntoIter<PointRelative, P>;
+    type IntoIter = core::array::IntoIter<PR, P>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -15,65 +15,65 @@ impl<const P: usize> IntoIterator for Polyomino<P> {
 }
 
 impl Polyomino<1> {
-    pub const MONOMINO: Self = Self([PointRelative::ZERO]);
+    pub const MONOMINO: Self = Self([PR::ZERO]);
 }
 
 impl Polyomino<2> {
-    pub const DOMINO: Self = Self([PointRelative::ZERO, PointRelative::UP]);
+    pub const DOMINO: Self = Self([PR::ZERO, PR::UP]);
 }
 
 impl Polyomino<3> {
     pub const I_TROMINO: Self = Self([
-        PointRelative::RIGHT,
-        PointRelative::ZERO,
-        PointRelative::LEFT,
+        PR::RIGHT,
+        PR::ZERO,
+        PR::LEFT,
     ]);
     pub const V_TROMINO: Self =
-        Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::UP]);
+        Self([PR::RIGHT, PR::ZERO, PR::UP]);
 }
 
 impl Polyomino<4> {
     pub const I_TETROMINO: Self = Self([
-        PointRelative::RIGHT,
-        PointRelative::ZERO,
-        PointRelative::LEFT,
-        PointRelative::LEFT.const_mul(2),
+        PR::RIGHT,
+        PR::ZERO,
+        PR::LEFT,
+        PR::LEFT.const_mul(2),
     ]);
     pub const O_TETROMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::RIGHT,
-        PointRelative::UP_RIGHT,
-        PointRelative::UP,
+        PR::ZERO,
+        PR::RIGHT,
+        PR::UP_RIGHT,
+        PR::UP,
     ]);
     pub const T_TETROMINO: Self = Self([
-        PointRelative::RIGHT,
-        PointRelative::ZERO,
-        PointRelative::LEFT,
-        PointRelative::DOWN,
+        PR::RIGHT,
+        PR::ZERO,
+        PR::LEFT,
+        PR::DOWN,
     ]);
     pub const J_TETROMINO: Self = Self([
-        PointRelative::LEFT,
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP.const_mul(2),
+        PR::LEFT,
+        PR::ZERO,
+        PR::UP,
+        PR::UP.const_mul(2),
     ]);
     pub const L_TETROMINO: Self = Self([
-        PointRelative::RIGHT,
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP.const_mul(2),
+        PR::RIGHT,
+        PR::ZERO,
+        PR::UP,
+        PR::UP.const_mul(2),
     ]);
     pub const S_TETROMINO: Self = Self([
-        PointRelative::LEFT,
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP_RIGHT,
+        PR::LEFT,
+        PR::ZERO,
+        PR::UP,
+        PR::UP_RIGHT,
     ]);
     pub const Z_TETROMINO: Self = Self([
-        PointRelative::RIGHT,
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP_LEFT,
+        PR::RIGHT,
+        PR::ZERO,
+        PR::UP,
+        PR::UP_LEFT,
     ]);
 
     pub const TETROMINOS: [Self; 7] = [
@@ -101,88 +101,88 @@ impl Polyomino<4> {
 
 impl Polyomino<5> {
     pub const F_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP_RIGHT,
-        PointRelative::LEFT,
-        PointRelative::DOWN,
+        PR::ZERO,
+        PR::UP,
+        PR::UP_RIGHT,
+        PR::LEFT,
+        PR::DOWN,
     ]);
     pub const I_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP.const_mul(2),
-        PointRelative::DOWN,
-        PointRelative::DOWN.const_mul(2),
+        PR::ZERO,
+        PR::UP,
+        PR::UP.const_mul(2),
+        PR::DOWN,
+        PR::DOWN.const_mul(2),
     ]);
     pub const L_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP.const_mul(2),
-        PointRelative::DOWN,
-        PointRelative::DOWN_RIGHT,
+        PR::ZERO,
+        PR::UP,
+        PR::UP.const_mul(2),
+        PR::DOWN,
+        PR::DOWN_RIGHT,
     ]);
     pub const N_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP.const_mul(2),
-        PointRelative::LEFT,
-        PointRelative::DOWN_LEFT,
+        PR::ZERO,
+        PR::UP,
+        PR::UP.const_mul(2),
+        PR::LEFT,
+        PR::DOWN_LEFT,
     ]);
     pub const P_PENTOMINO: Self = Self([
-        PointRelative::UP,
-        PointRelative::ZERO,
-        PointRelative::UP_RIGHT,
-        PointRelative::RIGHT,
-        PointRelative::DOWN,
+        PR::UP,
+        PR::ZERO,
+        PR::UP_RIGHT,
+        PR::RIGHT,
+        PR::DOWN,
     ]);
     pub const T_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP_RIGHT,
-        PointRelative::UP_LEFT,
-        PointRelative::DOWN,
+        PR::ZERO,
+        PR::UP,
+        PR::UP_RIGHT,
+        PR::UP_LEFT,
+        PR::DOWN,
     ]);
     pub const U_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::UP_RIGHT,
-        PointRelative::RIGHT,
-        PointRelative::UP_LEFT,
-        PointRelative::LEFT,
+        PR::ZERO,
+        PR::UP_RIGHT,
+        PR::RIGHT,
+        PR::UP_LEFT,
+        PR::LEFT,
     ]);
     pub const V_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP.const_mul(2),
-        PointRelative::LEFT,
-        PointRelative::LEFT.const_mul(2),
+        PR::ZERO,
+        PR::UP,
+        PR::UP.const_mul(2),
+        PR::LEFT,
+        PR::LEFT.const_mul(2),
     ]);
     pub const W_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::RIGHT,
-        PointRelative::UP_RIGHT,
-        PointRelative::DOWN,
-        PointRelative::DOWN_LEFT,
+        PR::ZERO,
+        PR::RIGHT,
+        PR::UP_RIGHT,
+        PR::DOWN,
+        PR::DOWN_LEFT,
     ]);
     pub const X_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::RIGHT,
-        PointRelative::DOWN,
-        PointRelative::LEFT,
+        PR::ZERO,
+        PR::UP,
+        PR::RIGHT,
+        PR::DOWN,
+        PR::LEFT,
     ]);
     pub const Y_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::RIGHT,
-        PointRelative::LEFT,
-        PointRelative::LEFT.const_mul(2),
+        PR::ZERO,
+        PR::UP,
+        PR::RIGHT,
+        PR::LEFT,
+        PR::LEFT.const_mul(2),
     ]);
     pub const Z_PENTOMINO: Self = Self([
-        PointRelative::ZERO,
-        PointRelative::UP,
-        PointRelative::UP_LEFT,
-        PointRelative::DOWN,
-        PointRelative::DOWN_RIGHT,
+        PR::ZERO,
+        PR::UP,
+        PR::UP_LEFT,
+        PR::DOWN,
+        PR::DOWN_RIGHT,
     ]);
 
     pub const FREE_PENTOMINOS: [Self; 12] = [
@@ -205,12 +205,12 @@ impl Polyomino<5> {
 }
 
 pub trait PolyominoShape {
-    type OutlineIter: Iterator<Item = PointRelative>;
+    type OutlineIter: Iterator<Item = PR>;
     fn draw_outline(&self) -> Self::OutlineIter;
 
     fn get_centre(&self) -> (f32, f32);
 
-    fn first_point(&self) -> PointRelative;
+    fn first_point(&self) -> PR;
 }
 
 impl<const P: usize> PolyominoShape for Polyomino<P> {
@@ -240,14 +240,14 @@ impl<const P: usize> PolyominoShape for Polyomino<P> {
         )
     }
 
-    fn first_point(&self) -> PointRelative {
+    fn first_point(&self) -> PR {
         self.0[0]
     }
 }
 
 pub struct OutlineIter<const POINTS: usize> {
-    arr: [PointRelative; POINTS],
-    next: Option<(PointRelative, Corner)>,
+    arr: [PR; POINTS],
+    next: Option<(PR, Corner)>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Display)]
@@ -259,12 +259,12 @@ enum Corner {
 }
 
 impl Corner {
-    pub fn clockwise_direction(&self) -> PointRelative {
+    pub fn clockwise_direction(&self) -> PR {
         match self {
-            Corner::NorthWest => PointRelative::UP,
-            Corner::NorthEast => PointRelative::RIGHT,
-            Corner::SouthEast => PointRelative::DOWN,
-            Corner::SouthWest => PointRelative::LEFT,
+            Corner::NorthWest => PR::UP,
+            Corner::NorthEast => PR::RIGHT,
+            Corner::SouthEast => PR::DOWN,
+            Corner::SouthWest => PR::LEFT,
         }
     }
 
@@ -288,21 +288,21 @@ impl Corner {
         }
     }
 
-    pub fn direction_of_northwest_corner(&self) -> PointRelative {
+    pub fn direction_of_northwest_corner(&self) -> PR {
         match self {
-            Corner::NorthWest => PointRelative::ZERO,
-            Corner::NorthEast => PointRelative::RIGHT,
-            Corner::SouthEast => PointRelative::DOWN_RIGHT,
-            Corner::SouthWest => PointRelative::DOWN,
+            Corner::NorthWest => PR::ZERO,
+            Corner::NorthEast => PR::RIGHT,
+            Corner::SouthEast => PR::DOWN_RIGHT,
+            Corner::SouthWest => PR::DOWN,
         }
     }
 }
 
 impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
-    type Item = PointRelative;
+    type Item = PR;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut direction_so_far: Option<PointRelative> = None;
+        let mut direction_so_far: Option<PR> = None;
         let (coordinate_to_return, corner_to_return) = self.next?;
 
         let mut next_coordinate = coordinate_to_return;

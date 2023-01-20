@@ -60,8 +60,8 @@ macro_rules! point_absolute {
             #[inline]
             pub fn try_from_usize(inner: usize) -> Option<Self> {
                 let Ok(inner) = inner.try_into() else{
-                    return None;
-                };
+                            return None;
+                        };
 
                 Self::try_from_inner(inner)
             }
@@ -186,21 +186,6 @@ macro_rules! point_absolute {
             }
         }
 
-        impl<const W: $inner, const H: $inner> Add<super::point_relative::PointRelative>
-            for $name<W, H>
-        {
-            type Output = Option<Self>;
-
-            fn add(self, rhs: super::point_relative::PointRelative) -> Self::Output {
-                let x = (self.x() as i16) + rhs.x();
-                let y = (self.y() as i16) + rhs.y();
-                if x >= 0 && y >= 0 {
-                    Self::try_new(x as $inner, y as $inner)
-                } else {
-                    None
-                }
-            }
-        }
     };
 }
 
@@ -208,4 +193,3 @@ point_absolute!(PointAbsolute64, u64);
 point_absolute!(PointAbsolute32, u32);
 point_absolute!(PointAbsolute16, u16);
 point_absolute!(PointAbsolute8, u8);
-

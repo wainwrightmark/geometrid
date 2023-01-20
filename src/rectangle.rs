@@ -1,20 +1,20 @@
 use itertools::Itertools;
 use tinyvec::ArrayVec;
 
-use crate::{point_relative::PointRelative, polyomino::Polyomino};
+use crate::{point_relative::PointRelative8, polyomino::Polyomino};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Rectangle {
-    pub x: i16,
-    pub y: i16,
-    pub width: u16,
-    pub height: u16,
+    pub x: i8,
+    pub y: i8,
+    pub width: u8,
+    pub height: u8,
 }
 
 /// Iterator for deconstructing polyominos to rectangles
 pub struct RectangleIter<const P: usize> {
     shape: Polyomino<P>,
-    remaining_points: ArrayVec<[PointRelative; P]>,
+    remaining_points: ArrayVec<[PointRelative8; P]>,
 }
 
 impl<const P: usize> From<Polyomino<P>> for RectangleIter<P> {
@@ -54,7 +54,7 @@ impl<const P: usize> Iterator for RectangleIter<P> {
         'outer: loop {
             for is_max in [false, true] {
                 let y = if is_max { max_y + 1 } else { min_y - 1 };
-                let condition = |p2: &&PointRelative| p2.y() == y && range.contains(&p2.x());
+                let condition = |p2: &&PointRelative8| p2.y() == y && range.contains(&p2.x());
                 if self.remaining_points.iter().filter(condition).count() == range.len() {
                     while let Some((position, _)) =
                         self.remaining_points.iter().find_position(condition)
@@ -73,8 +73,8 @@ impl<const P: usize> Iterator for RectangleIter<P> {
             break 'outer;
         }
 
-        let width = (max_x + 1 - min_x) as u16;
-        let height = (max_y + 1 - min_y) as u16;
+        let width = (max_x + 1 - min_x) as u8;
+        let height = (max_y + 1 - min_y) as u8;
         Some(Rectangle {
             x: min_x,
             y: min_y,
