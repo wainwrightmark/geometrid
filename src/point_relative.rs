@@ -19,7 +19,7 @@ impl core::fmt::Display for PointRelative {
             let name = PointRelative::UNIT_NAMES[index];
             write!(f, "{name}")
         } else {
-            f.debug_struct("RelativeCoordinate")
+            f.debug_struct("PointRelative")
                 .field("x", &self.x)
                 .field("y", &self.y)
                 .finish()
@@ -29,40 +29,36 @@ impl core::fmt::Display for PointRelative {
 
 impl PointRelative {
     pub const ZERO: Self = Self { x: 0, y: 0 };
-    pub const NORTH: Self = Self { x: 0, y: -1 };
-    pub const NORTH_TWO: Self = Self { x: 0, y: -2 };
-    pub const NORTHEAST: Self = Self { x: 1, y: -1 };
-    pub const EAST: Self = Self { x: 1, y: 0 };
-    pub const EAST_TWO: Self = Self { x: 2, y: 0 };
-    pub const SOUTHEAST: Self = Self { x: 1, y: 1 };
-    pub const SOUTH: Self = Self { x: 0, y: 1 };
-    pub const SOUTH_TWO: Self = Self { x: 0, y: 2 };
-    pub const SOUTHWEST: Self = Self { x: -1, y: 1 };
-    pub const WEST: Self = Self { x: -1, y: 0 };
-    pub const WEST_TWO: Self = Self { x: -2, y: 0 };
-    pub const NORTHWEST: Self = Self { x: -1, y: -1 };
+    pub const UP: Self = Self { x: 0, y: -1 };
+    pub const UP_RIGHT: Self = Self { x: 1, y: -1 };
+    pub const RIGHT: Self = Self { x: 1, y: 0 };
+    pub const DOWN_RIGHT: Self = Self { x: 1, y: 1 };
+    pub const DOWN: Self = Self { x: 0, y: 1 };
+    pub const DOWN_LEFT: Self = Self { x: -1, y: 1 };
+    pub const LEFT: Self = Self { x: -1, y: 0 };
+    pub const UP_LEFT: Self = Self { x: -1, y: -1 };
 
-    pub const CARDINALS: [Self; 4] = [Self::NORTH, Self::EAST, Self::SOUTH, Self::WEST];
+    pub const CARDINALS: [Self; 4] = [Self::UP, Self::RIGHT, Self::DOWN, Self::LEFT];
     pub const UNITS: [Self; 8] = [
-        Self::NORTH,
-        Self::NORTHEAST,
-        Self::EAST,
-        Self::SOUTHEAST,
-        Self::SOUTH,
-        Self::SOUTHWEST,
-        Self::WEST,
-        Self::NORTHWEST,
+        Self::UP,
+        Self::UP_RIGHT,
+        Self::RIGHT,
+        Self::DOWN_RIGHT,
+        Self::DOWN,
+        Self::DOWN_LEFT,
+        Self::LEFT,
+        Self::UP_LEFT,
     ];
 
     pub const UNIT_NAMES: [&'static str; 8] = [
-        "North",
-        "North East",
-        "East",
-        "South East",
-        "South",
-        "South West",
-        "West",
-        "North West",
+        "Up",
+        "Up Right",
+        "Right",
+        "Down Right",
+        "Down",
+        "Down Left",
+        "Left",
+        "Up Left",
     ];
 
     #[inline]
@@ -94,7 +90,7 @@ impl PointRelative {
     pub const fn is_diagonal(&self) -> bool {
         self.x != 0 && self.y != 0
     }
-    /// Flip the direction: N -> S, E -> W, etc.
+    /// Flip the direction: Up -> Down, Left -> Right, etc.
     #[inline]
     pub fn flip(&self) -> Self {
         Self {
@@ -110,6 +106,14 @@ impl PointRelative {
             2 => Self::new(-self.x(), -self.y()),
             3 => Self::new(-self.y(), self.x()),
             _ => *self,
+        }
+    }
+
+    #[inline]
+    pub const fn const_mul(self, rhs: isize) -> Self {
+        Self {
+            x: self.x * (rhs as i16),
+            y: self.y * (rhs as i16),
         }
     }
 }
@@ -161,13 +165,10 @@ impl Mul<i16> for PointRelative {
     }
 }
 
-// impl Mul<usize> for RelativeCoordinate {
-//     type Output = RelativeCoordinate;
+impl Mul<isize> for PointRelative {
+    type Output = PointRelative;
 
-//     fn mul(self, rhs: usize) -> Self::Output {
-//         Self {
-//             x: self.x * (rhs as i16),
-//             y: self.y * (rhs as i16),
-//         }
-//     }
-// }
+    fn mul(self, rhs: isize) -> Self::Output {
+        self.const_mul(rhs)
+    }
+}

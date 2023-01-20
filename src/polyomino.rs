@@ -19,22 +19,22 @@ impl Polyomino<1> {
 }
 
 impl Polyomino<2> {
-    pub const DOMINO: Self = Self([PointRelative::ZERO, PointRelative::NORTH]);
+    pub const DOMINO: Self = Self([PointRelative::ZERO, PointRelative::UP]);
 }
 
 impl Polyomino<3> {
-    pub const I_TROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::WEST]);
-    pub const V_TROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::NORTH]);
+    pub const I_TROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::LEFT]);
+    pub const V_TROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::UP]);
 }
 
 impl Polyomino<4> {
-    pub const I_TETROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::WEST, PointRelative::WEST_TWO]);
-    pub const O_TETROMINO: Self = Self([PointRelative::ZERO, PointRelative::EAST, PointRelative::NORTHEAST, PointRelative::NORTH]);
-    pub const T_TETROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::WEST, PointRelative::SOUTH]);
-    pub const J_TETROMINO: Self = Self([PointRelative::WEST, PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO]);
-    pub const L_TETROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO]);
-    pub const S_TETROMINO: Self = Self([PointRelative::WEST, PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTHEAST]);
-    pub const Z_TETROMINO: Self = Self([PointRelative::EAST, PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTHWEST]);
+    pub const I_TETROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::LEFT, PointRelative::LEFT.const_mul(2)]);
+    pub const O_TETROMINO: Self = Self([PointRelative::ZERO, PointRelative::RIGHT, PointRelative::UP_RIGHT, PointRelative::UP]);
+    pub const T_TETROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::LEFT, PointRelative::DOWN]);
+    pub const J_TETROMINO: Self = Self([PointRelative::LEFT, PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2)]);
+    pub const L_TETROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2)]);
+    pub const S_TETROMINO: Self = Self([PointRelative::LEFT, PointRelative::ZERO, PointRelative::UP, PointRelative::UP_RIGHT]);
+    pub const Z_TETROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::UP, PointRelative::UP_LEFT]);
 
     pub const TETROMINOS: [Self; 7] = [
         Self::I_TETROMINO,
@@ -60,26 +60,26 @@ impl Polyomino<4> {
 }
 
 impl Polyomino<5> {
-    pub const F_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTHEAST, PointRelative::WEST, PointRelative::SOUTH]);
+    pub const F_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP_RIGHT, PointRelative::LEFT, PointRelative::DOWN]);
     pub const I_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO, PointRelative::SOUTH, PointRelative::SOUTH_TWO]);
+        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2), PointRelative::DOWN, PointRelative::DOWN.const_mul(2)]);
     pub const L_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO, PointRelative::SOUTH, PointRelative::SOUTHEAST]);
+        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2), PointRelative::DOWN, PointRelative::DOWN_RIGHT]);
     pub const N_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO, PointRelative::WEST, PointRelative::SOUTHWEST]);
-    pub const P_PENTOMINO: Self = Self([PointRelative::NORTH, PointRelative::ZERO, PointRelative::NORTHEAST, PointRelative::EAST, PointRelative::SOUTH]);
+        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2), PointRelative::LEFT, PointRelative::DOWN_LEFT]);
+    pub const P_PENTOMINO: Self = Self([PointRelative::UP, PointRelative::ZERO, PointRelative::UP_RIGHT, PointRelative::RIGHT, PointRelative::DOWN]);
     pub const T_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTHEAST, PointRelative::NORTHWEST, PointRelative::SOUTH]);
+        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP_RIGHT, PointRelative::UP_LEFT, PointRelative::DOWN]);
     pub const U_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::NORTHEAST, PointRelative::EAST, PointRelative::NORTHWEST, PointRelative::WEST]);
+        Self([PointRelative::ZERO, PointRelative::UP_RIGHT, PointRelative::RIGHT, PointRelative::UP_LEFT, PointRelative::LEFT]);
     pub const V_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTH_TWO, PointRelative::WEST, PointRelative::WEST_TWO]);
+        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2), PointRelative::LEFT, PointRelative::LEFT.const_mul(2)]);
     pub const W_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::EAST, PointRelative::NORTHEAST, PointRelative::SOUTH, PointRelative::SOUTHWEST]);
-    pub const X_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::EAST, PointRelative::SOUTH, PointRelative::WEST]);
-    pub const Y_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::EAST, PointRelative::WEST, PointRelative::WEST_TWO]);
+        Self([PointRelative::ZERO, PointRelative::RIGHT, PointRelative::UP_RIGHT, PointRelative::DOWN, PointRelative::DOWN_LEFT]);
+    pub const X_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::UP, PointRelative::RIGHT, PointRelative::DOWN, PointRelative::LEFT]);
+    pub const Y_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::UP, PointRelative::RIGHT, PointRelative::LEFT, PointRelative::LEFT.const_mul(2)]);
     pub const Z_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::NORTH, PointRelative::NORTHWEST, PointRelative::SOUTH, PointRelative::SOUTHEAST]);
+        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP_LEFT, PointRelative::DOWN, PointRelative::DOWN_RIGHT]);
 
     pub const FREE_PENTOMINOS: [Self; 12] = [
         Self::F_PENTOMINO,
@@ -157,10 +157,10 @@ enum Corner {
 impl Corner {
     pub fn clockwise_direction(&self) -> PointRelative {
         match self {
-            Corner::NorthWest => PointRelative::NORTH,
-            Corner::NorthEast => PointRelative::EAST,
-            Corner::SouthEast => PointRelative::SOUTH,
-            Corner::SouthWest => PointRelative::WEST,
+            Corner::NorthWest => PointRelative::UP,
+            Corner::NorthEast => PointRelative::RIGHT,
+            Corner::SouthEast => PointRelative::DOWN,
+            Corner::SouthWest => PointRelative::LEFT,
         }
     }
 
@@ -187,9 +187,9 @@ impl Corner {
     pub fn direction_of_northwest_corner(&self) -> PointRelative {
         match self {
             Corner::NorthWest => PointRelative::ZERO,
-            Corner::NorthEast => PointRelative::EAST,
-            Corner::SouthEast => PointRelative::SOUTHEAST,
-            Corner::SouthWest => PointRelative::SOUTH,
+            Corner::NorthEast => PointRelative::RIGHT,
+            Corner::SouthEast => PointRelative::DOWN_RIGHT,
+            Corner::SouthWest => PointRelative::DOWN,
         }
     }
 }

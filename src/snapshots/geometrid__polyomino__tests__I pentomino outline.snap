@@ -3,19 +3,19 @@ source: src/polyomino.rs
 expression: outline
 ---
 [
-    RelativeCoordinate {
+    PointRelative {
         x: 0,
         y: -2,
     },
-    RelativeCoordinate {
+    PointRelative {
         x: 1,
         y: -2,
     },
-    RelativeCoordinate {
+    PointRelative {
         x: 1,
         y: 3,
     },
-    RelativeCoordinate {
+    PointRelative {
         x: 0,
         y: 3,
     },
