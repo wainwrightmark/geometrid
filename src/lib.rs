@@ -1,4 +1,4 @@
-#![cfg_attr(not(any(test, feature = "std")), no_std)]
+// #![cfg_attr(not(any(test, feature = "std")), no_std)]
 #![doc(html_root_url = "https://docs.rs/geometrid/0.1.0")]
 // #![deny(missing_docs)]
 #![allow(warnings, dead_code, unused_imports, unused_mut)]
@@ -34,8 +34,8 @@
 //! [crates.io]: https://crates.io/crates/geometrid
 //! [`README.md`]: https://github.com/wainwrightmark/geometrid
 
-pub mod polyomino;
-pub mod point_relative;
-pub mod rectangle;
-pub mod point_absolute;
 pub mod grid;
+pub mod point_absolute;
+pub mod point_relative;
+pub mod polyomino;
+pub mod rectangle;

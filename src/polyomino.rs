@@ -23,18 +23,58 @@ impl Polyomino<2> {
 }
 
 impl Polyomino<3> {
-    pub const I_TROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::LEFT]);
-    pub const V_TROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::UP]);
+    pub const I_TROMINO: Self = Self([
+        PointRelative::RIGHT,
+        PointRelative::ZERO,
+        PointRelative::LEFT,
+    ]);
+    pub const V_TROMINO: Self =
+        Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::UP]);
 }
 
 impl Polyomino<4> {
-    pub const I_TETROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::LEFT, PointRelative::LEFT.const_mul(2)]);
-    pub const O_TETROMINO: Self = Self([PointRelative::ZERO, PointRelative::RIGHT, PointRelative::UP_RIGHT, PointRelative::UP]);
-    pub const T_TETROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::LEFT, PointRelative::DOWN]);
-    pub const J_TETROMINO: Self = Self([PointRelative::LEFT, PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2)]);
-    pub const L_TETROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2)]);
-    pub const S_TETROMINO: Self = Self([PointRelative::LEFT, PointRelative::ZERO, PointRelative::UP, PointRelative::UP_RIGHT]);
-    pub const Z_TETROMINO: Self = Self([PointRelative::RIGHT, PointRelative::ZERO, PointRelative::UP, PointRelative::UP_LEFT]);
+    pub const I_TETROMINO: Self = Self([
+        PointRelative::RIGHT,
+        PointRelative::ZERO,
+        PointRelative::LEFT,
+        PointRelative::LEFT.const_mul(2),
+    ]);
+    pub const O_TETROMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::RIGHT,
+        PointRelative::UP_RIGHT,
+        PointRelative::UP,
+    ]);
+    pub const T_TETROMINO: Self = Self([
+        PointRelative::RIGHT,
+        PointRelative::ZERO,
+        PointRelative::LEFT,
+        PointRelative::DOWN,
+    ]);
+    pub const J_TETROMINO: Self = Self([
+        PointRelative::LEFT,
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP.const_mul(2),
+    ]);
+    pub const L_TETROMINO: Self = Self([
+        PointRelative::RIGHT,
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP.const_mul(2),
+    ]);
+    pub const S_TETROMINO: Self = Self([
+        PointRelative::LEFT,
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP_RIGHT,
+    ]);
+    pub const Z_TETROMINO: Self = Self([
+        PointRelative::RIGHT,
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP_LEFT,
+    ]);
 
     pub const TETROMINOS: [Self; 7] = [
         Self::I_TETROMINO,
@@ -60,26 +100,90 @@ impl Polyomino<4> {
 }
 
 impl Polyomino<5> {
-    pub const F_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP_RIGHT, PointRelative::LEFT, PointRelative::DOWN]);
-    pub const I_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2), PointRelative::DOWN, PointRelative::DOWN.const_mul(2)]);
-    pub const L_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2), PointRelative::DOWN, PointRelative::DOWN_RIGHT]);
-    pub const N_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2), PointRelative::LEFT, PointRelative::DOWN_LEFT]);
-    pub const P_PENTOMINO: Self = Self([PointRelative::UP, PointRelative::ZERO, PointRelative::UP_RIGHT, PointRelative::RIGHT, PointRelative::DOWN]);
-    pub const T_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP_RIGHT, PointRelative::UP_LEFT, PointRelative::DOWN]);
-    pub const U_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::UP_RIGHT, PointRelative::RIGHT, PointRelative::UP_LEFT, PointRelative::LEFT]);
-    pub const V_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP.const_mul(2), PointRelative::LEFT, PointRelative::LEFT.const_mul(2)]);
-    pub const W_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::RIGHT, PointRelative::UP_RIGHT, PointRelative::DOWN, PointRelative::DOWN_LEFT]);
-    pub const X_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::UP, PointRelative::RIGHT, PointRelative::DOWN, PointRelative::LEFT]);
-    pub const Y_PENTOMINO: Self = Self([PointRelative::ZERO, PointRelative::UP, PointRelative::RIGHT, PointRelative::LEFT, PointRelative::LEFT.const_mul(2)]);
-    pub const Z_PENTOMINO: Self =
-        Self([PointRelative::ZERO, PointRelative::UP, PointRelative::UP_LEFT, PointRelative::DOWN, PointRelative::DOWN_RIGHT]);
+    pub const F_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP_RIGHT,
+        PointRelative::LEFT,
+        PointRelative::DOWN,
+    ]);
+    pub const I_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP.const_mul(2),
+        PointRelative::DOWN,
+        PointRelative::DOWN.const_mul(2),
+    ]);
+    pub const L_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP.const_mul(2),
+        PointRelative::DOWN,
+        PointRelative::DOWN_RIGHT,
+    ]);
+    pub const N_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP.const_mul(2),
+        PointRelative::LEFT,
+        PointRelative::DOWN_LEFT,
+    ]);
+    pub const P_PENTOMINO: Self = Self([
+        PointRelative::UP,
+        PointRelative::ZERO,
+        PointRelative::UP_RIGHT,
+        PointRelative::RIGHT,
+        PointRelative::DOWN,
+    ]);
+    pub const T_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP_RIGHT,
+        PointRelative::UP_LEFT,
+        PointRelative::DOWN,
+    ]);
+    pub const U_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::UP_RIGHT,
+        PointRelative::RIGHT,
+        PointRelative::UP_LEFT,
+        PointRelative::LEFT,
+    ]);
+    pub const V_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP.const_mul(2),
+        PointRelative::LEFT,
+        PointRelative::LEFT.const_mul(2),
+    ]);
+    pub const W_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::RIGHT,
+        PointRelative::UP_RIGHT,
+        PointRelative::DOWN,
+        PointRelative::DOWN_LEFT,
+    ]);
+    pub const X_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::RIGHT,
+        PointRelative::DOWN,
+        PointRelative::LEFT,
+    ]);
+    pub const Y_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::RIGHT,
+        PointRelative::LEFT,
+        PointRelative::LEFT.const_mul(2),
+    ]);
+    pub const Z_PENTOMINO: Self = Self([
+        PointRelative::ZERO,
+        PointRelative::UP,
+        PointRelative::UP_LEFT,
+        PointRelative::DOWN,
+        PointRelative::DOWN_RIGHT,
+    ]);
 
     pub const FREE_PENTOMINOS: [Self; 12] = [
         Self::F_PENTOMINO,
@@ -284,13 +388,16 @@ mod tests {
     }
 
     #[test]
-    fn test_pentomino_rectangles(){
+    fn test_pentomino_rectangles() {
         for (shape, name) in Polyomino::FREE_PENTOMINOS
-        .iter()
-        .zip(Polyomino::FREE_PENTOMINO_NAMES)
-    {
-        test_deconstruct_into_rectangles(shape, (name.to_string() + " pentomino rectangles").as_str())
-    }
+            .iter()
+            .zip(Polyomino::FREE_PENTOMINO_NAMES)
+        {
+            test_deconstruct_into_rectangles(
+                shape,
+                (name.to_string() + " pentomino rectangles").as_str(),
+            )
+        }
     }
 
     fn test_outline<P: PolyominoShape>(shape: &'static P, name: &str) {
@@ -313,10 +420,7 @@ mod tests {
         insta::assert_debug_snapshot!(name, outline);
     }
 
-
-
-    fn test_deconstruct_into_rectangles<const P : usize>(shape: &'static Polyomino<P>, name: &str) {
-
+    fn test_deconstruct_into_rectangles<const P: usize>(shape: &'static Polyomino<P>, name: &str) {
         let rectangles = shape.deconstruct_into_rectangles().collect_vec();
 
         insta::assert_debug_snapshot!(name, rectangles);

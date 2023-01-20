@@ -19,7 +19,10 @@ pub struct RectangleIter<const P: usize> {
 
 impl<const P: usize> From<Polyomino<P>> for RectangleIter<P> {
     fn from(shape: Polyomino<P>) -> Self {
-        Self { shape, remaining_points: ArrayVec::from(shape.0) }
+        Self {
+            shape,
+            remaining_points: ArrayVec::from(shape.0),
+        }
     }
 }
 
