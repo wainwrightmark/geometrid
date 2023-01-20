@@ -171,14 +171,14 @@ macro_rules! grid{
             for $name<T, W, H, SIZE>
         {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                let mut iter = self.0.iter().enumerate();
+                let iter = self.0.iter().enumerate();
 
                 for (i, e) in iter {
                     if i == 0 {
                     } else if i % (W as usize) == 0 {
-                        f.write_char('\n');
+                        f.write_char('\n')?;
                     } else {
-                        f.write_char('|');
+                        f.write_char('|')?;
                     }
 
                     e.fmt(f)?;
@@ -216,5 +216,8 @@ mod tests {
 
         let str = grid.to_string();
         assert_eq!(str, "0|1|2\n3|4|5\n6|7|8");
+
+        let s_flat = grid.iter().join("|");
+        assert_eq!(s_flat, "0|1|2|3|4|5|6|7|8");
     }
 }
