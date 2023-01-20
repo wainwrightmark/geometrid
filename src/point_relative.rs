@@ -183,6 +183,17 @@ macro_rules! point_relative {
                 self.const_mul(rhs)
             }
         }
+
+        impl Mul<usize> for $name {
+            type Output = $name;
+
+            fn mul(self, rhs: usize) -> Self::Output {
+                Self {
+                    x: self.x * (rhs as $inner),
+                    y: self.y * (rhs as $inner),
+                }
+            }
+        }
     };
 }
 

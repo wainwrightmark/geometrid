@@ -39,3 +39,4 @@ pub mod point_absolute;
 pub mod point_relative;
 pub mod polyomino;
 pub mod rectangle;
+pub mod line_finder;
