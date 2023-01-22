@@ -1,8 +1,14 @@
 type PR = super::point_relative::PointRelative8;
 use strum::Display;
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct Polyomino<const POINTS: usize>(pub [PR; POINTS]);
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct Polyomino<const POINTS: usize>(
+    #[cfg_attr(feature = "serde", serde(with = "serde_arrays"))]
+    pub [PR; POINTS]);
 
 impl<const P: usize> IntoIterator for Polyomino<P> {
     type Item = PR;

@@ -3,12 +3,16 @@ use core::{
     ops::{Add, Mul, Neg},
 };
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use crate::point_absolute::*;
 
 macro_rules! point_relative {
     ($name:ident, $inner:ty) => {
         #[must_use]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
+        #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
         pub struct $name {
             x: $inner,
             y: $inner,

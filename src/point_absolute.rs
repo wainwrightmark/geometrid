@@ -1,9 +1,13 @@
 use core::{fmt, ops::Add};
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 macro_rules! point_absolute {
     ($name:ident, $inner:ty) => {
         #[must_use]
         #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)] //TODO make inner type generic
+        #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
         pub struct $name<const WIDTH: $inner, const HEIGHT: $inner>($inner);
 
         impl<const W: $inner, const H: $inner> fmt::Display for $name<W, H> {

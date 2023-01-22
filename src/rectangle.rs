@@ -1,9 +1,13 @@
 use itertools::Itertools;
 use tinyvec::ArrayVec;
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize};
+
 use crate::{point_relative::PointRelative8, polyomino::Polyomino};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Rectangle {
     pub x: i8,
     pub y: i8,
