@@ -221,6 +221,18 @@ macro_rules! point_add {
     };
 }
 
+macro_rules! adjacent_positions {
+    ($absolute_name:ident, $relative_name:ident, $absolute_inner:ty) => {
+
+        impl<const W: $absolute_inner, const H: $absolute_inner> $absolute_name<W, H> {
+            #[must_use]
+            pub fn get_adjacent_positions<'a>(&'a self) -> impl Iterator<Item = Self> + 'a {
+                $relative_name:: UNITS.iter().filter_map(|x| self.add(*x))
+            }
+        }
+    };
+}
+
 point_relative!(PointRelative64, i64);
 point_relative!(PointRelative32, i32);
 point_relative!(PointRelative16, i16);
@@ -240,3 +252,9 @@ point_add!(PointAbsolute16, PointRelative16, u16, i16);
 point_add!(PointAbsolute16, PointRelative8, u16, i8);
 
 point_add!(PointAbsolute8, PointRelative8, u8, i8);
+
+
+adjacent_positions!(PointAbsolute64, PointRelative64, u64);
+adjacent_positions!(PointAbsolute32, PointRelative32, u32);
+adjacent_positions!(PointAbsolute16, PointRelative16, u16);
+adjacent_positions!(PointAbsolute8, PointRelative8, u8);

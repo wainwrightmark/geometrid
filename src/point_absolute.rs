@@ -1,7 +1,10 @@
 use core::{fmt, ops::Add};
 
-#[cfg(feature="serde")]
-use serde::{Serialize, Deserialize};
+use itertools::Itertools;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+use crate::point_relative::PointRelative8;
 
 macro_rules! point_absolute {
     ($name:ident, $inner:ty) => {
@@ -36,7 +39,7 @@ macro_rules! point_absolute {
 
             #[must_use]
             #[inline]
-            pub (crate) const fn new_unchecked(x: $inner, y: $inner) -> Self {
+            pub(crate) const fn new_unchecked(x: $inner, y: $inner) -> Self {
                 Self((x + (W * y)))
             }
 
@@ -64,8 +67,8 @@ macro_rules! point_absolute {
             #[inline]
             pub fn try_from_usize(inner: usize) -> Option<Self> {
                 let Ok(inner) = inner.try_into() else{
-                            return None;
-                        };
+                                    return None;
+                                };
 
                 Self::try_from_inner(inner)
             }
@@ -152,6 +155,29 @@ macro_rules! point_absolute {
 
                 (x, y)
             }
+
+            ///True if two coordinates are orthogonal or diagonal
+            #[must_use]
+            pub fn is_adjacent(self, other: Self) -> bool {
+                if self == other {
+                    return false;
+                };
+
+                self.y().abs_diff(other.y()) <= 1 && self.x().abs_diff(other.x()) <= 1
+            }
+
+            ///True if two coordinates are orthogonal (adjacent but not diagonal)
+            #[must_use]
+            pub fn is_orthogonal(self, other: Self) -> bool {
+                if self == other {
+                    return false;
+                };
+
+                let y_diff = self.y().abs_diff(other.y());
+                let x_diff = self.x().abs_diff(other.y());
+
+                y_diff <= 1 && x_diff <= 1 && (y_diff == 0 || x_diff == 0)
+            }
         }
 
         impl<const L: $inner> $name<L, L> {
@@ -190,7 +216,6 @@ macro_rules! point_absolute {
                 val.0 as usize
             }
         }
-
     };
 }
 
@@ -198,3 +223,5 @@ point_absolute!(PointAbsolute64, u64);
 point_absolute!(PointAbsolute32, u32);
 point_absolute!(PointAbsolute16, u16);
 point_absolute!(PointAbsolute8, u8);
+
+
