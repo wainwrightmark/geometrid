@@ -67,8 +67,8 @@ macro_rules! point_absolute {
             #[inline]
             pub fn try_from_usize(inner: usize) -> Option<Self> {
                 let Ok(inner) = inner.try_into() else{
-                                    return None;
-                                };
+                                            return None;
+                                        };
 
                 Self::try_from_inner(inner)
             }
@@ -178,6 +178,20 @@ macro_rules! point_absolute {
 
                 y_diff <= 1 && x_diff <= 1 && (y_diff == 0 || x_diff == 0)
             }
+
+            #[must_use]
+            pub fn points_by_row() -> impl Iterator<Item = Self> {
+                (0..H)
+                    .cartesian_product(0..W)
+                    .map(|(y, x)| Self::new_unchecked(x,y))
+            }
+
+            #[must_use]
+            pub fn points_by_col() -> impl Iterator<Item = Self> {
+                (0..W)
+                    .cartesian_product(0..H)
+                    .map(|(x, y)| Self::new_unchecked(x,y))
+            }
         }
 
         impl<const L: $inner> $name<L, L> {
@@ -224,4 +238,24 @@ point_absolute!(PointAbsolute32, u32);
 point_absolute!(PointAbsolute16, u16);
 point_absolute!(PointAbsolute8, u8);
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{point_absolute::*};
+    use itertools::Itertools;
 
+    #[test]
+    fn test_points_by_row() {
+        let str = PointAbsolute8::<3,4>::points_by_row().join("|");
+
+        assert_eq!("(0,0)|(1,0)|(2,0)|(0,1)|(1,1)|(2,1)|(0,2)|(1,2)|(2,2)|(0,3)|(1,3)|(2,3)", str)
+    }
+
+    #[test]
+    fn test_points_by_col() {
+        let str = PointAbsolute8::<3,4>::points_by_col().join("|");
+
+        assert_eq!("(0,0)|(0,1)|(0,2)|(0,3)|(1,0)|(1,1)|(1,2)|(1,3)|(2,0)|(2,1)|(2,2)|(2,3)", str)
+    }
+
+}
