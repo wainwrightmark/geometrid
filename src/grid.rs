@@ -3,7 +3,6 @@ use core::{
     iter,
     ops::{Index, IndexMut},
 };
-use std::mem::MaybeUninit;
 
 use crate::point_absolute::*;
 

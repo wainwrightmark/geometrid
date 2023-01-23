@@ -128,7 +128,7 @@ macro_rules! point_absolute {
                 dx + dy
             }
 
-            #[cfg(std)]
+            #[cfg(feature = "std")]
             #[inline]
             #[must_use]
             /// The angle to the other point, allowing diagonal moves
@@ -140,7 +140,7 @@ macro_rules! point_absolute {
                 (y_diff).atan2(x_diff).to_degrees()
             }
 
-            #[cfg(std)]
+            #[cfg(feature = "std")]
             #[inline]
             #[must_use]
             /// The distance to the other point, allowing diagonal moves
