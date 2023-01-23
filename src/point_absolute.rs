@@ -36,7 +36,7 @@ macro_rules! point_absolute {
 
             #[must_use]
             #[inline]
-            const fn new_unchecked(x: $inner, y: $inner) -> Self {
+            pub (crate) const fn new_unchecked(x: $inner, y: $inner) -> Self {
                 Self((x + (W * y)))
             }
 
@@ -136,6 +136,7 @@ macro_rules! point_absolute {
                 f32::sqrt((dx * dx) + (dy * dy))
             }
 
+            /// Get the length to multiply by to make the grid take up as much as possible of a given area
             #[must_use]
             pub fn get_length_multiplier(total_width: f32, total_height: f32) -> f32 {
                 let x_multiplier = total_width / W as f32;

@@ -3,6 +3,7 @@ use core::{
     iter,
     ops::{Index, IndexMut},
 };
+use std::mem::MaybeUninit;
 
 use crate::point_absolute::*;
 
@@ -15,9 +16,9 @@ macro_rules! grid {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
         #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
         pub struct $name<T, const WIDTH: $inner, const HEIGHT: $inner, const SIZE: usize>(
-            #[cfg_attr(feature = "serde",serde(with = "serde_arrays"))]
-            #[cfg_attr(feature = "serde",serde(bound(serialize = "T: Serialize")))]
-            #[cfg_attr(feature = "serde",serde(bound(deserialize = "T: Deserialize<'de>")))]
+            #[cfg_attr(feature = "serde", serde(with = "serde_arrays"))]
+            #[cfg_attr(feature = "serde", serde(bound(serialize = "T: Serialize")))]
+            #[cfg_attr(feature = "serde", serde(bound(deserialize = "T: Deserialize<'de>")))]
             pub [T; SIZE],
         );
 
@@ -29,8 +30,13 @@ macro_rules! grid {
             }
         }
 
-        impl<T, const W: $inner, const H: $inner, const SIZE: usize> $name<T, W, H, SIZE>
-        {
+        impl<T, const W: $inner, const H: $inner, const SIZE: usize> $name<T, W, H, SIZE> {
+
+
+            pub fn from_fn<F : FnMut($point_ty::<W, H>) -> T>(mut cb: F)->Self{
+                let arr = core::array::from_fn(|i| cb($point_ty::try_from_usize(i).unwrap()) );
+                Self(arr)
+            }
 
             #[must_use]
             #[inline]
@@ -50,9 +56,9 @@ macro_rules! grid {
             pub fn flip_horizontal(&mut self) {
                 for y in 0..H {
                     for x in 0..W / 2 {
-                        let qa1 = $point_ty::<W, H>::try_new(x, y).unwrap();
-                        let qa2 = qa1.flip_horizontal();
-                        self.0.swap(qa1.into(), qa2.into());
+                        let p1 = $point_ty::<W, H>::try_new(x, y).unwrap();
+                        let p2 = p1.flip_horizontal();
+                        self.swap(p1, p2);
                     }
                 }
             }
@@ -61,11 +67,15 @@ macro_rules! grid {
             pub fn flip_vertical(&mut self) {
                 for y in 0..H / 2 {
                     for x in 0..W {
-                        let qa1 = $point_ty::<W, H>::try_new(x, y).unwrap();
-                        let qa2 = qa1.flip_vertical();
-                        self.0.swap(qa1.into(), qa2.into());
+                        let p1 = $point_ty::<W, H>::try_new(x, y).unwrap();
+                        let p2 = p1.flip_vertical();
+                        self.swap(p1, p2);
                     }
                 }
+            }
+
+            pub fn swap(&mut self, p1: $point_ty<W, H>, p2: $point_ty<W, H>) {
+                self.0.swap(p1.into(), p2.into());
             }
 
             #[must_use]
@@ -101,6 +111,48 @@ macro_rules! grid {
                 (0..H)
                     .map(move |row| column + (row * W))
                     .map(|x| &self.0[x as usize])
+            }
+        }
+
+        impl<T, const L: $inner, const SIZE: usize> $name<T, L, L, SIZE> {
+            pub fn rotate_clockwise(&mut self) {
+                for row in 0..=(L / 2) {
+                    for column in row..=(L / 2) {
+                        let o_row = L - (1 + row);
+                        let o_column = L - (1 + column);
+                        if row != o_row || column != o_column {
+                            let p0 = $point_ty::new_unchecked(column, row);
+                            let p1 = $point_ty::new_unchecked(row, o_column);
+                            let p2 = $point_ty::new_unchecked(o_column, o_row);
+                            let p3 = $point_ty::new_unchecked(o_row, column);
+
+                            //0123
+                            self.swap(p0, p3); //3120
+                            self.swap(p0, p1); //1320
+                            self.swap(p1, p2); //1230
+                        }
+                    }
+                }
+            }
+
+            pub fn rotate_anticlockwise(&mut self) {
+                for row in 0..=(L / 2) {
+                    for column in row..=(L / 2) {
+                        let o_row = L - (1 + row);
+                        let o_column = L - (1 + column);
+                        if row != o_row || column != o_column {
+                            let p0 = $point_ty::new_unchecked(column, row);
+                            let p1 = $point_ty::new_unchecked(row, o_column);
+                            let p2 = $point_ty::new_unchecked(o_column, o_row);
+                            let p3 = $point_ty::new_unchecked(o_row, column);
+
+                            //0123
+                            self.swap(p1, p2); //0213
+                            self.swap(p0, p1); //2013
+                            self.swap(p0, p3); //3012
+                        }
+                    }
+                }
             }
         }
 
@@ -203,6 +255,7 @@ grid!(Grid32, PointAbsolute32, u32);
 grid!(Grid16, PointAbsolute16, u16);
 grid!(Grid8, PointAbsolute8, u8);
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -210,17 +263,53 @@ mod tests {
     use itertools::Itertools;
 
     #[test]
-    fn size_test(){
-        let grid: Grid8<usize,3,3,10> = Grid8::default();
+    fn rotate_clockwise_3() {
+        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x| x.into());
+
+        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
+        grid.rotate_clockwise();
+        assert_eq!(grid.to_string(), "6|3|0\n7|4|1\n8|5|2");
+        grid.rotate_clockwise();
+        assert_eq!(grid.to_string(), "8|7|6\n5|4|3\n2|1|0");
+        grid.rotate_clockwise();
+        assert_eq!(grid.to_string(), "2|5|8\n1|4|7\n0|3|6");
+        grid.rotate_clockwise();
+        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
+    }
+
+    #[test]
+    fn rotate_clockwise_4() {
+        let mut grid: Grid8<usize, 4, 4, 16> = Grid8::from_fn(|x| x.into());
+
+        assert_eq!(grid.to_string(), "0|1|2|3\n4|5|6|7\n8|9|10|11\n12|13|14|15");
+        grid.rotate_clockwise();
+        assert_eq!(grid.to_string(), "12|8|4|0\n13|6|10|1\n14|5|9|2\n15|11|7|3");
+        grid.rotate_clockwise();
+        assert_eq!(grid.to_string(), "15|14|13|12\n11|10|9|8\n7|6|5|4\n3|2|1|0");
+        grid.rotate_clockwise();
+        assert_eq!(grid.to_string(), "3|7|11|15\n2|9|5|14\n1|10|6|13\n0|4|8|12");
+        grid.rotate_clockwise();
+        assert_eq!(grid.to_string(), "0|1|2|3\n4|5|6|7\n8|9|10|11\n12|13|14|15");
+    }
+
+    #[test]
+    fn rotate_anticlockwise_3() {
+        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x| x.into());
+
+        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
+        grid.rotate_anticlockwise();
+        assert_eq!(grid.to_string(), "2|5|8\n1|4|7\n0|3|6");
+        grid.rotate_anticlockwise();
+        assert_eq!(grid.to_string(), "8|7|6\n5|4|3\n2|1|0");
+        grid.rotate_anticlockwise();
+        assert_eq!(grid.to_string(), "6|3|0\n7|4|1\n8|5|2");
+        grid.rotate_anticlockwise();
+        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
     }
 
     #[test]
     fn basic_tests() {
-        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::default();
-
-        for (i, mut m) in grid.iter_mut().enumerate() {
-            *m = i;
-        }
+        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x|x.into());
 
         for i in 0..9 {
             assert_eq!(grid[PointAbsolute8::<3, 3>::try_from_usize(i).unwrap()], i)
