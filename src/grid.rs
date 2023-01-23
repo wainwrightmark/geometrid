@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 macro_rules! grid {
     ($name:ident, $point_ty:ident, $inner:ty) => {
         #[must_use]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
         #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
         pub struct $name<T, const WIDTH: $inner, const HEIGHT: $inner, const SIZE: usize>(
             #[cfg_attr(feature = "serde",serde(with = "serde_arrays"))]
