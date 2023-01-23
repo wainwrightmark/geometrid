@@ -18,7 +18,7 @@ macro_rules! grid {
             #[cfg_attr(feature = "serde",serde(with = "serde_arrays"))]
             #[cfg_attr(feature = "serde",serde(bound(serialize = "T: Serialize")))]
             #[cfg_attr(feature = "serde",serde(bound(deserialize = "T: Deserialize<'de>")))]
-            [T; SIZE],
+            pub [T; SIZE],
         );
 
         impl<T: Default + Copy, const W: $inner, const H: $inner, const SIZE: usize> Default
@@ -29,11 +29,8 @@ macro_rules! grid {
             }
         }
 
-        impl<T, const W: $inner, const H: $inner, const SIZE: usize> $name<T, W, H, SIZE> {
-            const _ASSERT_SIZE_GTE_WIDTH_TIMES_HEIGHT: $inner =
-                SIZE as $inner - ((W * H) as $inner);
-            const _ASSERT_SIZE_LTE_WIDTH_TIMES_HEIGHT: $inner =
-                ((W * H) as $inner) - SIZE as $inner;
+        impl<T, const W: $inner, const H: $inner, const SIZE: usize> $name<T, W, H, SIZE>
+        {
 
             #[must_use]
             #[inline]
@@ -206,30 +203,16 @@ grid!(Grid32, PointAbsolute32, u32);
 grid!(Grid16, PointAbsolute16, u16);
 grid!(Grid8, PointAbsolute8, u8);
 
-// impl<T: Serialize, const W: u8, const H: u8, const SIZE: usize> Serialize for Grid8<T, W, H, SIZE> {
-//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-//     where
-//         S: serde::Serializer,
-//     {
-//         self.0.serialize(serializer)
-//     }
-// }
-
-// impl<'de, T: Deserialize<'de>, const W: u8, const H: u8, const SIZE: usize> Deserialize<'de> for Grid8<T, W, H, SIZE> {
-//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-//     where
-//         D: serde::Deserializer<'de> {
-//         let r  = <[_; SIZE] as Deserialize>::deserialize(deserializer)?;
-//         Ok(Self(r))
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
     use crate::{point_absolute::*, rectangle::*};
     use itertools::Itertools;
+
+    #[test]
+    fn size_test(){
+        let grid: Grid8<usize,3,3,10> = Grid8::default();
+    }
 
     #[test]
     fn basic_tests() {
