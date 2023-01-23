@@ -53,17 +53,20 @@ macro_rules! grid {
                     .map(|(inner, x)| ($point_ty::try_from_usize(inner).unwrap(), x))
             }
 
+            /// Flip along the y-axis.
+            /// Th leftmost column becomes the rightmost column
             pub fn flip_horizontal(&mut self) {
                 for y in 0..H {
                     for x in 0..W / 2 {
-                        let p1 = $point_ty::<W, H>::try_new(x, y).unwrap();
+                        let p1 = $point_ty::<W, H>::new_unchecked(x,y);
                         let p2 = p1.flip_horizontal();
                         self.swap(p1, p2);
                     }
                 }
             }
 
-            /// Flip all elements vertically.
+            /// Flip along the x axis.
+            /// The top row becomes the bottom row
             pub fn flip_vertical(&mut self) {
                 for y in 0..H / 2 {
                     for x in 0..W {
@@ -261,6 +264,24 @@ mod tests {
     use super::*;
     use crate::{point_absolute::*, rectangle::*};
     use itertools::Itertools;
+
+    #[test]
+    fn test_flip_vertical(){
+        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x| x.into());
+
+        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
+        grid.flip_vertical();
+        assert_eq!(grid.to_string(), "6|7|8\n3|4|5\n0|1|2");
+    }
+
+    #[test]
+    fn test_flip_horizontal(){
+        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x| x.into());
+
+        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
+        grid.flip_horizontal();
+        assert_eq!(grid.to_string(), "2|1|0\n5|4|3\n8|7|6");
+    }
 
     #[test]
     fn rotate_clockwise_3() {
