@@ -6,18 +6,17 @@ use core::{
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{tile::*, flippable::Flippable, rotatable::*,  primitive::*};
+use crate::prelude::*;
 
 use num_traits::{PrimInt, Zero, Signed, One};
 
-pub trait VectorInner: PrimInt + Neg + Zero + Signed + One {
+pub trait VectorInner: PrimInt + Neg + Zero + Signed + One + Into<f32> {
 }
 
 impl VectorInner for i8 {}
 impl VectorInner for i16 {}
-impl VectorInner for i32 {}
 
-pub trait Vector: Clone + Sized {
+pub trait Vector:Copy +  Clone + Sized + Add<Output = Self> {
     type Inner: VectorInner;
     #[must_use]
     fn x(&self) -> Self::Inner;
@@ -233,6 +232,15 @@ macro_rules! vector {
                     QuarterTurns::Two => Self::new(-self.x(), -self.y()),
                     QuarterTurns::Three =>Self::new(-self.y(), self.x()),
                 }
+            }
+        }
+
+        impl HasLocation for $name{
+            fn location(&self, scale: f32) -> Location {
+                let x = Into::<f32>::into(self.x()) * scale; 
+                let y = Into::<f32>::into(self.y()) * scale; 
+        
+                Location { x, y }
             }
         }
     };
