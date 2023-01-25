@@ -40,28 +40,37 @@ pub mod point_absolute;
 pub mod point_relative;
 pub mod polyomino;
 pub mod rectangle;
+pub mod location;
 
 pub mod prelude8 {
     pub use crate::grid::Grid8;
     pub use crate::line_finder::Line8;
     pub use crate::point_absolute::PointAbsolute8;
     pub use crate::point_relative::PointRelative8;
+
+    pub use crate::location::*;
 }
 pub mod prelude16 {
     pub use crate::grid::Grid16;
     pub use crate::line_finder::Line16;
     pub use crate::point_absolute::PointAbsolute16;
     pub use crate::point_relative::PointRelative16;
+
+    pub use crate::location::*;
 }
 pub mod prelude32 {
     pub use crate::grid::Grid32;
     pub use crate::line_finder::Line32;
     pub use crate::point_absolute::PointAbsolute32;
     pub use crate::point_relative::PointRelative32;
+
+    pub use crate::location::*;
 }
 pub mod prelude64 {
     pub use crate::grid::Grid64;
     pub use crate::line_finder::Line64;
     pub use crate::point_absolute::PointAbsolute64;
     pub use crate::point_relative::PointRelative64;
+
+    pub use crate::location::*;
 }

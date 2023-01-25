@@ -5,6 +5,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::point_relative::PointRelative8;
+use crate::location::*;
 
 macro_rules! point_absolute {
     ($name:ident, $inner:ty) => {
@@ -67,8 +68,8 @@ macro_rules! point_absolute {
             #[inline]
             pub fn try_from_usize(inner: usize) -> Option<Self> {
                 let Ok(inner) = inner.try_into() else{
-                                                    return None;
-                                                };
+                                                            return None;
+                                                        };
 
                 Self::try_from_inner(inner)
             }
@@ -128,44 +129,13 @@ macro_rules! point_absolute {
                 dx + dy
             }
 
-            #[cfg(feature = "std")]
-            #[inline]
+            /// Get the scale to make the grid take up as much as possible of a given area
             #[must_use]
-            /// The angle to the other point, allowing diagonal moves
-            /// Requires std
-            pub fn angle_to(&self, other: &Self) -> f32 {
-                let x_diff = other.x() as f32 - self.x() as f32;
-                let y_diff = other.y() as f32 - self.y() as f32;
-
-                (y_diff).atan2(x_diff).to_degrees()
-            }
-
-            #[cfg(feature = "std")]
-            #[inline]
-            #[must_use]
-            /// The distance to the other point, allowing diagonal moves
-            /// Requires std
-            pub fn distance(&self, other: &Self) -> f32 {
-                let dx: f32 = <$inner>::abs_diff(self.x(), other.x()) as f32;
-                let dy: f32 = <$inner>::abs_diff(self.y(), other.y()) as f32;
-                f32::sqrt((dx * dx) + (dy * dy))
-            }
-
-            /// Get the length to multiply by to make the grid take up as much as possible of a given area
-            #[must_use]
-            pub fn get_length_multiplier(total_width: f32, total_height: f32) -> f32 {
+            fn get_scale(total_width: f32, total_height: f32) -> f32 {
                 let x_multiplier = total_width / W as f32;
                 let y_multiplier = total_height / H as f32;
 
                 x_multiplier.min(y_multiplier)
-            }
-
-            #[must_use]
-            pub fn get_location(&self, multiplier: f32, x_ratio: f32, y_ratio: f32) -> (f32, f32) {
-                let x = multiplier * ((self.x() as f32) + x_ratio);
-                let y = multiplier * ((self.y() as f32) + y_ratio);
-
-                (x, y)
             }
 
             ///True if two coordinates are orthogonal or diagonal
@@ -219,6 +189,16 @@ macro_rules! point_absolute {
             }
         }
 
+        impl<const W: $inner, const H: $inner> HasLocation for $name<W, H> {
+            #[must_use]
+            fn location(&self, scale:f32) -> Location {
+                let x = scale * ((self.x() as f32) + 0.5);
+                let y = scale * ((self.y() as f32) + 0.5);
+
+                Location{x,y}
+            }
+        }
+        
         impl<const W: $inner, const H: $inner> From<$name<W, H>> for $inner {
             fn from(val: $name<W, H>) -> Self {
                 val.0 as $inner
