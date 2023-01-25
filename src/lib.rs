@@ -47,6 +47,7 @@ pub mod primitive;
 pub mod rotatable;
 pub mod flippable;
 pub mod shape;
+pub mod corner;
 
 pub mod prelude{
     pub use crate::flippable::*;
@@ -56,6 +57,7 @@ pub mod prelude{
     pub use crate::primitive::*;
     pub use crate::location::*;
     pub use crate::tile_grid::*;
+    pub use crate::corner::*;
 }
 
 // pub mod prelude8 {

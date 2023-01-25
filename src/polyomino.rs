@@ -228,7 +228,7 @@ impl<const P: usize> PolyominoShape for Polyomino<P> {
         arr.sort_unstable();
         OutlineIter {
             arr,
-            next: Some((arr[0], Corner::NorthWest)),
+            next: Some((arr[0], Corner::TopLeft)),
         }
     }
 
@@ -257,50 +257,44 @@ pub struct OutlineIter<const POINTS: usize> {
     next: Option<(PR, Corner)>,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Display)]
-enum Corner {
-    NorthWest,
-    NorthEast,
-    SouthEast,
-    SouthWest,
-}
+
 
 impl Corner {
     pub fn clockwise_direction(&self) -> PR {
         match self {
-            Corner::NorthWest => PR::UP,
-            Corner::NorthEast => PR::RIGHT,
-            Corner::SouthEast => PR::DOWN,
-            Corner::SouthWest => PR::LEFT,
+            Corner::TopLeft => PR::UP,
+            Corner::TopRight => PR::RIGHT,
+            Corner::BottomRight => PR::DOWN,
+            Corner::BottomLeft => PR::LEFT,
         }
     }
 
     pub fn clockwise(&self) -> Self {
         use Corner::*;
         match self {
-            Corner::NorthWest => NorthEast,
-            Corner::NorthEast => SouthEast,
-            Corner::SouthEast => SouthWest,
-            Corner::SouthWest => NorthWest,
+            Corner::TopLeft => TopRight,
+            Corner::TopRight => BottomRight,
+            Corner::BottomRight => BottomLeft,
+            Corner::BottomLeft => TopLeft,
         }
     }
 
     pub fn anticlockwise(&self) -> Self {
         use Corner::*;
         match self {
-            Corner::NorthWest => SouthWest,
-            Corner::NorthEast => NorthWest,
-            Corner::SouthEast => NorthEast,
-            Corner::SouthWest => SouthEast,
+            Corner::TopLeft => BottomLeft,
+            Corner::TopRight => TopLeft,
+            Corner::BottomRight => TopRight,
+            Corner::BottomLeft => BottomRight,
         }
     }
 
     pub fn direction_of_northwest_corner(&self) -> PR {
         match self {
-            Corner::NorthWest => PR::ZERO,
-            Corner::NorthEast => PR::RIGHT,
-            Corner::SouthEast => PR::DOWN_RIGHT,
-            Corner::SouthWest => PR::DOWN,
+            Corner::TopLeft => PR::ZERO,
+            Corner::TopRight => PR::RIGHT,
+            Corner::BottomRight => PR::DOWN_RIGHT,
+            Corner::BottomLeft => PR::DOWN,
         }
     }
 }
@@ -325,7 +319,7 @@ impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
                     if next_coordinate == coordinate_to_return {
                         panic!("Infinite loop found in shape.")
                     }
-                    if next_corner == Corner::NorthWest && next_coordinate == self.arr[0] {
+                    if next_corner == Corner::TopLeft && next_coordinate == self.arr[0] {
                         break 'line;
                     }
                 } else {
@@ -346,12 +340,12 @@ impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
                     }
                 }
             }
-            if next_corner == Corner::NorthWest && next_coordinate == self.arr[0] {
+            if next_corner == Corner::TopLeft && next_coordinate == self.arr[0] {
                 break 'line;
             }
         }
 
-        if next_corner == Corner::NorthWest && next_coordinate == self.arr[0] {
+        if next_corner == Corner::TopLeft && next_coordinate == self.arr[0] {
             self.next = None;
         } else {
             self.next = Some((next_coordinate, next_corner));
