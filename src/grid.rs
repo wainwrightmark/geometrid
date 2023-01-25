@@ -18,21 +18,22 @@ macro_rules! grid {
             #[cfg_attr(feature = "serde", serde(with = "serde_arrays"))]
             #[cfg_attr(feature = "serde", serde(bound(serialize = "T: Serialize")))]
             #[cfg_attr(feature = "serde", serde(bound(deserialize = "T: Deserialize<'de>")))]
-            pub [T; SIZE],
+            [T; SIZE],
         );
 
         impl<T: Default + Copy, const W: $inner, const H: $inner, const SIZE: usize> Default
             for $name<T, W, H, SIZE>
         {
             fn default() -> Self {
+                debug_assert!(SIZE == (W * H )as usize);
                 Self([T::default(); SIZE])
             }
         }
 
         impl<T, const W: $inner, const H: $inner, const SIZE: usize> $name<T, W, H, SIZE> {
-
-
+            #[must_use]
             pub fn from_fn<F : FnMut($point_ty::<W, H>) -> T>(mut cb: F)->Self{
+                debug_assert!(SIZE == (W * H )as usize);
                 let arr = core::array::from_fn(|i| cb($point_ty::try_from_usize(i).unwrap()) );
                 Self(arr)
             }
@@ -41,6 +42,13 @@ macro_rules! grid {
             #[inline]
             pub fn into_inner(self) -> [T; SIZE] {
                 self.0
+            }
+            
+            #[must_use]
+            #[inline]
+            pub fn from_inner(inner: [T; SIZE]) -> Self {
+                debug_assert!(SIZE == (W * H )as usize);
+                Self(inner)
             }
 
             #[must_use]
@@ -76,6 +84,7 @@ macro_rules! grid {
                 }
             }
 
+            #[inline]
             pub fn swap(&mut self, p1: $point_ty<W, H>, p2: $point_ty<W, H>) {
                 self.0.swap(p1.into(), p2.into());
             }
@@ -263,6 +272,12 @@ mod tests {
     use super::*;
     use crate::{point_absolute::*, rectangle::*};
     use itertools::Itertools;
+
+    #[test]
+    #[should_panic(expected = "assertion failed")]
+    fn test_bad_grid(){
+        let mut grid: Grid8<usize, 3, 3, 10> = Grid8::default();
+    }
 
     #[test]
     fn test_flip_vertical(){

@@ -33,14 +33,18 @@ macro_rules! point_absolute {
 
             #[must_use]
             pub const fn new_const<const X: $inner, const Y: $inner>() -> Self {
-                assert!(X < W);
-                assert!(Y < H);
+                debug_assert!(X < W);
+                debug_assert!(Y < H);
+                debug_assert!(Self::SIZE.saturating_sub(1) <= <$inner>::MAX);
                 Self::new_unchecked(X, Y)
             }
 
             #[must_use]
             #[inline]
             pub(crate) const fn new_unchecked(x: $inner, y: $inner) -> Self {
+                debug_assert!(x < Self::WIDTH);
+                debug_assert!(y < Self::HEIGHT);
+                debug_assert!(Self::SIZE.saturating_sub(1) <= <$inner>::MAX);
                 Self((x + (W * y)))
             }
 
