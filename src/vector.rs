@@ -103,19 +103,28 @@ macro_rules! vector {
             pub const fn is_diagonal(&self) -> bool {
                 self.x != 0 && self.y != 0
             }
-            /// Flip the direction: Up -> Down, Left -> Right, etc.
+
             #[must_use]
             #[inline]
-            pub fn flip(&self) -> Self {
+            pub const fn flip_horizontal(&self) -> Self {
                 Self {
                     x: -self.x,
+                    y: self.y,
+                }
+            }
+
+            #[must_use]
+            #[inline]
+            pub const fn flip_vertical(&self) -> Self {
+                Self {
+                    x: self.x,
                     y: -self.y,
                 }
             }
 
             #[must_use]
             #[inline]
-            pub fn rotate(&self, quarter_turns: u8) -> Self {
+            pub const fn rotate(&self, quarter_turns: u8) -> Self {
                 match quarter_turns % 4 {
                     1 => Self::new(self.y(), -self.x()),
                     2 => Self::new(-self.x(), -self.y()),
@@ -137,14 +146,20 @@ macro_rules! vector {
         impl Neg for $name {
             type Output = Self;
             fn neg(self) -> Self::Output {
-                self.flip()
+                Self {
+                    x: -self.x,
+                    y: -self.y,
+                }
             }
         }
 
         impl Neg for &$name {
             type Output = $name;
             fn neg(self) -> Self::Output {
-                self.flip()
+                Self::Output {
+                    x: -self.x,
+                    y: -self.y,
+                }
             }
         }
 
