@@ -46,6 +46,7 @@ pub mod vertex;
 pub mod primitive;
 pub mod rotatable;
 pub mod flippable;
+pub mod shape;
 
 pub mod prelude{
     pub use crate::flippable::*;

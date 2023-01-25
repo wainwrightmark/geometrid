@@ -280,8 +280,11 @@ tile_grid!(TileGrid8, Tile8, u8);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{tile::*, rectangle::*};
+    use crate::prelude::*;
     use itertools::Itertools;
+    #[cfg(feature="serde")]
+    use serde_test::{Token, assert_tokens};
+
 
     #[test]
     #[should_panic(expected = "assertion failed")]
@@ -365,5 +368,21 @@ mod tests {
 
         let s_flat = grid.iter().join("|");
         assert_eq!(s_flat, "0|1|2|3|4|5|6|7|8");
+    }
+
+    #[cfg(feature="serde")]
+    #[test]
+    fn test_serde(){
+        let grid: TileGrid8<usize, 2, 2, 4> = TileGrid8::from_fn(|x|x.into());
+
+        assert_tokens(&grid, &[
+            Token::NewtypeStruct { name: "TileGrid8", },
+            Token::Tuple { len: 4 },
+            Token::U64(0),
+            Token::U64(1),
+            Token::U64(2),
+            Token::U64(3),
+            Token::TupleEnd
+        ]);
     }
 }

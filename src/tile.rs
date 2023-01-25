@@ -157,6 +157,9 @@ mod tests {
     use super::*;
     use crate::tile::*;
     use itertools::Itertools;
+    #[cfg(feature="serde")]
+    use serde_test::{Token, assert_tokens};
+
 
     #[test]
     fn test_points_by_row() {
@@ -184,5 +187,17 @@ mod tests {
             "(0,2)|(1,2)|(2,2)|(0,1)|(1,1)|(2,1)|(0,0)|(1,0)|(2,0)",
             str
         )
+    }
+
+    #[cfg(feature="serde")]
+    #[test]
+    fn test_serde(){
+        let tile: Tile8<3,3> = Tile8(2);
+
+        assert_tokens(&tile, &[
+            Token::NewtypeStruct { name: "Tile8", },
+            Token::U8(2)
+            
+        ]);
     }
 }

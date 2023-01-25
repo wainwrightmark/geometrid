@@ -38,6 +38,7 @@ num-traits = { version = "0.2.15", default-features = false }
 version-sync = "0.9.4"
 insta = "1.21.1" # default features needed for testing
 itertools = { version = "0.10.5" }
+serde_test = "*"
 # Some useful libraries - uncomment if needed :-)
 # tabled = "0.4.2"
 # indoc = "1.0.4"
