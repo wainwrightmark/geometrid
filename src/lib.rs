@@ -4,6 +4,7 @@
 #![allow(warnings, dead_code, unused_imports, unused_mut)]
 #![warn(clippy::pedantic)]
 
+
 //! [![github]](https://github.com/wainwrightmark/geometrid)&ensp;[![crates-io]](https://crates.io/crates/geometrid)&ensp;[![docs-rs]](https://docs.rs/geometrid)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
@@ -34,43 +35,57 @@
 //! [crates.io]: https://crates.io/crates/geometrid
 //! [`README.md`]: https://github.com/wainwrightmark/geometrid
 
-pub mod grid;
+pub mod tile_grid;
 pub mod line_finder;
 pub mod tile;
 pub mod vector;
 pub mod polyomino;
 pub mod rectangle;
 pub mod location;
+pub mod vertex;
+pub mod primitive;
+pub mod rotatable;
+pub mod flippable;
 
-pub mod prelude8 {
-    pub use crate::grid::Grid8;
-    pub use crate::line_finder::Line8;
-    pub use crate::tile::Tile8;
-    pub use crate::vector::Vector8;
-
+pub mod prelude{
+    pub use crate::flippable::*;
+    pub use crate::tile::*;
+    pub use crate::vector::*;
+    pub use crate::rotatable::*;
+    pub use crate::primitive::*;
     pub use crate::location::*;
+    pub use crate::tile_grid::*;
 }
-pub mod prelude16 {
-    pub use crate::grid::Grid16;
-    pub use crate::line_finder::Line16;
-    pub use crate::tile::Tile16;
-    pub use crate::vector::Vector16;
 
-    pub use crate::location::*;
-}
-pub mod prelude32 {
-    pub use crate::grid::Grid32;
-    pub use crate::line_finder::Line32;
-    pub use crate::tile::Tile32;
-    pub use crate::vector::Vector32;
+// pub mod prelude8 {
+//     pub use crate::grid::TileGrid8;
+//     pub use crate::line_finder::Line8;
+//     pub use crate::tile::Tile8;
+//     pub use crate::vector::Vector8;
 
-    pub use crate::location::*;
-}
-pub mod prelude64 {
-    pub use crate::grid::Grid64;
-    pub use crate::line_finder::Line64;
-    pub use crate::tile::Tile64;
-    pub use crate::vector::Vector64;
+//     pub use crate::location::*;
+// }
+// pub mod prelude16 {
+//     pub use crate::grid::TileGrid16;
+//     pub use crate::line_finder::Line16;
+//     pub use crate::tile::Tile16;
+//     pub use crate::vector::Vector16;
 
-    pub use crate::location::*;
-}
+//     pub use crate::location::*;
+// }
+// pub mod prelude32 {
+//     pub use crate::grid::Grid32;
+//     pub use crate::line_finder::Line32;
+//     pub use crate::tile::Tile32;
+//     pub use crate::vector::Vector32;
+
+//     pub use crate::location::*;
+// }
+// pub mod prelude64 {
+//     pub use crate::grid::Grid64;
+//     pub use crate::line_finder::Line64;
+//     pub use crate::tile::Tile64;
+//     pub use crate::vector::Vector64;
+
+//     pub use crate::location::*;
+// }

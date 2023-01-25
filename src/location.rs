@@ -32,3 +32,6 @@ impl Location {
 pub trait HasLocation {
     fn location(&self, scale: f32) -> Location;
 }
+
+
+

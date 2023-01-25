@@ -1,4 +1,4 @@
-use crate::{grid::*, tile::*, vector::*};
+use crate::prelude::*;
 
 macro_rules! line_finder {
     ($line_finder_name:ident, $line_name:ident, $grid_ty:ident, $point_relative_ty:ident, $point_absolute_ty:ident, $inner:ty) => {
@@ -108,25 +108,9 @@ macro_rules! line_finder {
 }
 
 line_finder!(
-    LineFinder64,
-    Line64,
-    Grid64,
-    Vector64,
-    Tile64,
-    u64
-);
-line_finder!(
-    LineFinder32,
-    Line32,
-    Grid32,
-    Vector32,
-    Tile32,
-    u32
-);
-line_finder!(
     LineFinder16,
     Line16,
-    Grid16,
+    TileGrid16,
     Vector16,
     Tile16,
     u16
@@ -134,7 +118,7 @@ line_finder!(
 line_finder!(
     LineFinder8,
     Line8,
-    Grid8,
+    TileGrid8,
     Vector8,
     Tile8,
     u8
@@ -149,13 +133,13 @@ mod tests {
 
     #[test]
     fn basic_tests() {
-        let mut grid: Grid8<usize, 3,3,9>= Grid8::default();
+        let mut grid: TileGrid8<usize, 3,3,9>= TileGrid8::default();
 
         for (i, mut m) in grid.iter_mut().enumerate() {
             *m = i;
         }
 
-        let lines = grid.get_lines(&[Vector8::DOWN, Vector8::RIGHT, Vector8::DOWN_RIGHT], |x| x % 2 == 0, 3 ).collect_vec();
+        let lines : Vec<_> = grid.get_lines(&[Vector8::DOWN, Vector8::RIGHT, Vector8::DOWN_RIGHT], |x| x % 2 == 0, 3 ).collect();
 
         assert_eq!(1, lines.len());
         let line = lines.into_iter().next().unwrap();

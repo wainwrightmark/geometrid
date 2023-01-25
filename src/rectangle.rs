@@ -4,7 +4,7 @@ use tinyvec::ArrayVec;
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::{vector::Vector8, polyomino::Polyomino};
+use crate::{vector::*, polyomino::Polyomino};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

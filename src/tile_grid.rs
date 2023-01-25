@@ -4,12 +4,12 @@ use core::{
     ops::{Index, IndexMut},
 };
 
-use crate::tile::*;
+use crate::prelude::*;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-macro_rules! grid {
+macro_rules! tile_grid {
     ($name:ident, $point_ty:ident, $inner:ty) => {
         #[must_use]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
@@ -66,7 +66,8 @@ macro_rules! grid {
                 for y in 0..H {
                     for x in 0..W / 2 {
                         let p1 = $point_ty::<W, H>::new_unchecked(x,y);
-                        let p2 = p1.flip_horizontal();
+                        let mut p2 = p1;
+                        p2.flip_horizontal();
                         self.swap(p1, p2);
                     }
                 }
@@ -78,7 +79,8 @@ macro_rules! grid {
                 for y in 0..H / 2 {
                     for x in 0..W {
                         let p1 = $point_ty::<W, H>::try_new(x, y).unwrap();
-                        let p2 = p1.flip_vertical();
+                        let mut p2 = p1;
+                        p2.flip_vertical();
                         self.swap(p1, p2);
                     }
                 }
@@ -122,6 +124,15 @@ macro_rules! grid {
                 (0..H)
                     .map(move |row| column + (row * W))
                     .map(|x| &self.0[x as usize])
+            }
+
+            /// Get the scale to make the grid take up as much as possible of a given area
+            #[must_use]
+            fn get_scale(total_width: f32, total_height: f32) -> f32 {
+                let x_multiplier = total_width / W as f32;
+                let y_multiplier = total_height / H as f32;
+
+                x_multiplier.min(y_multiplier)
             }
         }
 
@@ -261,10 +272,9 @@ macro_rules! grid {
     };
 }
 
-grid!(Grid64, Tile64, u64);
-grid!(Grid32, Tile32, u32);
-grid!(Grid16, Tile16, u16);
-grid!(Grid8, Tile8, u8);
+
+tile_grid!(TileGrid16, Tile16, u16);
+tile_grid!(TileGrid8, Tile8, u8);
 
 
 #[cfg(test)]
@@ -276,12 +286,12 @@ mod tests {
     #[test]
     #[should_panic(expected = "assertion failed")]
     fn test_bad_grid(){
-        let mut grid: Grid8<usize, 3, 3, 10> = Grid8::default();
+        let mut grid: TileGrid8<usize, 3, 3, 10> = TileGrid8::default();
     }
 
     #[test]
     fn test_flip_vertical(){
-        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x| x.into());
+        let mut grid: TileGrid8<usize, 3, 3, 9> = TileGrid8::from_fn(|x| x.into());
 
         assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
         grid.flip_vertical();
@@ -290,7 +300,7 @@ mod tests {
 
     #[test]
     fn test_flip_horizontal(){
-        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x| x.into());
+        let mut grid: TileGrid8<usize, 3, 3, 9> = TileGrid8::from_fn(|x| x.into());
 
         assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
         grid.flip_horizontal();
@@ -299,7 +309,7 @@ mod tests {
 
     #[test]
     fn rotate_clockwise_3() {
-        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x| x.into());
+        let mut grid: TileGrid8<usize, 3, 3, 9> = TileGrid8::from_fn(|x| x.into());
 
         assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
         grid.rotate_clockwise();
@@ -314,7 +324,7 @@ mod tests {
 
     #[test]
     fn rotate_clockwise_4() {
-        let mut grid: Grid8<usize, 4, 4, 16> = Grid8::from_fn(|x| x.into());
+        let mut grid: TileGrid8<usize, 4, 4, 16> = TileGrid8::from_fn(|x| x.into());
 
         assert_eq!(grid.to_string(), "0|1|2|3\n4|5|6|7\n8|9|10|11\n12|13|14|15");
         grid.rotate_clockwise();
@@ -329,7 +339,7 @@ mod tests {
 
     #[test]
     fn rotate_anticlockwise_3() {
-        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x| x.into());
+        let mut grid: TileGrid8<usize, 3, 3, 9> = TileGrid8::from_fn(|x| x.into());
 
         assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
         grid.rotate_anticlockwise();
@@ -344,7 +354,7 @@ mod tests {
 
     #[test]
     fn basic_tests() {
-        let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x|x.into());
+        let mut grid: TileGrid8<usize, 3, 3, 9> = TileGrid8::from_fn(|x|x.into());
 
         for i in 0..9 {
             assert_eq!(grid[Tile8::<3, 3>::try_from_usize(i).unwrap()], i)
