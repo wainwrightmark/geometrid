@@ -6,5 +6,11 @@ use crate::{vector::Vector, location::HasLocation, flippable::Flippable, rotatab
 pub trait Shape : Flippable + Rotatable + HasLocation + IntoIterator<Item = Self::Vector>{
     type Vector: Vector;
 
+    //todo draw outline
+    //todo deconstruct into rectangles
     
 }
+
+//todo polyomino
+//todo line
+//todo rectangle

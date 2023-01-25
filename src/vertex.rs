@@ -1,101 +1,215 @@
-use crate::location::*;
-pub struct Vertex8<const W: u8, const H: u8>(u8);
+use core::{fmt, ops::Add};
 
-impl<const W: u8, const H: u8> Vertex8<W, H> {
-    pub const WIDTH: u8 = W;
-    pub const HEIGHT: u8 = H;
-    pub const SIZE: u8 = W * H;
-    pub const COUNT: u8 = (W + 1) * (H + 1);
-    pub const CENTER: Self = Self::new_unchecked((W + 1) / 2, (H + 1) / 2);
+use itertools::Itertools;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
-    pub const TOP_LEFT: Self = Self::new_const::<0, 0>();
-    pub const TOP_RIGHT: Self = Self::new_const::<W, 0>();
-    pub const BOTTOM_LEFT: Self = Self::new_const::<0, H>();
-    pub const BOTTOM_RIGHT: Self = Self::new_const::<W, H>();
+use crate::prelude::*;
+pub trait Vertex: UniformPrimitive + HasLocation + Flippable {}
 
-    #[must_use]
-    pub const fn new_const<const X: u8, const Y: u8>() -> Self {
-        Self::new_unchecked(X, Y)
-    }
 
-    #[must_use]
-    #[inline]
-    pub(crate) const fn new_unchecked(x: u8, y: u8) -> Self {
-        debug_assert!(x <= Self::WIDTH);
-        debug_assert!(y <= Self::HEIGHT);
-        debug_assert!(Self::COUNT <= <u8>::MAX);
-        Self((x + (W * y)))
-    }
+macro_rules! vertex {
+    ($name:ident, $inner:ty) => {
+        #[must_use]
+        #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)] //TODO make inner type generic
+        #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+        pub struct $name<const WIDTH: $inner, const HEIGHT: $inner>($inner);
 
-    #[must_use]
-    #[inline]
-    pub const fn try_new(x: u8, y: u8) -> Option<Self> {
-        if x > W || y > H {
-            None
-        } else {
-            Some(Self::new_unchecked(x, y))
+        impl<const W: $inner, const H: $inner> fmt::Display for $name<W, H> {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(f, "({},{})", self.col(), self.row())
+            }
         }
-    }
 
-    #[must_use]
-    #[inline]
-    pub const fn try_from_inner(inner: u8) -> Option<Self> {
-        if inner <= Self::BOTTOM_RIGHT.0 {
-            Some(Self(inner))
-        } else {
-            None
+        impl<const COLS: $inner, const ROWS: $inner> $name<COLS, ROWS> {
+            #[must_use]
+            pub const fn new_const<const X: $inner, const Y: $inner>() -> Self {
+                Self::new_unchecked(X, Y)
+            }
+
+            #[must_use]
+            #[inline]
+            pub(crate) const fn new_unchecked(x: $inner, y: $inner) -> Self {
+                debug_assert!(x <= Self::COLUMNS);
+                debug_assert!(y <= Self::ROWS);
+                debug_assert!(Self::COUNT.saturating_sub(1) <= <$inner>::MAX);
+                Self((x + ((Self::COLUMNS + 1) * y)))
+            }
         }
-    }
 
-    #[must_use]
-    #[inline]
-    pub fn try_from_usize(inner: usize) -> Option<Self> {
-        let Ok(inner) = inner.try_into() else{
-                                                            return None;
-                                                        };
+        impl<const COLS: $inner, const ROWS: $inner> Vertex for $name<COLS, ROWS> {}
 
-        Self::try_from_inner(inner)
-    }
+        impl<const COLS: $inner, const ROWS: $inner> GridAligned for $name<COLS, ROWS> {
+            type Inner = $inner;
 
-    #[must_use]
-    #[inline]
-    pub const fn x(&self) -> u8 {
-        self.0 % (W + 1)
-    }
+            const COLUMNS: Self::Inner = COLS;
 
-    #[must_use]
-    #[inline]
-    pub const fn y(&self) -> u8 {
-        self.0 / (W + 1)
-    }
+            const ROWS: Self::Inner = ROWS;
 
-    #[must_use]
-    #[inline]
-    pub const fn flip_horizontal(&self) -> Self {
-        Self::new_unchecked(W - self.x(), self.y())
-    }
+            const TOTAL_TILES: Self::Inner = COLS * ROWS;
+        }
 
-    #[must_use]
-    #[inline]
-    pub const fn flip_vertical(&self) -> Self {
-        Self::new_unchecked(self.x(), H - self.y())
-    }
+        impl<const COLS: $inner, const ROWS: $inner> Primitive for $name<COLS, ROWS> {
+            const COUNT: <Self as GridAligned>::Inner = (COLS + 1) * (ROWS + 1);
 
-    #[must_use]
-    #[inline]
-    /// The distance, disallowing, diagonal moves
-    pub const fn manhattan_distance(&self, other: &Self) -> u8 {
-        let dx = u8::abs_diff(self.x(), other.x());
-        let dy = u8::abs_diff(self.y(), other.y());
-        dx + dy
-    }
+            const FIRST: Self = Self(0);
+
+            const LAST: Self = Self(Self::COUNT - 1);
+
+            fn inner(&self) -> <Self as GridAligned>::Inner {
+                self.0
+            }
+
+            fn try_from_inner(inner: <Self as GridAligned>::Inner) -> Option<Self> {
+                if inner <= Self::LAST.inner() {
+                    Some(Self(inner))
+                } else {
+                    None
+                }
+            }
+
+            fn col(&self)-><Self as GridAligned>::Inner{
+                self.0 % (Self::COLUMNS + 1)
+            }
+            
+            fn row(&self)-><Self as GridAligned>::Inner{
+                self.0 / (Self::COLUMNS + 1)
+            }
+        }
+
+        impl<const COLS: $inner, const ROWS: $inner> UniformPrimitive for $name<COLS, ROWS> {
+            const CENTER: Self = Self::new_unchecked(COLS / 2, ROWS / 2);
+
+            const TOP_RIGHT: Self = Self::new_unchecked(COLS - 1, 0);
+            const BOTTOM_LEFT: Self = Self::new_unchecked(0, ROWS - 1);
+
+            const MAX_COL: <Self as GridAligned>::Inner = COLS;
+
+            const MAX_ROW: <Self as GridAligned>::Inner = ROWS;
+
+            fn try_new(col: <Self as GridAligned>::Inner, row: <Self as GridAligned>::Inner)-> Option<Self>{
+                let i1 = row.checked_mul(COLS + 1)?;
+                let i2= i1.checked_add(col)?;
+
+                Self::try_from_inner(i2)
+            }
+        }
+
+        impl<const W: $inner, const H: $inner> Flippable for $name<W, H> {
+            fn flip_horizontal(&mut self) {
+                *self = Self::try_new(Self::MAX_COL - self.col(), self.row()).unwrap()
+            }
+
+            fn flip_vertical(&mut self) {
+                *self = Self::try_new(self.col(), Self::MAX_ROW - self.row()).unwrap()
+            }
+        }
+
+        impl<const L: $inner> Rotatable for $name<L, L> {
+            fn rotate(&mut self, quarter_turns: QuarterTurns) {
+                *self = match quarter_turns {
+                    crate::rotatable::QuarterTurns::Zero => {
+                        return;
+                    }
+                    crate::rotatable::QuarterTurns::One => {
+                        Self::new_unchecked(L - self.row(), self.col())
+                    }
+                    crate::rotatable::QuarterTurns::Two => {
+                        Self::new_unchecked(L - self.col(), L - self.row())
+                    }
+                    crate::rotatable::QuarterTurns::Three => {
+                        Self::new_unchecked(self.row(), L - self.col())
+                    }
+                }
+            }
+        }
+
+        impl<const W: $inner, const H: $inner> HasLocation for $name<W, H> {
+            #[must_use]
+            fn location(&self, scale: f32) -> Location {
+                let x = scale * (self.col() as f32);
+                let y = scale * (self.row() as f32);
+
+                Location { x, y }
+            }
+        }
+
+        impl<const W: $inner, const H: $inner> From<$name<W, H>> for $inner {
+            fn from(val: $name<W, H>) -> Self {
+                val.0
+            }
+        }
+
+        impl<const W: $inner, const H: $inner> From<&$name<W, H>> for $inner {
+            fn from(val: &$name<W, H>) -> Self {
+                val.0
+            }
+        }
+
+        impl<const W: $inner, const H: $inner> From<$name<W, H>> for usize {
+            fn from(val: $name<W, H>) -> Self {
+                val.0.into()
+            }
+        }
+
+        impl<const W: $inner, const H: $inner> From<&$name<W, H>> for usize {
+            fn from(val: &$name<W, H>) -> Self {
+                val.0.into()
+            }
+        }
+    };
 }
 
-impl<const WIDTH: u8, const HEIGHT: u8> HasLocation for Vertex8<WIDTH, HEIGHT> {
-    fn location(&self, scale: f32) -> Location {
-        let x = scale * (self.x() as f32);
-        let y = scale * (self.y() as f32);
+vertex!(Vertex16, u16);
+vertex!(Vertex8, u8);
 
-        Location { x, y }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vertex::*;
+    use itertools::Itertools;
+    #[cfg(feature="serde")]
+    use serde_test::{Token, assert_tokens};
+
+
+    #[test]
+    fn test_iter_by_row() {
+        let str = Vertex8::<2, 3>::iter_by_row().join("|");
+
+        assert_eq!(
+            "(0,0)|(1,0)|(2,0)|(0,1)|(1,1)|(2,1)|(0,2)|(1,2)|(2,2)|(0,3)|(1,3)|(2,3)",
+            str
+        )
+    }
+
+    #[test]
+    fn test_from(){
+        for vertex in Vertex8::<3,4>::iter_by_row(){
+            let n = Vertex8::try_new(vertex.col(), vertex.row()).unwrap();
+            assert_eq!(vertex, n)
+        }
+    }
+
+    #[test]
+    fn test_flip_vertical(){
+        let str = Vertex8::<2, 2>::iter_by_row().map(|mut x|{x.flip_vertical(); x}) .join("|");
+
+        assert_eq!(
+            "(0,2)|(1,2)|(2,2)|(0,1)|(1,1)|(2,1)|(0,0)|(1,0)|(2,0)",
+            str
+        )
+    }
+
+    #[cfg(feature="serde")]
+    #[test]
+    fn test_serde(){
+        let tile: Vertex8<3,3> = Vertex8(2);
+
+        assert_tokens(&tile, &[
+            Token::NewtypeStruct { name: "Vertex8", },
+            Token::U8(2)
+            
+        ]);
     }
 }

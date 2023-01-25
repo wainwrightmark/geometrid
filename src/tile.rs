@@ -53,7 +53,7 @@ macro_rules! tile {
 
             const FIRST: Self = Self(0);
 
-            const LAST: Self = Self(COLS * ROWS - 1);
+            const LAST: Self = Self(Self::COUNT - 1);
 
             fn inner(&self) -> <Self as GridAligned>::Inner {
                 self.0
@@ -67,11 +67,11 @@ macro_rules! tile {
                 }
             }
 
-            fn col(&self)-><Self as GridAligned>::Inner{
+            fn col(&self) -> <Self as GridAligned>::Inner {
                 self.0 % Self::COLUMNS
             }
-            
-            fn row(&self)-><Self as GridAligned>::Inner{
+
+            fn row(&self) -> <Self as GridAligned>::Inner {
                 self.0 / Self::COLUMNS
             }
         }
@@ -86,11 +86,24 @@ macro_rules! tile {
 
             const MAX_ROW: <Self as GridAligned>::Inner = ROWS - 1;
 
-            fn try_new(col: <Self as GridAligned>::Inner, row: <Self as GridAligned>::Inner)-> Option<Self>{
+            fn try_new(
+                col: <Self as GridAligned>::Inner,
+                row: <Self as GridAligned>::Inner,
+            ) -> Option<Self> {
                 let i1 = row.checked_mul(COLS)?;
-                let i2= i1.checked_add(col)?;
+                let i2 = i1.checked_add(col)?;
 
                 Self::try_from_inner(i2)
+            }
+        }
+
+        impl<const W: $inner, const H: $inner> Flippable for $name<W, H> {
+            fn flip_horizontal(&mut self) {
+                *self = Self::try_new(Self::MAX_COL - self.col(), self.row()).unwrap()
+            }
+
+            fn flip_vertical(&mut self) {
+                *self = Self::try_new(self.col(), Self::MAX_ROW - self.row()).unwrap()
             }
         }
 
@@ -125,25 +138,25 @@ macro_rules! tile {
 
         impl<const W: $inner, const H: $inner> From<$name<W, H>> for $inner {
             fn from(val: $name<W, H>) -> Self {
-                val.0 as $inner
+                val.0
             }
         }
 
         impl<const W: $inner, const H: $inner> From<&$name<W, H>> for $inner {
             fn from(val: &$name<W, H>) -> Self {
-                val.0 as $inner
+                val.0
             }
         }
 
         impl<const W: $inner, const H: $inner> From<$name<W, H>> for usize {
             fn from(val: $name<W, H>) -> Self {
-                val.0 as usize
+                val.0.into()
             }
         }
 
         impl<const W: $inner, const H: $inner> From<&$name<W, H>> for usize {
             fn from(val: &$name<W, H>) -> Self {
-                val.0 as usize
+                val.0.into()
             }
         }
     };
@@ -157,12 +170,11 @@ mod tests {
     use super::*;
     use crate::tile::*;
     use itertools::Itertools;
-    #[cfg(feature="serde")]
-    use serde_test::{Token, assert_tokens};
-
+    #[cfg(feature = "serde")]
+    use serde_test::{assert_tokens, Token};
 
     #[test]
-    fn test_points_by_row() {
+    fn test_iter_by_row() {
         let str = Tile8::<3, 4>::iter_by_row().join("|");
 
         assert_eq!(
@@ -172,32 +184,33 @@ mod tests {
     }
 
     #[test]
-    fn test_from(){
-        for tile in Tile8::<3,4>::iter_by_row(){
+    fn test_from() {
+        for tile in Tile8::<3, 4>::iter_by_row() {
             let n = Tile8::try_new(tile.col(), tile.row()).unwrap();
             assert_eq!(tile, n)
         }
     }
 
     #[test]
-    fn test_flip_vertical(){
-        let str = Tile8::<3, 3>::iter_by_row().map(|mut x|{x.flip_vertical(); x}) .join("|");
+    fn test_flip_vertical() {
+        let str = Tile8::<3, 3>::iter_by_row()
+            .map(|mut x| {
+                x.flip_vertical();
+                x
+            })
+            .join("|");
 
-        assert_eq!(
-            "(0,2)|(1,2)|(2,2)|(0,1)|(1,1)|(2,1)|(0,0)|(1,0)|(2,0)",
-            str
-        )
+        assert_eq!("(0,2)|(1,2)|(2,2)|(0,1)|(1,1)|(2,1)|(0,0)|(1,0)|(2,0)", str)
     }
 
-    #[cfg(feature="serde")]
+    #[cfg(feature = "serde")]
     #[test]
-    fn test_serde(){
-        let tile: Tile8<3,3> = Tile8(2);
+    fn test_serde() {
+        let tile: Tile8<3, 3> = Tile8(2);
 
-        assert_tokens(&tile, &[
-            Token::NewtypeStruct { name: "Tile8", },
-            Token::U8(2)
-            
-        ]);
+        assert_tokens(
+            &tile,
+            &[Token::NewtypeStruct { name: "Tile8" }, Token::U8(2)],
+        );
     }
 }
