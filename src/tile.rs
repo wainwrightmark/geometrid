@@ -4,11 +4,14 @@ use itertools::Itertools;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::prelude::*;
-pub trait Tile: UniformPrimitive + HasLocation + Flippable {}
+use crate::{prelude::*};
+pub trait Tile: UniformPrimitive + HasLocation + Flippable {
+    type Vertex : Vertex;
+    fn vertex(&self, corner: Corner)-> Self::Vertex;
+}
 
 macro_rules! tile {
-    ($name:ident, $inner:ty) => {
+    ($name:ident, $inner:ty, $vertex:ident) => {
         #[must_use]
         #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)] //TODO make inner type generic
         #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -36,7 +39,18 @@ macro_rules! tile {
             }
         }
 
-        impl<const COLS: $inner, const ROWS: $inner> Tile for $name<COLS, ROWS> {}
+        impl<const COLS: $inner, const ROWS: $inner> Tile for $name<COLS, ROWS> {
+            type Vertex = $vertex::<COLS, ROWS>;
+
+            fn vertex(&self, corner: Corner)-> Self::Vertex{
+                match corner{
+                    Corner::TopLeft=> $vertex::try_new(self.col(), self.row()).unwrap(),
+                    Corner::TopRight=> $vertex::try_new(self.col() + 1, self.row()).unwrap(),
+                    Corner::BottomLeft=> $vertex::try_new(self.col(), self.row() + 1).unwrap(),
+                    Corner::BottomRight=> $vertex::try_new(self.col() + 1, self.row()).unwrap()                    
+                }
+            }
+        }
 
         impl<const COLS: $inner, const ROWS: $inner> GridAligned for $name<COLS, ROWS> {
             type Inner = $inner;
@@ -162,8 +176,8 @@ macro_rules! tile {
     };
 }
 
-tile!(Tile16, u16);
-tile!(Tile8, u8);
+tile!(Tile16, u16, Vertex16);
+tile!(Tile8, u8, Vertex8);
 
 #[cfg(test)]
 mod tests {

@@ -58,6 +58,7 @@ pub mod prelude{
     pub use crate::location::*;
     pub use crate::tile_grid::*;
     pub use crate::corner::*;
+    pub use crate::vertex::*;
 }
 
 // pub mod prelude8 {
