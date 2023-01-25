@@ -4,7 +4,7 @@ use core::{
     ops::{Index, IndexMut},
 };
 
-use crate::point_absolute::*;
+use crate::tile::*;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -261,16 +261,16 @@ macro_rules! grid {
     };
 }
 
-grid!(Grid64, PointAbsolute64, u64);
-grid!(Grid32, PointAbsolute32, u32);
-grid!(Grid16, PointAbsolute16, u16);
-grid!(Grid8, PointAbsolute8, u8);
+grid!(Grid64, Tile64, u64);
+grid!(Grid32, Tile32, u32);
+grid!(Grid16, Tile16, u16);
+grid!(Grid8, Tile8, u8);
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{point_absolute::*, rectangle::*};
+    use crate::{tile::*, rectangle::*};
     use itertools::Itertools;
 
     #[test]
@@ -347,7 +347,7 @@ mod tests {
         let mut grid: Grid8<usize, 3, 3, 9> = Grid8::from_fn(|x|x.into());
 
         for i in 0..9 {
-            assert_eq!(grid[PointAbsolute8::<3, 3>::try_from_usize(i).unwrap()], i)
+            assert_eq!(grid[Tile8::<3, 3>::try_from_usize(i).unwrap()], i)
         }
 
         let str = grid.to_string();

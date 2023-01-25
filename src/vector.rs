@@ -6,7 +6,7 @@ use core::{
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::point_absolute::*;
+use crate::tile::*;
 
 macro_rules! vector {
     ($name:ident, $inner:ty) => {
@@ -253,23 +253,23 @@ vector!(Vector32, i32);
 vector!(Vector16, i16);
 vector!(Vector8, i8);
 
-point_add!(PointAbsolute64, Vector64, u64, i64);
-point_add!(PointAbsolute64, Vector32, u64, i32);
-point_add!(PointAbsolute64, Vector16, u64, i16);
-point_add!(PointAbsolute64, Vector8, u64, i8);
+point_add!(Tile64, Vector64, u64, i64);
+point_add!(Tile64, Vector32, u64, i32);
+point_add!(Tile64, Vector16, u64, i16);
+point_add!(Tile64, Vector8, u64, i8);
 
 
-point_add!(PointAbsolute32, Vector32, u32, i32);
-point_add!(PointAbsolute32, Vector16, u32, i16);
-point_add!(PointAbsolute32, Vector8, u32, i8);
+point_add!(Tile32, Vector32, u32, i32);
+point_add!(Tile32, Vector16, u32, i16);
+point_add!(Tile32, Vector8, u32, i8);
 
-point_add!(PointAbsolute16, Vector16, u16, i16);
-point_add!(PointAbsolute16, Vector8, u16, i8);
+point_add!(Tile16, Vector16, u16, i16);
+point_add!(Tile16, Vector8, u16, i8);
 
-point_add!(PointAbsolute8, Vector8, u8, i8);
+point_add!(Tile8, Vector8, u8, i8);
 
 
-adjacent_positions!(PointAbsolute64, Vector64, u64);
-adjacent_positions!(PointAbsolute32, Vector32, u32);
-adjacent_positions!(PointAbsolute16, Vector16, u16);
-adjacent_positions!(PointAbsolute8, Vector8, u8);
+adjacent_positions!(Tile64, Vector64, u64);
+adjacent_positions!(Tile32, Vector32, u32);
+adjacent_positions!(Tile16, Vector16, u16);
+adjacent_positions!(Tile8, Vector8, u8);

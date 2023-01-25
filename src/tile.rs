@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::vector::Vector8;
 use crate::location::*;
 
-macro_rules! point_absolute {
+macro_rules! tile {
     ($name:ident, $inner:ty) => {
         #[must_use]
         #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)] //TODO make inner type generic
@@ -229,20 +229,20 @@ macro_rules! point_absolute {
     };
 }
 
-point_absolute!(PointAbsolute64, u64);
-point_absolute!(PointAbsolute32, u32);
-point_absolute!(PointAbsolute16, u16);
-point_absolute!(PointAbsolute8, u8);
+tile!(Tile64, u64);
+tile!(Tile32, u32);
+tile!(Tile16, u16);
+tile!(Tile8, u8);
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::point_absolute::*;
+    use crate::tile::*;
     use itertools::Itertools;
 
     #[test]
     fn test_points_by_row() {
-        let str = PointAbsolute8::<3, 4>::points_by_row().join("|");
+        let str = Tile8::<3, 4>::points_by_row().join("|");
 
         assert_eq!(
             "(0,0)|(1,0)|(2,0)|(0,1)|(1,1)|(2,1)|(0,2)|(1,2)|(2,2)|(0,3)|(1,3)|(2,3)",
@@ -252,7 +252,7 @@ mod tests {
 
     #[test]
     fn test_points_by_col() {
-        let str = PointAbsolute8::<3, 4>::points_by_col().join("|");
+        let str = Tile8::<3, 4>::points_by_col().join("|");
 
         assert_eq!(
             "(0,0)|(0,1)|(0,2)|(0,3)|(1,0)|(1,1)|(1,2)|(1,3)|(2,0)|(2,1)|(2,2)|(2,3)",

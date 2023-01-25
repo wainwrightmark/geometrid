@@ -1,4 +1,4 @@
-use crate::{grid::*, point_absolute::*, vector::*};
+use crate::{grid::*, tile::*, vector::*};
 
 macro_rules! line_finder {
     ($line_finder_name:ident, $line_name:ident, $grid_ty:ident, $point_relative_ty:ident, $point_absolute_ty:ident, $inner:ty) => {
@@ -112,7 +112,7 @@ line_finder!(
     Line64,
     Grid64,
     Vector64,
-    PointAbsolute64,
+    Tile64,
     u64
 );
 line_finder!(
@@ -120,7 +120,7 @@ line_finder!(
     Line32,
     Grid32,
     Vector32,
-    PointAbsolute32,
+    Tile32,
     u32
 );
 line_finder!(
@@ -128,7 +128,7 @@ line_finder!(
     Line16,
     Grid16,
     Vector16,
-    PointAbsolute16,
+    Tile16,
     u16
 );
 line_finder!(
@@ -136,7 +136,7 @@ line_finder!(
     Line8,
     Grid8,
     Vector8,
-    PointAbsolute8,
+    Tile8,
     u8
 );
 

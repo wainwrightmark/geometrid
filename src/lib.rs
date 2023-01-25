@@ -36,7 +36,7 @@
 
 pub mod grid;
 pub mod line_finder;
-pub mod point_absolute;
+pub mod tile;
 pub mod vector;
 pub mod polyomino;
 pub mod rectangle;
@@ -45,7 +45,7 @@ pub mod location;
 pub mod prelude8 {
     pub use crate::grid::Grid8;
     pub use crate::line_finder::Line8;
-    pub use crate::point_absolute::PointAbsolute8;
+    pub use crate::tile::Tile8;
     pub use crate::vector::Vector8;
 
     pub use crate::location::*;
@@ -53,7 +53,7 @@ pub mod prelude8 {
 pub mod prelude16 {
     pub use crate::grid::Grid16;
     pub use crate::line_finder::Line16;
-    pub use crate::point_absolute::PointAbsolute16;
+    pub use crate::tile::Tile16;
     pub use crate::vector::Vector16;
 
     pub use crate::location::*;
@@ -61,7 +61,7 @@ pub mod prelude16 {
 pub mod prelude32 {
     pub use crate::grid::Grid32;
     pub use crate::line_finder::Line32;
-    pub use crate::point_absolute::PointAbsolute32;
+    pub use crate::tile::Tile32;
     pub use crate::vector::Vector32;
 
     pub use crate::location::*;
@@ -69,7 +69,7 @@ pub mod prelude32 {
 pub mod prelude64 {
     pub use crate::grid::Grid64;
     pub use crate::line_finder::Line64;
-    pub use crate::point_absolute::PointAbsolute64;
+    pub use crate::tile::Tile64;
     pub use crate::vector::Vector64;
 
     pub use crate::location::*;
