@@ -8,7 +8,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::point_absolute::*;
 
-macro_rules! point_relative {
+macro_rules! vector {
     ($name:ident, $inner:ty) => {
         #[must_use]
         #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
@@ -233,28 +233,28 @@ macro_rules! adjacent_positions {
     };
 }
 
-point_relative!(PointRelative64, i64);
-point_relative!(PointRelative32, i32);
-point_relative!(PointRelative16, i16);
-point_relative!(PointRelative8, i8);
+vector!(Vector64, i64);
+vector!(Vector32, i32);
+vector!(Vector16, i16);
+vector!(Vector8, i8);
 
-point_add!(PointAbsolute64, PointRelative64, u64, i64);
-point_add!(PointAbsolute64, PointRelative32, u64, i32);
-point_add!(PointAbsolute64, PointRelative16, u64, i16);
-point_add!(PointAbsolute64, PointRelative8, u64, i8);
-
-
-point_add!(PointAbsolute32, PointRelative32, u32, i32);
-point_add!(PointAbsolute32, PointRelative16, u32, i16);
-point_add!(PointAbsolute32, PointRelative8, u32, i8);
-
-point_add!(PointAbsolute16, PointRelative16, u16, i16);
-point_add!(PointAbsolute16, PointRelative8, u16, i8);
-
-point_add!(PointAbsolute8, PointRelative8, u8, i8);
+point_add!(PointAbsolute64, Vector64, u64, i64);
+point_add!(PointAbsolute64, Vector32, u64, i32);
+point_add!(PointAbsolute64, Vector16, u64, i16);
+point_add!(PointAbsolute64, Vector8, u64, i8);
 
 
-adjacent_positions!(PointAbsolute64, PointRelative64, u64);
-adjacent_positions!(PointAbsolute32, PointRelative32, u32);
-adjacent_positions!(PointAbsolute16, PointRelative16, u16);
-adjacent_positions!(PointAbsolute8, PointRelative8, u8);
+point_add!(PointAbsolute32, Vector32, u32, i32);
+point_add!(PointAbsolute32, Vector16, u32, i16);
+point_add!(PointAbsolute32, Vector8, u32, i8);
+
+point_add!(PointAbsolute16, Vector16, u16, i16);
+point_add!(PointAbsolute16, Vector8, u16, i8);
+
+point_add!(PointAbsolute8, Vector8, u8, i8);
+
+
+adjacent_positions!(PointAbsolute64, Vector64, u64);
+adjacent_positions!(PointAbsolute32, Vector32, u32);
+adjacent_positions!(PointAbsolute16, Vector16, u16);
+adjacent_positions!(PointAbsolute8, Vector8, u8);

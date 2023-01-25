@@ -4,7 +4,7 @@ use tinyvec::ArrayVec;
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize};
 
-use crate::{point_relative::PointRelative8, polyomino::Polyomino};
+use crate::{vector::Vector8, polyomino::Polyomino};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -18,7 +18,7 @@ pub struct Rectangle {
 /// Iterator for deconstructing polyominos to rectangles
 pub struct RectangleIter<const P: usize> {
     shape: Polyomino<P>,
-    remaining_points: ArrayVec<[PointRelative8; P]>,
+    remaining_points: ArrayVec<[Vector8; P]>,
 }
 
 impl<const P: usize> From<Polyomino<P>> for RectangleIter<P> {
@@ -58,7 +58,7 @@ impl<const P: usize> Iterator for RectangleIter<P> {
         'outer: loop {
             for is_max in [false, true] {
                 let y = if is_max { max_y + 1 } else { min_y - 1 };
-                let condition = |p2: &&PointRelative8| p2.y() == y && range.contains(&p2.x());
+                let condition = |p2: &&Vector8| p2.y() == y && range.contains(&p2.x());
                 if self.remaining_points.iter().filter(condition).count() == range.len() {
                     while let Some((position, _)) =
                         self.remaining_points.iter().find_position(condition)

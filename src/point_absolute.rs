@@ -4,7 +4,7 @@ use itertools::Itertools;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::point_relative::PointRelative8;
+use crate::vector::Vector8;
 use crate::location::*;
 
 macro_rules! point_absolute {

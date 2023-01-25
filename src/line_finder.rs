@@ -1,4 +1,4 @@
-use crate::{grid::*, point_absolute::*, point_relative::*};
+use crate::{grid::*, point_absolute::*, vector::*};
 
 macro_rules! line_finder {
     ($line_finder_name:ident, $line_name:ident, $grid_ty:ident, $point_relative_ty:ident, $point_absolute_ty:ident, $inner:ty) => {
@@ -111,7 +111,7 @@ line_finder!(
     LineFinder64,
     Line64,
     Grid64,
-    PointRelative64,
+    Vector64,
     PointAbsolute64,
     u64
 );
@@ -119,7 +119,7 @@ line_finder!(
     LineFinder32,
     Line32,
     Grid32,
-    PointRelative32,
+    Vector32,
     PointAbsolute32,
     u32
 );
@@ -127,7 +127,7 @@ line_finder!(
     LineFinder16,
     Line16,
     Grid16,
-    PointRelative16,
+    Vector16,
     PointAbsolute16,
     u16
 );
@@ -135,7 +135,7 @@ line_finder!(
     LineFinder8,
     Line8,
     Grid8,
-    PointRelative8,
+    Vector8,
     PointAbsolute8,
     u8
 );
@@ -155,7 +155,7 @@ mod tests {
             *m = i;
         }
 
-        let lines = grid.get_lines(&[PointRelative8::DOWN, PointRelative8::RIGHT, PointRelative8::DOWN_RIGHT], |x| x % 2 == 0, 3 ).collect_vec();
+        let lines = grid.get_lines(&[Vector8::DOWN, Vector8::RIGHT, Vector8::DOWN_RIGHT], |x| x % 2 == 0, 3 ).collect_vec();
 
         assert_eq!(1, lines.len());
         let line = lines.into_iter().next().unwrap();

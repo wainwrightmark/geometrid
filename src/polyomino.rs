@@ -1,4 +1,4 @@
-type PR = super::point_relative::PointRelative8;
+type PR = super::vector::Vector8;
 use strum::Display;
 
 #[cfg(feature="serde")]

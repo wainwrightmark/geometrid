@@ -3,27 +3,27 @@ source: src/polyomino.rs
 expression: outline
 ---
 [
-    PointRelative8 {
+    Vector8 {
         x: 0,
         y: -2,
     },
-    PointRelative8 {
+    Vector8 {
         x: 1,
         y: -2,
     },
-    PointRelative8 {
+    Vector8 {
         x: 1,
         y: 1,
     },
-    PointRelative8 {
+    Vector8 {
         x: 2,
         y: 1,
     },
-    PointRelative8 {
+    Vector8 {
         x: 2,
         y: 2,
     },
-    PointRelative8 {
+    Vector8 {
         x: 0,
         y: 2,
     },
