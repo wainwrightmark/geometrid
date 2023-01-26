@@ -38,3 +38,13 @@ impl Add for QuarterTurns {
         }
     }
 }
+
+pub trait CopyRotatable: Rotatable + Copy {
+    fn rotated(&self, quarter_turns: QuarterTurns) -> Self {
+        let mut s = self.clone();
+        s.rotate(quarter_turns);
+        s
+    }
+}
+
+impl<T: Rotatable + Copy> CopyRotatable for T {}

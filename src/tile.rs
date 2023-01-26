@@ -112,12 +112,19 @@ macro_rules! tile {
         }
 
         impl<const W: $inner, const H: $inner> Flippable for $name<W, H> {
-            fn flip_horizontal(&mut self) {
-                *self = Self::try_new(Self::MAX_COL - self.col(), self.row()).unwrap()
-            }
-
-            fn flip_vertical(&mut self) {
-                *self = Self::try_new(self.col(), Self::MAX_ROW - self.row()).unwrap()
+            fn flip(&mut self, axes: FlipAxes) {
+                match axes {
+                    FlipAxes::None => {},
+                    FlipAxes::Horizontal => {
+                        *self = Self::try_new(Self::MAX_COL - self.col(), self.row()).unwrap()
+                    },
+                    FlipAxes::Vertical => {
+                        *self = Self::try_new(self.col(), Self::MAX_ROW - self.row()).unwrap()
+                    },
+                    FlipAxes::Both => {
+                        *self = Self::try_new(Self::MAX_COL - self.col(), Self::MAX_ROW - self.row()).unwrap()
+                    },
+                }
             }
         }
 
@@ -209,7 +216,7 @@ mod tests {
     fn test_flip_vertical() {
         let str = Tile8::<3, 3>::iter_by_row()
             .map(|mut x| {
-                x.flip_vertical();
+                x.flip(FlipAxes::Vertical);
                 x
             })
             .join("|");

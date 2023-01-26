@@ -113,25 +113,47 @@ macro_rules! tile_grid {
         impl<T, const COLS: $inner, const ROWS: $inner, const SIZE: usize> Flippable
             for $name<T, COLS, ROWS, SIZE>
         {
-            fn flip_horizontal(&mut self) {
-                for y in 0..ROWS {
-                    for x in 0..COLS / 2 {
-                        let p1 = $tile::<COLS, ROWS>::new_unchecked(x, y);
-                        let mut p2 = p1;
-                        p2.flip_horizontal();
-                        self.swap(p1, p2);
+            fn flip(&mut self, axes: FlipAxes) {
+                match axes {
+                    FlipAxes::None => {}
+                    FlipAxes::Horizontal => {
+                        for y in 0..ROWS {
+                            for x in 0..COLS / 2 {
+                                let p1 = $tile::<COLS, ROWS>::new_unchecked(x, y);
+                                let p2 = p1.flipped(axes);
+                                self.swap(p1, p2);
+                            }
+                        }
                     }
-                }
-            }
+                    FlipAxes::Vertical => {
 
-            fn flip_vertical(&mut self) {
-                for y in 0..ROWS / 2 {
-                    for x in 0..COLS {
-                        let p1 = $tile::<COLS, ROWS>::try_new(x, y).unwrap();
-                        let mut p2 = p1;
-                        p2.flip_vertical();
-                        self.swap(p1, p2);
-                    }
+                        for y in 0..ROWS / 2 {
+                            for x in 0..COLS {
+                                let p1 = $tile::<COLS, ROWS>::try_new(x, y).unwrap();
+                                let p2 = p1.flipped(axes);
+                                self.swap(p1, p2);
+                            }
+                        }
+                    },
+                    FlipAxes::Both => {
+
+                        for y in 0..ROWS / 2 {
+                            for x in 0..COLS {
+                                let p1 = $tile::<COLS, ROWS>::try_new(x, y).unwrap();
+                                let p2 = p1.flipped(axes);
+                                self.swap(p1, p2);
+                            }
+                        }
+
+                        if COLS % 2 != 0{
+                            for x in 0..(COLS / 2){
+                                let p1 = $tile::<COLS, ROWS>::try_new(x, ROWS / 2).unwrap();
+                                let p2 = p1.flipped(axes);
+                                self.swap(p1, p2);
+                            }
+                        }
+
+                    },
                 }
             }
         }
@@ -314,21 +336,29 @@ mod tests {
     }
 
     #[test]
-    fn test_flip_vertical() {
-        let mut grid: TileGrid8<usize, 3, 3, 9> = TileGrid8::from_fn(|x| x.into());
-
-        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
-        grid.flip_vertical();
-        assert_eq!(grid.to_string(), "6|7|8\n3|4|5\n0|1|2");
-    }
-
-    #[test]
-    fn test_flip_horizontal() {
-        let mut grid: TileGrid8<usize, 3, 3, 9> = TileGrid8::from_fn(|x| x.into());
-
-        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
-        grid.flip_horizontal();
-        assert_eq!(grid.to_string(), "2|1|0\n5|4|3\n8|7|6");
+    fn test_flip3() {
+        for (axes, expected) in [
+            (FlipAxes::None, "0|1|2\n3|4|5\n6|7|8"),
+            (FlipAxes::Vertical, "6|7|8\n3|4|5\n0|1|2"),
+            (FlipAxes::Horizontal, "2|1|0\n5|4|3\n8|7|6"),
+            (FlipAxes::Both, "8|7|6\n5|4|3\n2|1|0"),
+        ] {
+            let mut grid: TileGrid8<usize, 3, 3, 9> = TileGrid8::from_fn(|x| x.into());
+            grid.flip(axes);
+            assert_eq!(grid.to_string(), expected);
+        }
+    }#[test]
+    fn test_flip4() {
+        for (axes, expected) in [
+            (FlipAxes::None, "0|1|2|3\n4|5|6|7\n8|9|10|11\n12|13|14|15"),
+            (FlipAxes::Vertical, "12|13|14|15\n8|9|10|11\n4|5|6|7\n0|1|2|3"),
+            (FlipAxes::Horizontal, "3|2|1|0\n7|6|5|4\n11|10|9|8\n15|14|13|12"),
+            (FlipAxes::Both, "15|14|13|12\n11|10|9|8\n7|6|5|4\n3|2|1|0"),
+        ] {
+            let mut grid: TileGrid8<usize, 4, 4, 16> = TileGrid8::from_fn(|x| x.into());
+            grid.flip(axes);
+            assert_eq!(grid.to_string(), expected);
+        }
     }
 
     #[test]

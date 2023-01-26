@@ -8,15 +8,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
 
-use num_traits::{PrimInt, Zero, Signed, One};
+use num_traits::{One, PrimInt, Signed, Zero};
 
-pub trait VectorInner: PrimInt + Neg + Zero + Signed + One + Into<f32> {
-}
+pub trait VectorInner: PrimInt + Neg + Zero + Signed + One + Into<f32> {}
 
 impl VectorInner for i8 {}
 impl VectorInner for i16 {}
 
-pub trait Vector:Copy +  Clone + Sized + Add<Output = Self> {
+pub trait Vector: Copy + Clone + Sized + Add<Output = Self> {
     type Inner: VectorInner;
     #[must_use]
     fn x(&self) -> Self::Inner;
@@ -70,7 +69,9 @@ pub trait Vector:Copy +  Clone + Sized + Add<Output = Self> {
     #[must_use]
     #[inline]
     fn is_unit(&self) -> bool {
-        self.x().abs() <= Self::Inner::one() && self.y().abs() <= Self::Inner::one() && !self.is_zero()
+        self.x().abs() <= Self::Inner::one()
+            && self.y().abs() <= Self::Inner::one()
+            && !self.is_zero()
     }
 
     /// Returns true if this is a diagonal vector, having both an x and a y component
@@ -79,16 +80,14 @@ pub trait Vector:Copy +  Clone + Sized + Add<Output = Self> {
     }
 }
 
-impl Vector8{
-    pub const fn const_mul(self, rhs: i8)-> Self{
+impl Vector8 {
+    pub const fn const_mul(self, rhs: i8) -> Self {
         Self {
             x: self.x * rhs,
             y: self.y * rhs,
         }
     }
 }
-
-
 
 macro_rules! vector {
     ($name:ident, $inner:ty) => {
@@ -127,7 +126,7 @@ macro_rules! vector {
             const DOWN_LEFT: Self = Self { x: -1, y: 1 };
             const LEFT: Self = Self { x: -1, y: 0 };
             const UP_LEFT: Self = Self { x: -1, y: -1 };
-         #[inline]
+            #[inline]
             fn new(x: $inner, y: $inner) -> Self {
                 Self { x, y }
             }
@@ -215,31 +214,37 @@ macro_rules! vector {
         }
 
         impl Flippable for $name {
-            fn flip_horizontal(&mut self) {
-                self.x = self.x.neg()
-            }
-        
-            fn flip_vertical(&mut self) {
-                self.y = self.y.neg()
-            }
-        }
-
-        impl Rotatable for $name{
-            fn rotate(&mut self, quarter_turns: QuarterTurns) {
-                *self = match quarter_turns{
-                    QuarterTurns::Zero => {return;},
-                    QuarterTurns::One => Self::new(self.y(), -self.x()),
-                    QuarterTurns::Two => Self::new(-self.x(), -self.y()),
-                    QuarterTurns::Three =>Self::new(-self.y(), self.x()),
+            fn flip(&mut self, axes: FlipAxes) {
+                match axes {
+                    FlipAxes::None => {}
+                    FlipAxes::Horizontal => self.x = self.x.neg(),
+                    FlipAxes::Vertical => self.y = self.y.neg(),
+                    FlipAxes::Both => {
+                        self.x = self.x.neg();
+                        self.y = self.y.neg();
+                    }
                 }
             }
         }
 
-        impl HasLocation for $name{
+        impl Rotatable for $name {
+            fn rotate(&mut self, quarter_turns: QuarterTurns) {
+                *self = match quarter_turns {
+                    QuarterTurns::Zero => {
+                        return;
+                    }
+                    QuarterTurns::One => Self::new(self.y(), -self.x()),
+                    QuarterTurns::Two => Self::new(-self.x(), -self.y()),
+                    QuarterTurns::Three => Self::new(-self.y(), self.x()),
+                }
+            }
+        }
+
+        impl HasLocation for $name {
             fn location(&self, scale: f32) -> Location {
-                let x = Into::<f32>::into(self.x()) * scale; 
-                let y = Into::<f32>::into(self.y()) * scale; 
-        
+                let x = Into::<f32>::into(self.x()) * scale;
+                let y = Into::<f32>::into(self.y()) * scale;
+
                 Location { x, y }
             }
         }
@@ -277,7 +282,6 @@ macro_rules! point_add {
 //         }
 //     };
 // }
-
 
 vector!(Vector16, i16);
 vector!(Vector8, i8);

@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use crate::prelude::*;
 pub trait Vertex: UniformPrimitive + HasLocation + Flippable {}
 
-
 macro_rules! vertex {
     ($name:ident, $inner:ty) => {
         #[must_use]
@@ -68,11 +67,11 @@ macro_rules! vertex {
                 }
             }
 
-            fn col(&self)-><Self as GridAligned>::Inner{
+            fn col(&self) -> <Self as GridAligned>::Inner {
                 self.0 % (Self::COLUMNS + 1)
             }
-            
-            fn row(&self)-><Self as GridAligned>::Inner{
+
+            fn row(&self) -> <Self as GridAligned>::Inner {
                 self.0 / (Self::COLUMNS + 1)
             }
         }
@@ -87,21 +86,33 @@ macro_rules! vertex {
 
             const MAX_ROW: <Self as GridAligned>::Inner = ROWS;
 
-            fn try_new(col: <Self as GridAligned>::Inner, row: <Self as GridAligned>::Inner)-> Option<Self>{
+            fn try_new(
+                col: <Self as GridAligned>::Inner,
+                row: <Self as GridAligned>::Inner,
+            ) -> Option<Self> {
                 let i1 = row.checked_mul(COLS + 1)?;
-                let i2= i1.checked_add(col)?;
+                let i2 = i1.checked_add(col)?;
 
                 Self::try_from_inner(i2)
             }
         }
 
         impl<const W: $inner, const H: $inner> Flippable for $name<W, H> {
-            fn flip_horizontal(&mut self) {
-                *self = Self::try_new(Self::MAX_COL - self.col(), self.row()).unwrap()
-            }
-
-            fn flip_vertical(&mut self) {
-                *self = Self::try_new(self.col(), Self::MAX_ROW - self.row()).unwrap()
+            fn flip(&mut self, axes: FlipAxes) {
+                match axes {
+                    FlipAxes::None => {}
+                    FlipAxes::Horizontal => {
+                        *self = Self::try_new(Self::MAX_COL - self.col(), self.row()).unwrap()
+                    }
+                    FlipAxes::Vertical => {
+                        *self = Self::try_new(self.col(), Self::MAX_ROW - self.row()).unwrap()
+                    }
+                    FlipAxes::Both => {
+                        *self =
+                            Self::try_new(Self::MAX_COL - self.col(), Self::MAX_ROW - self.row())
+                                .unwrap()
+                    }
+                }
             }
         }
 
@@ -163,15 +174,13 @@ macro_rules! vertex {
 vertex!(Vertex16, u16);
 vertex!(Vertex8, u8);
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::vertex::*;
     use itertools::Itertools;
-    #[cfg(feature="serde")]
-    use serde_test::{Token, assert_tokens};
-
+    #[cfg(feature = "serde")]
+    use serde_test::{assert_tokens, Token};
 
     #[test]
     fn test_iter_by_row() {
@@ -184,32 +193,32 @@ mod tests {
     }
 
     #[test]
-    fn test_from(){
-        for vertex in Vertex8::<3,4>::iter_by_row(){
+    fn test_from() {
+        for vertex in Vertex8::<3, 4>::iter_by_row() {
             let n = Vertex8::try_new(vertex.col(), vertex.row()).unwrap();
             assert_eq!(vertex, n)
         }
     }
 
     #[test]
-    fn test_flip_vertical(){
-        let str = Vertex8::<2, 2>::iter_by_row().map(|mut x|{x.flip_vertical(); x}) .join("|");
+    fn test_flip_vertical() {
+        let str = Vertex8::<2, 2>::iter_by_row()
+            .map(|x| {
+                x.flipped(FlipAxes::Vertical)
+            })
+            .join("|");
 
-        assert_eq!(
-            "(0,2)|(1,2)|(2,2)|(0,1)|(1,1)|(2,1)|(0,0)|(1,0)|(2,0)",
-            str
-        )
+        assert_eq!("(0,2)|(1,2)|(2,2)|(0,1)|(1,1)|(2,1)|(0,0)|(1,0)|(2,0)", str)
     }
 
-    #[cfg(feature="serde")]
+    #[cfg(feature = "serde")]
     #[test]
-    fn test_serde(){
-        let tile: Vertex8<3,3> = Vertex8(2);
+    fn test_serde() {
+        let tile: Vertex8<3, 3> = Vertex8(2);
 
-        assert_tokens(&tile, &[
-            Token::NewtypeStruct { name: "Vertex8", },
-            Token::U8(2)
-            
-        ]);
+        assert_tokens(
+            &tile,
+            &[Token::NewtypeStruct { name: "Vertex8" }, Token::U8(2)],
+        );
     }
 }
