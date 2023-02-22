@@ -1,6 +1,5 @@
 use strum::{Display, EnumCount, EnumIter};
 
-use crate::primitive::UniformPrimitive;
 
 pub trait Flippable {
     fn flip(&mut self, axes: FlipAxes);
@@ -18,6 +17,7 @@ pub enum FlipAxes {
 }
 
 pub trait CopyFlippable: Flippable + Copy {
+    #[must_use]
     fn flipped(&self, axes: FlipAxes) -> Self {
         let mut s = self.clone();
         s.flip(axes);

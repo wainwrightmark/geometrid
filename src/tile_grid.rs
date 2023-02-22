@@ -4,7 +4,10 @@ use core::{
     ops::{Index, IndexMut},
 };
 
-use crate::prelude::*;
+use crate::{prelude::*, fixed_tile::{FixedTile8, FixedTile16}};
+use crate::flippable::*;
+use crate::rotatable::*;
+use crate::primitives::*;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -129,7 +132,7 @@ macro_rules! tile_grid {
 
                         for y in 0..ROWS / 2 {
                             for x in 0..COLS {
-                                let p1 = $tile::<COLS, ROWS>::try_new(x, y).unwrap();
+                                let p1 = $tile::<COLS, ROWS>::new_unchecked(x, y);
                                 let p2 = p1.flipped(axes);
                                 self.swap(p1, p2);
                             }
@@ -318,8 +321,8 @@ macro_rules! tile_grid {
     };
 }
 
-tile_grid!(TileGrid16, Tile16, u16);
-tile_grid!(TileGrid8, Tile8, u8);
+tile_grid!(TileGrid16, FixedTile16, u16);
+tile_grid!(TileGrid8, FixedTile8, u8);
 
 #[cfg(test)]
 mod tests {
@@ -411,7 +414,7 @@ mod tests {
         let mut grid: TileGrid8<usize, 3, 3, 9> = TileGrid8::from_fn(|x| x.into());
 
         for i in 0..9 {
-            assert_eq!(grid[Tile8::<3, 3>::try_from_usize(i).unwrap()], i)
+            assert_eq!(grid[FixedTile8::<3, 3>::try_from_usize(i).unwrap()], i)
         }
 
         let str = grid.to_string();

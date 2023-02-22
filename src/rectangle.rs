@@ -1,95 +1,90 @@
-use itertools::Itertools;
-use tinyvec::ArrayVec;
+use core::{iter, ops::Div};
 
-#[cfg(feature="serde")]
-use serde::{Serialize, Deserialize};
+use crate::{
+    dynamic_vector::DynamicVector, dynamic_vertex::DynamicVertex, flippable::Flippable,
+    inners::PrimitiveInner, location::HasLocation, primitives::Primitive, rotatable::Rotatable,
+    shape::Shape,
+};
 
-use crate::{vector::*, polyomino::Polyomino};
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Rectangle {
-    pub x: i8,
-    pub y: i8,
-    pub width: u8,
-    pub height: u8,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Rectangle<Vector: DynamicVector> {
+    pub top_left: Vector,
+    pub width: <<Vector as Primitive>::Inner as PrimitiveInner>::Absolute,
+    pub height: <<Vector as Primitive>::Inner as PrimitiveInner>::Absolute,
 }
 
-/// Iterator for deconstructing polyominos to rectangles
-pub struct RectangleIter<const P: usize> {
-    shape: Polyomino<P>,
-    remaining_points: ArrayVec<[Vector8; P]>,
+impl<Vector: DynamicVector> HasLocation for Rectangle<Vector> {
+    fn location(&self, scale: f32) -> crate::location::Location {
+        let top_left = self.top_left.location(scale);
+
+        let width = <<<Vector as Primitive>::Inner as PrimitiveInner>::Absolute as Into<f32>>::into(
+            self.width,
+        );
+        let height =
+            <<<Vector as Primitive>::Inner as PrimitiveInner>::Absolute as Into<f32>>::into(
+                self.height,
+            );
+        let x = top_left.x + (width * 0.5 * scale);
+        let y = top_left.y + (height * 0.5 * scale);
+        crate::location::Location { x, y }
+    }
 }
 
-impl<const P: usize> From<Polyomino<P>> for RectangleIter<P> {
-    fn from(shape: Polyomino<P>) -> Self {
-        Self {
-            shape,
-            remaining_points: ArrayVec::from(shape.0),
+impl<Vector: DynamicVector> Flippable for Rectangle<Vector> {
+    fn flip(&mut self, axes: crate::flippable::FlipAxes) {
+        //Do nothing
+    }
+}
+
+impl<Vector: DynamicVector> Rotatable for Rectangle<Vector> {
+    fn rotate(&mut self, quarter_turns: crate::rotatable::QuarterTurns) {
+        use crate::rotatable::QuarterTurns::*;
+        if quarter_turns == One || quarter_turns == Three{
+            let new_x= self.top_left.x() + (self.width.to_signed() - self.height.to_signed()).div(<<Vector as Primitive>::Inner>::TWO);
+
+            //let new_top_left = Vector::n
+
+            let new_rect = Rectangle{
+                width: self.height,
+                height: self.width,
+                top_left: new_top_left
+            };
         }
     }
 }
 
-impl<const P: usize> Iterator for RectangleIter<P> {
-    type Item = Rectangle;
+// impl<Vector: DynamicVector> Shape for Rectangle<Vector> {
+//     type Vector = Vector;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        let Some(p1) = self.remaining_points.pop()
-        else{
-            return None
-        };
-        let mut min_x = p1.x();
-        let mut max_x = p1.x();
-        let mut min_y = p1.y();
+//     type OutlineIter = core::array::IntoIter<DynamicVertex<Vector>, 4>;
 
-        while let Some((index, &p2)) = self
-            .remaining_points
-            .iter()
-            .find_position(|p2| p2.y() == min_y && (p2.x() == max_x + 1 || p2.x() == min_x - 1))
-        {
-            self.remaining_points.swap_remove(index);
-            min_x = min_x.min(p2.x());
-            max_x = max_x.max(p2.x());
-        }
-        let range = min_x..=max_x;
+//     type RectangleIter = iter::Once<Self>;
 
-        let mut max_y = p1.y();
+//     type TilesIter;
 
-        'outer: loop {
-            for is_max in [false, true] {
-                let y = if is_max { max_y + 1 } else { min_y - 1 };
-                let condition = |p2: &&Vector8| p2.y() == y && range.contains(&p2.x());
-                if self.remaining_points.iter().filter(condition).count() == range.len() {
-                    while let Some((position, _)) =
-                        self.remaining_points.iter().find_position(condition)
-                    {
-                        self.remaining_points.swap_remove(position);
-                    }
-                    if is_max {
-                        max_y += 1;
-                    } else {
-                        min_y -= 1;
-                    }
+//     fn tiles_count(&self) -> usize {
+//         let width =
+//             <<<Vector as Primitive>::Inner as PrimitiveInner>::Absolute as Into<usize>>::into(
+//                 self.width,
+//             );
+//         let height =
+//             <<<Vector as Primitive>::Inner as PrimitiveInner>::Absolute as Into<usize>>::into(
+//                 self.height,
+//             );
+//         width * height
+//     }
 
-                    continue 'outer;
-                }
-            }
-            break 'outer;
-        }
+//     fn tiles_iter(&self) -> Self::TilesIter {
+//         todo!()
+//     }
 
-        let width = (max_x + 1 - min_x) as u8;
-        let height = (max_y + 1 - min_y) as u8;
-        Some(Rectangle {
-            x: min_x,
-            y: min_y,
-            width,
-            height,
-        })
-    }
-}
+//     fn outline(&self) -> Self::OutlineIter {
+//         let top_right = self.width
+//         let arr = [DynamicVertex(self.top_left)];
+//         arr.into_iter()
+//     }
 
-impl<const P: usize> Polyomino<P> {
-    pub fn deconstruct_into_rectangles(&self) -> impl Iterator<Item = Rectangle> {
-        RectangleIter::from(self.clone())
-    }
-}
+//     fn deconstruct(&self) -> Self::RectangleIter {
+//         iter::once(self.clone())
+//     }
+// }
