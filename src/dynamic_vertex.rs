@@ -3,6 +3,7 @@ use core::ops::Add;
 use crate::corner::Corner;
 use crate::dynamic_vector::DynamicVector;
 use crate::flippable::{Flippable, FlipAxes};
+use crate::inners::SignedInner;
 use crate::location::{HasLocation, Location};
 use crate::primitives::{Primitive, DynamicPrimitive, UniformPrimitive, Vertex};
 use crate::rotatable::{Rotatable, QuarterTurns};
@@ -17,9 +18,9 @@ use strum::{EnumCount, EnumIter, Display};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct DynamicVertex<V : DynamicVector>(pub V);
+pub struct DynamicVertex<V : DynamicVector>(pub V) where <V as Primitive>::Inner: SignedInner,;
 
-impl<V : DynamicVector> Primitive for DynamicVertex<V>{
+impl<V : DynamicVector> Primitive for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     type Inner = V::Inner;
 
     const CENTER: Self = Self(V::CENTER) ;
@@ -33,7 +34,7 @@ impl<V : DynamicVector> Primitive for DynamicVertex<V>{
     }
 }
 
-impl<V : DynamicVector> Zero for DynamicVertex<V>{
+impl<V : DynamicVector> Zero for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     fn zero() -> Self {
         Self(V::ZERO)
     }
@@ -43,7 +44,7 @@ impl<V : DynamicVector> Zero for DynamicVertex<V>{
     }
 }
 
-impl<V : DynamicVector> Add for DynamicVertex<V>{
+impl<V : DynamicVector> Add for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -51,7 +52,7 @@ impl<V : DynamicVector> Add for DynamicVertex<V>{
     }
 }
 
-impl<V : DynamicVector> Neg for DynamicVertex<V>{
+impl<V : DynamicVector> Neg for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     type Output= Self;
 
     fn neg(self) -> Self::Output {
@@ -59,7 +60,7 @@ impl<V : DynamicVector> Neg for DynamicVertex<V>{
     }
 }
 
-impl<V : DynamicVector> Mul<isize> for DynamicVertex<V>{
+impl<V : DynamicVector> Mul<isize> for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     type Output = Self;
 
     fn mul(self, rhs: isize) -> Self::Output {
@@ -67,7 +68,7 @@ impl<V : DynamicVector> Mul<isize> for DynamicVertex<V>{
     }
 }
 
-impl<V : DynamicVector> Mul<usize> for DynamicVertex<V>{
+impl<V : DynamicVector> Mul<usize> for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     type Output = Self;
 
     fn mul(self, rhs: usize) -> Self::Output {
@@ -75,29 +76,29 @@ impl<V : DynamicVector> Mul<usize> for DynamicVertex<V>{
     }
 }
 
-impl<V : DynamicVector> Flippable for DynamicVertex<V>{
+impl<V : DynamicVector> Flippable for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     fn flip(&mut self, axes: FlipAxes) {
         self.0.flip(axes)
     }
 }
 
-impl<V : DynamicVector> Rotatable for DynamicVertex<V>{
+impl<V : DynamicVector> Rotatable for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     fn rotate(&mut self, quarter_turns: QuarterTurns) {
         self.0.rotate(quarter_turns)
     }
 }
 
-impl<V : DynamicVector> HasLocation for DynamicVertex<V>{
+impl<V : DynamicVector> HasLocation for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     fn location(&self, scale: f32) -> Location {
-        let x = (self.x().into() + 0.5) * scale;
-        let y = (self.y().into() + 0.5) * scale;
+        let x = (<<V as Primitive>::Inner as Into<f32> >::into(self.x())) * scale;
+        let y = (<<V as Primitive>::Inner as Into<f32> >::into(self.y())) * scale;
         Location { x, y }
     }
 }
 
 
 
-impl<V : DynamicVector> DynamicPrimitive for DynamicVertex<V>{
+impl<V : DynamicVector> DynamicPrimitive for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     fn with_x(&self, x: Self::Inner) -> Self {
         Self(self.0.with_x(x))
     }
@@ -111,11 +112,11 @@ impl<V : DynamicVector> DynamicPrimitive for DynamicVertex<V>{
     }
 }
 
-impl<V : DynamicVector> UniformPrimitive for DynamicVertex<V>{
+impl<V : DynamicVector> UniformPrimitive for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
 
 }
 
-impl <V : DynamicVector> Vertex for DynamicVertex<V>{
+impl <V : DynamicVector> Vertex for DynamicVertex<V> where <V as Primitive>::Inner: SignedInner,{
     type Tile = DynamicTile<V>;
 
     fn try_get_tile(&self, corner: Corner) -> Option<Self::Tile> {

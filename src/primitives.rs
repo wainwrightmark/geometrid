@@ -8,6 +8,7 @@ use core::ops::Neg;
 use crate::corner::Corner;
 use crate::flippable::Flippable;
 use crate::inners::PrimitiveInner;
+use crate::inners::SignedInner;
 use crate::inners::UnsignedInner;
 use crate::location::HasLocation;
 use crate::rotatable::Rotatable;
@@ -37,8 +38,7 @@ pub trait Primitive:
 
 /// A primitive in a fixed size grid
 pub trait FixedPrimitive: Primitive + Into<<Self as Primitive>::Inner> + Into<usize>
-where
-    <Self as Primitive>::Inner: UnsignedInner,
+where <Self as Primitive>::Inner: UnsignedInner,
 {
     /// The total number of primitives of this type in the grid
     const COUNT: Self::Inner;
@@ -61,6 +61,8 @@ where
 /// A primitive in a dynamically sized grid, centred at (0,0)
 pub trait DynamicPrimitive:
     Primitive + Rotatable + Neg<Output = Self> + Mul<usize, Output = Self> + Mul<isize, Output = Self> + Add<Output = Self>
+    where
+    <Self as Primitive>::Inner: SignedInner,
 {
     /// Clone this and set the x value
     fn with_x(&self, x: Self::Inner) -> Self;
@@ -129,7 +131,7 @@ where
 /// A tile or a vertex
 pub trait UniformPrimitive: Primitive {
     /// The number of horizontal or vertical steps to reach the other primitive
-    fn manhattan_distance(&self, other: &Self) -> <Self::Inner as PrimitiveInner>::Absolute {
+    fn manhattan_distance(&self, other: &Self) -> <Self::Inner as PrimitiveInner>::Unsigned {
         self.x().abs_diff(other.x()) + self.y().abs_diff(other.y())
     }
 
@@ -140,7 +142,7 @@ pub trait UniformPrimitive: Primitive {
             self.y().abs_diff(other.y()).is_one()
         } else if col_diff.is_one() {
             self.y().abs_diff(other.y())
-                <= <<Self::Inner as PrimitiveInner>::Absolute as One>::one()
+                <= <<Self::Inner as PrimitiveInner>::Unsigned as One>::one()
         } else {
             false
         }

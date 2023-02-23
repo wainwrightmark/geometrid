@@ -1,11 +1,14 @@
 use crate::{
     dynamic_tile::DynamicTile, dynamic_vector::DynamicVector, dynamic_vertex::DynamicVertex,
-    flippable::Flippable, inners::PrimitiveInner, location::HasLocation, primitives::Primitive,
+    flippable::Flippable, inners::{PrimitiveInner, SignedInner}, location::HasLocation, primitives::Primitive,
     rectangle::Rectangle, rotatable::Rotatable,
 };
 
-pub trait Shape: HasLocation + Flippable + Rotatable {
-    type Vector: DynamicVector;
+pub trait Shape: HasLocation + Flippable + Rotatable
+where <<Self as Shape>::Vector as Primitive>::Inner: SignedInner,
+
+ {
+    type Vector: DynamicVector ;
     type OutlineIter: Iterator<Item = DynamicVertex<Self::Vector>>;
     type RectangleIter: Iterator<Item = Rectangle<Self::Vector>>;
     type TilesIter: Iterator<Item = DynamicTile<Self::Vector>>;

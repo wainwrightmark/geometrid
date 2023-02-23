@@ -2,9 +2,10 @@ use core::ops::{Add, Mul, Neg};
 
 use num_traits::{One, Zero};
 
-use crate::{prelude::*, primitives::DynamicPrimitive, inners::PrimitiveInner};
+use crate::{prelude::*, primitives::{DynamicPrimitive, Primitive}, inners::{PrimitiveInner, UnsignedInner, SignedInner}};
 
-pub trait DynamicVector: DynamicPrimitive {
+pub trait DynamicVector: DynamicPrimitive where <Self as Primitive>::Inner: SignedInner, {
+    
     const ZERO: Self;
     const UP: Self;
     const UP_RIGHT: Self;
@@ -43,7 +44,7 @@ pub trait DynamicVector: DynamicPrimitive {
     #[must_use]
     #[inline]
     fn is_unit(&self) -> bool {
-        let one = <<Self::Inner as PrimitiveInner>::Absolute>::one();
+        let one = <<Self::Inner as PrimitiveInner>::Unsigned>::one();
         self.x().abs() <= one && self.y().abs() <= one && self != &Self::ZERO
     }
 
