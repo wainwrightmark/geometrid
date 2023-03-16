@@ -3,10 +3,12 @@ source: src/polyomino.rs
 expression: rectangles
 ---
 [
-    Rectangle {
-        x: 0,
-        y: -2,
-        width: 1,
-        height: 5,
+  {
+    "north_west": {
+      "x": 0,
+      "y": -2
     },
+    "width": 1,
+    "height": 5
+  }
 ]

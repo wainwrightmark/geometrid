@@ -1,95 +1,171 @@
-use itertools::Itertools;
-use tinyvec::ArrayVec;
+use core::{array, iter::Map};
 
-#[cfg(feature="serde")]
-use serde::{Serialize, Deserialize};
+use crate::prelude::*;
 
-use crate::{vector::*, polyomino::Polyomino};
+#[cfg(any(test, feature = "serde"))]
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Rectangle {
-    pub x: i8,
-    pub y: i8,
+    pub north_west: DynamicVertex,
     pub width: u8,
     pub height: u8,
 }
 
-/// Iterator for deconstructing polyominos to rectangles
-pub struct RectangleIter<const P: usize> {
-    shape: Polyomino<P>,
-    remaining_points: ArrayVec<[Vector8; P]>,
-}
-
-impl<const P: usize> From<Polyomino<P>> for RectangleIter<P> {
-    fn from(shape: Polyomino<P>) -> Self {
+impl Rectangle {
+    pub fn new(north_west: DynamicVertex, width: u8, height: u8) -> Self {
         Self {
-            shape,
-            remaining_points: ArrayVec::from(shape.0),
-        }
-    }
-}
-
-impl<const P: usize> Iterator for RectangleIter<P> {
-    type Item = Rectangle;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let Some(p1) = self.remaining_points.pop()
-        else{
-            return None
-        };
-        let mut min_x = p1.x();
-        let mut max_x = p1.x();
-        let mut min_y = p1.y();
-
-        while let Some((index, &p2)) = self
-            .remaining_points
-            .iter()
-            .find_position(|p2| p2.y() == min_y && (p2.x() == max_x + 1 || p2.x() == min_x - 1))
-        {
-            self.remaining_points.swap_remove(index);
-            min_x = min_x.min(p2.x());
-            max_x = max_x.max(p2.x());
-        }
-        let range = min_x..=max_x;
-
-        let mut max_y = p1.y();
-
-        'outer: loop {
-            for is_max in [false, true] {
-                let y = if is_max { max_y + 1 } else { min_y - 1 };
-                let condition = |p2: &&Vector8| p2.y() == y && range.contains(&p2.x());
-                if self.remaining_points.iter().filter(condition).count() == range.len() {
-                    while let Some((position, _)) =
-                        self.remaining_points.iter().find_position(condition)
-                    {
-                        self.remaining_points.swap_remove(position);
-                    }
-                    if is_max {
-                        max_y += 1;
-                    } else {
-                        min_y -= 1;
-                    }
-
-                    continue 'outer;
-                }
-            }
-            break 'outer;
-        }
-
-        let width = (max_x + 1 - min_x) as u8;
-        let height = (max_y + 1 - min_y) as u8;
-        Some(Rectangle {
-            x: min_x,
-            y: min_y,
+            north_west,
             width,
             height,
-        })
+        }
+    }
+
+    pub fn area(&self) -> usize {
+        self.width as usize * self.height as usize
     }
 }
 
-impl<const P: usize> Polyomino<P> {
-    pub fn deconstruct_into_rectangles(&self) -> impl Iterator<Item = Rectangle> {
-        RectangleIter::from(self.clone())
+impl HasCenter for Rectangle {
+    fn get_center(&self, scale: f32) -> Center {
+        let mut center = self.north_west.get_center(scale);
+        center.x += (self.width as f32 * 0.5 * scale);
+        center.y += (self.height as f32 * 0.5 * scale);
+        center
+    }
+}
+
+impl Shape for Rectangle {
+    type OutlineIter = array::IntoIter<DynamicVertex, 4>;
+
+    type RectangleIter = array::IntoIter<Rectangle, 1>;
+
+    fn draw_outline(&self) -> Self::OutlineIter {
+        [
+            self.north_west,
+            Vector {
+                x: self.north_west.x.saturating_add_unsigned(self.width),
+                y: self.north_west.y,
+            }
+            .into(),
+            Vector {
+                x: self.north_west.x,
+                y: self.north_west.y.saturating_add_unsigned(self.height),
+            }
+            .into(),
+            Vector {
+                x: self.north_west.x.saturating_add_unsigned(self.width),
+                y: self.north_west.y.saturating_add_unsigned(self.height),
+            }
+            .into(),
+        ]
+        .into_iter()
+    }
+
+    fn deconstruct_into_rectangles(&self) -> Self::RectangleIter {
+        [self.clone()].into_iter()
+    }
+}
+
+impl IntoIterator for Rectangle {
+    type Item = DynamicTile;
+    type IntoIter = RectangleIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        RectangleIterator {
+            rectangle: self,
+            next: Some(self.north_west.get_tile(&Corner::SouthEast)),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct RectangleIterator {
+    pub rectangle: Rectangle,
+    pub next: Option<DynamicTile>,
+}
+
+impl Iterator for RectangleIterator {
+    type Item = DynamicTile;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.next {
+            Some(next) => {
+                if next.x
+                    >= self
+                        .rectangle
+                        .north_west
+                        .x
+                        .saturating_add_unsigned(self.rectangle.width)
+                {
+                    if next.y
+                        >= self
+                            .rectangle
+                            .north_west
+                            .y
+                            .saturating_add_unsigned(self.rectangle.height)
+                    {
+                        self.next = None;
+                    } else {
+                        self.next = Some(
+                            Vector {
+                                x: self.rectangle.north_west.x,
+                                y: (next + Vector::SOUTH).y,
+                            }
+                            .into(),
+                        )
+                    }
+                } else {
+                    self.next = Some(next + Vector::EAST);
+                }
+                Some(next)
+            }
+            None => None,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tile::*;
+    use itertools::Itertools;
+    use serde_test::{assert_tokens, Token};
+
+    #[test]
+    pub fn test_center() {
+        let rect = Rectangle::new(Vector::NORTH_EAST.into(), 2, 4);
+
+        let center = rect.get_center(3.0);
+        assert_eq!(center, Center::new(6.0, 3.0))
+    }
+
+    #[test]
+    pub fn test_outline() {
+        let rect = Rectangle::new(Vector::NORTH_EAST.into(), 2, 4);
+
+        let outline = rect.draw_outline().collect_vec();
+
+        assert_eq!(
+            outline.into_iter().join("; "),
+            "(1,-1); (3,-1); (1,3); (3,3)"
+        );
+    }
+
+    #[test]
+    pub fn test_deconstruct() {
+        let rect = Rectangle::new(Vector::NORTH_EAST.into(), 2, 4);
+        let deconstructed = rect.deconstruct_into_rectangles().collect_vec();
+
+        assert_eq!(deconstructed, [rect])
+    }
+    #[test]
+    pub fn test_iter() {
+        let rect = Rectangle::new(Vector::NORTH_EAST.into(), 2, 4);
+
+        let tiles = rect.into_iter().collect_vec();
+
+        assert_eq!(tiles.iter().join(";"), "(1,-1);(2,-1);(3,-1);(1,0);(2,0);(3,0);(1,1);(2,1);(3,1);(1,2);(2,2);(3,2);(1,3);(2,3);(3,3)")
     }
 }

@@ -1,86 +1,130 @@
+use core::ops::Sub;
+
 use crate::prelude::*;
-type PR = super::vector::Vector8;
+use itertools::Itertools;
 use strum::Display;
 
-#[cfg(feature="serde")]
-use serde::{Serialize, Deserialize};
+#[cfg(any(test, feature = "serde"))]
+use serde::{Deserialize, Serialize};
+use tinyvec::ArrayVec;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Polyomino<const POINTS: usize>(
-    #[cfg_attr(feature = "serde", serde(with = "serde_arrays"))]
-    pub [PR; POINTS]);
+    #[cfg_attr(any(test, feature = "serde"), serde(with = "serde_arrays"))]
+    pub  [DynamicTile; POINTS],
+);
+
+impl<const P: usize> Shape for Polyomino<P> {
+    type OutlineIter = OutlineIter<P>;
+
+    type RectangleIter = RectangleIter<P>;
+
+    fn draw_outline(&self) -> Self::OutlineIter {
+        let mut arr = self.0;
+        arr.sort_unstable();
+        OutlineIter {
+            arr,
+            next: Some((arr[0], Corner::NorthWest)),
+        }
+    }
+
+    fn deconstruct_into_rectangles(&self) -> Self::RectangleIter {
+        (*self).into()
+    }
+}
+
+impl<const P: usize> HasCenter for Polyomino<P> {
+    fn get_center(&self, scale: f32) -> Center {
+        let mut x = 0;
+        let mut y = 0;
+
+        for point in self.0 {
+            x += point.x;
+            y += point.y;
+        }
+
+        Center {
+            x: (0.5 + ((x as f32) / (P as f32))) * scale,
+            y: (0.5 + ((y as f32) / (P as f32))) * scale,
+        }
+    }
+}
 
 impl<const P: usize> IntoIterator for Polyomino<P> {
-    type Item = PR;
+    type Item = DynamicTile;
 
-    type IntoIter = core::array::IntoIter<PR, P>;
+    type IntoIter = core::array::IntoIter<DynamicTile, P>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
 
+impl<const P: usize> Polyomino<P> {
+    const fn new(vectors: [Vector; P]) -> Self {
+        let mut arr = [DynamicTile(Vector::ZERO); P];
+
+        let mut i = 0;
+        while i < P {
+            arr[i] = DynamicTile(vectors[i]);
+            i += 1;
+        }
+        Self(arr)
+    }
+}
+
 impl Polyomino<1> {
-    pub const MONOMINO: Self = Self([PR::ZERO]);
+    pub const MONOMINO: Self = Self::new([Vector::ZERO]);
 }
 
 impl Polyomino<2> {
-    pub const DOMINO: Self = Self([PR::ZERO, PR::UP]);
+    pub const DOMINO: Self = Self::new([Vector::ZERO, Vector::NORTH]);
 }
 
 impl Polyomino<3> {
-    pub const I_TROMINO: Self = Self([
-        PR::RIGHT,
-        PR::ZERO,
-        PR::LEFT,
-    ]);
-    pub const V_TROMINO: Self =
-        Self([PR::RIGHT, PR::ZERO, PR::UP]);
+    pub const I_TROMINO: Self = Self::new([Vector::EAST, Vector::ZERO, Vector::WEST]);
+    pub const V_TROMINO: Self = Self::new([Vector::EAST, Vector::ZERO, Vector::NORTH]);
 }
 
 impl Polyomino<4> {
-    pub const I_TETROMINO: Self = Self([
-        PR::RIGHT,
-        PR::ZERO,
-        PR::LEFT,
-        PR::LEFT.const_mul(2),
+    pub const I_TETROMINO: Self = Self::new([
+        Vector::EAST,
+        Vector::ZERO,
+        Vector::WEST,
+        Vector::WEST.const_mul(2),
     ]);
-    pub const O_TETROMINO: Self = Self([
-        PR::ZERO,
-        PR::RIGHT,
-        PR::UP_RIGHT,
-        PR::UP,
+    pub const O_TETROMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::EAST,
+        Vector::NORTH_EAST,
+        Vector::NORTH,
     ]);
-    pub const T_TETROMINO: Self = Self([
-        PR::RIGHT,
-        PR::ZERO,
-        PR::LEFT,
-        PR::DOWN,
+    pub const T_TETROMINO: Self =
+        Self::new([Vector::EAST, Vector::ZERO, Vector::WEST, Vector::SOUTH]);
+    pub const J_TETROMINO: Self = Self::new([
+        Vector::WEST,
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH.const_mul(2),
     ]);
-    pub const J_TETROMINO: Self = Self([
-        PR::LEFT,
-        PR::ZERO,
-        PR::UP,
-        PR::UP.const_mul(2),
+    pub const L_TETROMINO: Self = Self::new([
+        Vector::EAST,
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH.const_mul(2),
     ]);
-    pub const L_TETROMINO: Self = Self([
-        PR::RIGHT,
-        PR::ZERO,
-        PR::UP,
-        PR::UP.const_mul(2),
+    pub const S_TETROMINO: Self = Self::new([
+        Vector::WEST,
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH_EAST,
     ]);
-    pub const S_TETROMINO: Self = Self([
-        PR::LEFT,
-        PR::ZERO,
-        PR::UP,
-        PR::UP_RIGHT,
-    ]);
-    pub const Z_TETROMINO: Self = Self([
-        PR::RIGHT,
-        PR::ZERO,
-        PR::UP,
-        PR::UP_LEFT,
+    pub const Z_TETROMINO: Self = Self::new([
+        Vector::EAST,
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH_WEST,
     ]);
 
     pub const TETROMINOS: [Self; 7] = [
@@ -107,89 +151,89 @@ impl Polyomino<4> {
 }
 
 impl Polyomino<5> {
-    pub const F_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::UP,
-        PR::UP_RIGHT,
-        PR::LEFT,
-        PR::DOWN,
+    pub const F_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH_EAST,
+        Vector::WEST,
+        Vector::SOUTH,
     ]);
-    pub const I_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::UP,
-        PR::UP.const_mul(2),
-        PR::DOWN,
-        PR::DOWN.const_mul(2),
+    pub const I_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH.const_mul(2),
+        Vector::SOUTH,
+        Vector::SOUTH.const_mul(2),
     ]);
-    pub const L_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::UP,
-        PR::UP.const_mul(2),
-        PR::DOWN,
-        PR::DOWN_RIGHT,
+    pub const L_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH.const_mul(2),
+        Vector::SOUTH,
+        Vector::SOUTH_EAST,
     ]);
-    pub const N_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::UP,
-        PR::UP.const_mul(2),
-        PR::LEFT,
-        PR::DOWN_LEFT,
+    pub const N_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH.const_mul(2),
+        Vector::WEST,
+        Vector::SOUTH_WEST,
     ]);
-    pub const P_PENTOMINO: Self = Self([
-        PR::UP,
-        PR::ZERO,
-        PR::UP_RIGHT,
-        PR::RIGHT,
-        PR::DOWN,
+    pub const P_PENTOMINO: Self = Self::new([
+        Vector::NORTH,
+        Vector::ZERO,
+        Vector::NORTH_EAST,
+        Vector::EAST,
+        Vector::SOUTH,
     ]);
-    pub const T_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::UP,
-        PR::UP_RIGHT,
-        PR::UP_LEFT,
-        PR::DOWN,
+    pub const T_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH_EAST,
+        Vector::NORTH_WEST,
+        Vector::SOUTH,
     ]);
-    pub const U_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::UP_RIGHT,
-        PR::RIGHT,
-        PR::UP_LEFT,
-        PR::LEFT,
+    pub const U_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::NORTH_EAST,
+        Vector::EAST,
+        Vector::NORTH_WEST,
+        Vector::WEST,
     ]);
-    pub const V_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::UP,
-        PR::UP.const_mul(2),
-        PR::LEFT,
-        PR::LEFT.const_mul(2),
+    pub const V_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH.const_mul(2),
+        Vector::WEST,
+        Vector::WEST.const_mul(2),
     ]);
-    pub const W_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::RIGHT,
-        PR::UP_RIGHT,
-        PR::DOWN,
-        PR::DOWN_LEFT,
+    pub const W_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::EAST,
+        Vector::NORTH_EAST,
+        Vector::SOUTH,
+        Vector::SOUTH_WEST,
     ]);
-    pub const X_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::UP,
-        PR::RIGHT,
-        PR::DOWN,
-        PR::LEFT,
+    pub const X_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::EAST,
+        Vector::SOUTH,
+        Vector::WEST,
     ]);
-    pub const Y_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::UP,
-        PR::RIGHT,
-        PR::LEFT,
-        PR::LEFT.const_mul(2),
+    pub const Y_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::EAST,
+        Vector::WEST,
+        Vector::WEST.const_mul(2),
     ]);
-    pub const Z_PENTOMINO: Self = Self([
-        PR::ZERO,
-        PR::UP,
-        PR::UP_LEFT,
-        PR::DOWN,
-        PR::DOWN_RIGHT,
+    pub const Z_PENTOMINO: Self = Self::new([
+        Vector::ZERO,
+        Vector::NORTH,
+        Vector::NORTH_WEST,
+        Vector::SOUTH,
+        Vector::SOUTH_EAST,
     ]);
 
     pub const FREE_PENTOMINOS: [Self; 12] = [
@@ -211,99 +255,48 @@ impl Polyomino<5> {
         ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "Z"];
 }
 
-pub trait PolyominoShape {
-    type OutlineIter: Iterator<Item = PR>;
-    fn draw_outline(&self) -> Self::OutlineIter;
-
-    fn get_centre(&self) -> (f32, f32);
-
-    fn first_point(&self) -> PR;
-}
-
-impl<const P: usize> PolyominoShape for Polyomino<P> {
-    type OutlineIter = OutlineIter<P>;
-
-    fn draw_outline(&self) -> Self::OutlineIter {
-        let mut arr = self.0;
-        arr.sort_unstable();
-        OutlineIter {
-            arr,
-            next: Some((arr[0], Corner::TopLeft)),
-        }
-    }
-
-    fn get_centre(&self) -> (f32, f32) {
-        let mut x = 0;
-        let mut y = 0;
-
-        for point in self.0 {
-            x += point.x();
-            y += point.y();
-        }
-
-        (
-            0.5 + ((x as f32) / (P as f32)),
-            0.5 + ((y as f32) / (P as f32)),
-        )
-    }
-
-    fn first_point(&self) -> PR {
-        self.0[0]
-    }
-}
-
 pub struct OutlineIter<const POINTS: usize> {
-    arr: [PR; POINTS],
-    next: Option<(PR, Corner)>,
+    arr: [DynamicTile; POINTS],
+    next: Option<(DynamicTile, Corner)>,
 }
-
-
 
 impl Corner {
-    pub fn clockwise_direction(&self) -> PR {
+    pub const fn clockwise_direction(&self) -> Vector {
         match self {
-            Corner::TopLeft => PR::UP,
-            Corner::TopRight => PR::RIGHT,
-            Corner::BottomRight => PR::DOWN,
-            Corner::BottomLeft => PR::LEFT,
+            Corner::NorthWest => Vector::NORTH,
+            Corner::NorthEast => Vector::EAST,
+            Corner::SouthEast => Vector::SOUTH,
+            Corner::SouthWest => Vector::WEST,
         }
     }
 
-    pub fn clockwise(&self) -> Self {
+    pub const fn clockwise(&self) -> Self {
         use Corner::*;
+
         match self {
-            Corner::TopLeft => TopRight,
-            Corner::TopRight => BottomRight,
-            Corner::BottomRight => BottomLeft,
-            Corner::BottomLeft => TopLeft,
+            NorthWest => NorthEast,
+            NorthEast => SouthEast,
+            SouthEast => SouthWest,
+            SouthWest => NorthWest,
         }
     }
 
     pub fn anticlockwise(&self) -> Self {
         use Corner::*;
         match self {
-            Corner::TopLeft => BottomLeft,
-            Corner::TopRight => TopLeft,
-            Corner::BottomRight => TopRight,
-            Corner::BottomLeft => BottomRight,
-        }
-    }
-
-    pub fn direction_of_northwest_corner(&self) -> PR {
-        match self {
-            Corner::TopLeft => PR::ZERO,
-            Corner::TopRight => PR::RIGHT,
-            Corner::BottomRight => PR::DOWN_RIGHT,
-            Corner::BottomLeft => PR::DOWN,
+            NorthWest => SouthWest,
+            SouthWest => SouthEast,
+            SouthEast => NorthEast,
+            NorthEast => NorthWest,
         }
     }
 }
 
 impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
-    type Item = PR;
+    type Item = DynamicVertex;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut direction_so_far: Option<PR> = None;
+        let mut direction_so_far: Option<Vector> = None;
         let (coordinate_to_return, corner_to_return) = self.next?;
 
         let mut next_coordinate = coordinate_to_return;
@@ -319,7 +312,7 @@ impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
                     if next_coordinate == coordinate_to_return {
                         panic!("Infinite loop found in shape.")
                     }
-                    if next_corner == Corner::TopLeft && next_coordinate == self.arr[0] {
+                    if next_corner == Corner::NorthWest && next_coordinate == self.arr[0] {
                         break 'line;
                     }
                 } else {
@@ -340,21 +333,94 @@ impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
                     }
                 }
             }
-            if next_corner == Corner::TopLeft && next_coordinate == self.arr[0] {
+            if next_corner == Corner::NorthWest && next_coordinate == self.arr[0] {
                 break 'line;
             }
         }
 
-        if next_corner == Corner::TopLeft && next_coordinate == self.arr[0] {
+        if next_corner == Corner::NorthWest && next_coordinate == self.arr[0] {
             self.next = None;
         } else {
             self.next = Some((next_coordinate, next_corner));
         }
 
-        //println!("{} {}", coordinate_to_return, corner_to_return);
-        let r = coordinate_to_return + corner_to_return.direction_of_northwest_corner();
+        let r = coordinate_to_return.get_vertex(&corner_to_return);
 
         Some(r)
+    }
+}
+
+/// Iterator for deconstructing polyominos to rectangles
+pub struct RectangleIter<const P: usize> {
+    shape: Polyomino<P>,
+    remaining_tiles: ArrayVec<[DynamicTile; P]>,
+}
+
+impl<const P: usize> From<Polyomino<P>> for RectangleIter<P> {
+    fn from(shape: Polyomino<P>) -> Self {
+        Self {
+            shape,
+            remaining_tiles: ArrayVec::from(shape.0),
+        }
+    }
+}
+
+impl<const P: usize> Iterator for RectangleIter<P> {
+    type Item = Rectangle;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let Some(p1) = self.remaining_tiles.pop()
+        else{
+            return None
+        };
+        let mut min_x = p1.x;
+        let mut max_x = p1.x;
+        let mut min_y = p1.y;
+
+        while let Some((index, &p2)) = self
+            .remaining_tiles
+            .iter()
+            .find_position(|p2| p2.y == min_y && (p2.x == max_x + 1 || p2.x == min_x - 1))
+        {
+            self.remaining_tiles.swap_remove(index);
+            min_x = min_x.min(p2.x);
+            max_x = max_x.max(p2.x);
+        }
+        let range = min_x..=max_x;
+
+        let mut max_y = p1.y;
+
+        'outer: loop {
+            for is_max in [false, true] {
+                let y = if is_max { max_y + 1 } else { min_y - 1 };
+                let condition = |p2: &&DynamicTile| p2.y == y && range.contains(&p2.x);
+                if self.remaining_tiles.iter().filter(condition).count() == range.len() {
+                    while let Some((position, _)) =
+                        self.remaining_tiles.iter().find_position(condition)
+                    {
+                        self.remaining_tiles.swap_remove(position);
+                    }
+                    if is_max {
+                        max_y += 1;
+                    } else {
+                        min_y -= 1;
+                    }
+
+                    continue 'outer;
+                }
+            }
+            break 'outer;
+        }
+
+        let north_west = Vector { x: min_x, y: min_y }.into();
+        let width: u8 = max_x.abs_diff(min_x) + 1;
+        let height: u8 = max_y.abs_diff(min_y) + 1;
+
+        Some(Rectangle {
+            north_west,
+            height,
+            width,
+        })
     }
 }
 
@@ -362,7 +428,7 @@ impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-    use crate::rectangle::*;
+    use crate::prelude::*;
     use itertools::Itertools;
 
     #[test]
@@ -401,16 +467,19 @@ mod tests {
         }
     }
 
-    fn test_outline<P: PolyominoShape>(shape: &'static P, name: &str) {
+    fn test_outline<P: Shape + HasCenter>(shape: &'static P, name: &str) {
         let outline: Vec<_> = shape.draw_outline().take(100).collect();
         assert!(outline.len() < 100);
-        let max_x = outline.iter().map(|q| q.x()).max().unwrap() as f32;
-        let max_y = outline.iter().map(|q| q.y()).max().unwrap() as f32;
+        let max_x = outline.iter().map(|q| q.x).max().unwrap() as f32;
+        let max_y = outline.iter().map(|q| q.y).max().unwrap() as f32;
 
-        let min_x = outline.iter().map(|q| q.x()).min().unwrap() as f32;
-        let min_y = outline.iter().map(|q| q.y()).min().unwrap() as f32;
+        let min_x = outline.iter().map(|q| q.x).min().unwrap() as f32;
+        let min_y = outline.iter().map(|q| q.y).min().unwrap() as f32;
 
-        let (centre_x, centre_y) = shape.get_centre();
+        let Center {
+            x: centre_x,
+            y: centre_y,
+        } = shape.get_center(1.0);
 
         assert!(centre_x < max_x);
         assert!(centre_y < max_y);
@@ -418,12 +487,14 @@ mod tests {
         assert!(centre_x > min_x);
         assert!(centre_y > min_y);
 
-        insta::assert_debug_snapshot!(name, outline);
+        insta::assert_json_snapshot!(name, outline);
     }
 
     fn test_deconstruct_into_rectangles<const P: usize>(shape: &'static Polyomino<P>, name: &str) {
         let rectangles = shape.deconstruct_into_rectangles().collect_vec();
+        let sum: usize = rectangles.iter().map(|x| x.area()).sum();
+        assert_eq!(sum, P);
 
-        insta::assert_debug_snapshot!(name, rectangles);
+        insta::assert_json_snapshot!(name, rectangles);
     }
 }

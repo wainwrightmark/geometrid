@@ -2,29 +2,21 @@
 name = "geometrid"
 version = "0.1.0"
 authors = ["Mark Wainwright <wainwrightml@gmail.com>"]
-description = "Methods for returning random elements from an iterator."
+description = "Everything you would ever need to work with constant sized square grids"
 documentation = "https://docs.rs/geometrid"
 repository = "https://github.com/wainwrightmark/geometrid"
 readme = "README.md"
 keywords = ["2d", "grid", "coordinate", "polyomino", "game", "puzzle"]
 categories = [
-    # "api-bindings"
 ]
 license = "MIT"
 edition = "2021"
 exclude = [
-    # (optional) list any files we don't want to publish to crates.io
-    # for example, assume the below is a folder which contains large `mp4` files:
-    #   "examples/assets"
 ]
-
-# See here for more info: https://blog.rust-lang.org/2020/03/15/docs-rs-opt-into-fewer-targets.html
 
 [package.metadata.docs.rs]
 all-features = true
 targets = ["x86_64-unknown-linux-gnu"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 itertools = { version = "0.10.5", default-features = false }
@@ -32,20 +24,19 @@ strum = { version = "0.24.1", default-features = false, features = ["derive"] }
 tinyvec = { version = "1.6.0", default-features = false, features = ["rustc_1_57"] }
 serde = {version = "1.0", features=["derive"], optional = true}
 serde_arrays = {version = "0.1.0", optional = true}
-num-traits = { version = "0.2.15", default-features = false }
+ethnum = {version= "1.3.2", optional= true}
+
 [dev-dependencies]
-# version_sync: to ensure versions in `Cargo.toml` and `README.md` are in sync
 version-sync = "0.9.4"
-insta = "1.21.1" # default features needed for testing
-itertools = { version = "0.10.5" }
+insta = {version= "1.28.0", features=["json"] }
+itertools = { version = "0.10.5"}
 serde_test = "*"
-# Some useful libraries - uncomment if needed :-)
-# tabled = "0.4.2"
-# indoc = "1.0.4"
-# criterion = "0.4"
-
-
+serde = {version = "1.0", features=["derive"]}
+serde_arrays = {version = "0.1.0"}
+primitive-types = {version= "0.12"}
+ethnum = {version= "1.3.2", features=["serde"]}
 
 [features]
 std = []
-serde = ["dep:serde", "dep:serde_arrays"]
+serde = ["dep:serde", "dep:serde_arrays", "ethnum?/serde"]
+u256 = ["ethnum"]

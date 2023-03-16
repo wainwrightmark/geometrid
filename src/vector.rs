@@ -3,295 +3,279 @@ use core::{
     ops::{Add, Mul, Neg},
 };
 
-#[cfg(feature = "serde")]
+#[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
-use crate::prelude::*;
+use crate::{
+    center::{Center, HasCenter},
+    flip_axes::FlipAxes,
+    quarter_turns::QuarterTurns,
+};
 
-use num_traits::{One, PrimInt, Signed, Zero};
+#[must_use]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
+#[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
+pub struct Vector {
+    pub x: i8,
+    pub y: i8,
+}
 
-pub trait VectorInner: PrimInt + Neg + Zero + Signed + One + Into<f32> {}
-
-impl VectorInner for i8 {}
-impl VectorInner for i16 {}
-
-pub trait Vector: Copy + Clone + Sized + Add<Output = Self> {
-    type Inner: VectorInner;
-    #[must_use]
-    fn x(&self) -> Self::Inner;
-    #[must_use]
-    fn y(&self) -> Self::Inner;
-
-    fn new(x: Self::Inner, y: Self::Inner) -> Self;
-
-    const ZERO: Self;
-    const UP: Self;
-    const UP_RIGHT: Self;
-    const RIGHT: Self;
-    const DOWN_RIGHT: Self;
-    const DOWN: Self;
-    const DOWN_LEFT: Self;
-    const LEFT: Self;
-    const UP_LEFT: Self;
-
-    const CARDINALS: [Self; 4] = [Self::UP, Self::RIGHT, Self::DOWN, Self::LEFT];
-
-    const UNITS: [Self; 8] = [
-        Self::UP,
-        Self::UP_RIGHT,
-        Self::RIGHT,
-        Self::DOWN_RIGHT,
-        Self::DOWN,
-        Self::DOWN_LEFT,
-        Self::LEFT,
-        Self::UP_LEFT,
-    ];
-
-    const UNIT_NAMES: [&'static str; 8] = [
-        "Up",
-        "Up Right",
-        "Right",
-        "Down Right",
-        "Down",
-        "Down Left",
-        "Left",
-        "Up Left",
-    ];
-
-    /// Returns true if this is the zero vector
-    #[must_use]
-    #[inline]
-    fn is_zero(&self) -> bool {
-        self.x().is_zero() && self.y().is_zero()
-    }
-
-    /// Returns true if this is a unit vector
-    #[must_use]
-    #[inline]
-    fn is_unit(&self) -> bool {
-        self.x().abs() <= Self::Inner::one()
-            && self.y().abs() <= Self::Inner::one()
-            && !self.is_zero()
-    }
-
-    /// Returns true if this is a diagonal vector, having both an x and a y component
-    fn is_diagonal(&self) -> bool {
-        !self.x().is_zero() && !self.y().is_zero()
+impl AsRef<Vector> for Vector {
+    fn as_ref(&self) -> &Vector {
+        self
     }
 }
 
-impl Vector8 {
-    pub const fn const_mul(self, rhs: i8) -> Self {
+impl core::fmt::Display for Vector {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        if *self == Vector::ZERO {
+            write!(f, "Zero")
+        } else if let Some(index) = Vector::UNITS.iter().position(|x| x == self) {
+            let name = Vector::UNIT_NAMES[index];
+            write!(f, "{name}")
+        } else {
+            f.debug_struct("Vector")
+                .field("x", &self.x)
+                .field("y", &self.y)
+                .finish()
+        }
+    }
+}
+
+impl Vector {
+    pub const ZERO: Self = Self { x: 0, y: 0 };
+    pub const NORTH: Self = Self { x: 0, y: -1 };
+    pub const NORTH_EAST: Self = Self { x: 1, y: -1 };
+    pub const EAST: Self = Self { x: 1, y: 0 };
+    pub const SOUTH_EAST: Self = Self { x: 1, y: 1 };
+    pub const SOUTH: Self = Self { x: 0, y: 1 };
+    pub const SOUTH_WEST: Self = Self { x: -1, y: 1 };
+    pub const WEST: Self = Self { x: -1, y: 0 };
+    pub const NORTH_WEST: Self = Self { x: -1, y: -1 };
+
+    pub const CARDINALS: [Self; 4] = [Self::NORTH, Self::EAST, Self::SOUTH, Self::WEST];
+
+    pub const UNITS: [Self; 8] = [
+        Self::NORTH,
+        Self::NORTH_EAST,
+        Self::EAST,
+        Self::SOUTH_EAST,
+        Self::SOUTH,
+        Self::SOUTH_WEST,
+        Self::WEST,
+        Self::NORTH_WEST,
+    ];
+
+    pub const UNIT_NAMES: [&'static str; 8] = [
+        "North",
+        "North East",
+        "East",
+        "South East",
+        "South",
+        "South West",
+        "West",
+        "North West",
+    ];
+
+    #[inline]
+    pub const fn new(x: i8, y: i8) -> Self {
+        Self { x, y }
+    }
+
+    pub const fn const_neg(&self) -> Self {
+        self.const_mul(-1)
+    }
+
+    pub const fn const_mul(&self, rhs: i8) -> Self {
         Self {
             x: self.x * rhs,
             y: self.y * rhs,
         }
     }
+
+    pub const fn const_add(&self, rhs: &Self) -> Self {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+
+    pub const fn flip(&self, axes: FlipAxes) -> Self {
+        match axes {
+            FlipAxes::None => *self,
+            FlipAxes::Horizontal => Self {
+                x: -self.x,
+                y: self.y,
+            },
+            FlipAxes::Vertical => Self {
+                x: self.x,
+                y: -self.y,
+            },
+            FlipAxes::Both => Self {
+                x: -self.x,
+                y: -self.y,
+            },
+        }
+    }
+    pub const fn rotate(&self, quarter_turns: QuarterTurns) -> Self {
+        match quarter_turns {
+            QuarterTurns::Zero => *self,
+            QuarterTurns::One => Self::new(-self.y, self.x),
+            QuarterTurns::Two => Self::new(-self.x, -self.y),
+            QuarterTurns::Three => Self::new(self.y, -self.x),
+        }
+    }
+
+    /// Returns true if this is the zero vector
+    #[must_use]
+    #[inline]
+    pub const fn is_zero(&self) -> bool {
+        self.x == 0 && self.y == 0
+    }
+
+    /// Returns true if this is a unit vector
+    #[must_use]
+    #[inline]
+    pub const fn is_unit(&self) -> bool {
+        self.x.abs() <= 1 && self.y.abs() <= 1 && !self.is_zero()
+    }
+
+    /// Returns true if this is a diagonal vector, having both an x and a y component
+    pub const fn is_diagonal(&self) -> bool {
+        !self.x == 0 && !self.y == 0
+    }
 }
 
-macro_rules! vector {
-    ($name:ident, $inner:ty) => {
-        #[must_use]
-        #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
-        #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-        pub struct $name {
-            x: $inner,
-            y: $inner,
-        }
-
-        impl core::fmt::Display for $name {
-            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                if *self == $name::ZERO {
-                    write!(f, "Zero")
-                } else if let Some(index) = $name::UNITS.iter().position(|x| x == self) {
-                    let name = $name::UNIT_NAMES[index];
-                    write!(f, "{name}")
-                } else {
-                    f.debug_struct("$name")
-                        .field("x", &self.x)
-                        .field("y", &self.y)
-                        .finish()
-                }
-            }
-        }
-
-        impl Vector for $name {
-            type Inner = $inner;
-            const ZERO: Self = Self { x: 0, y: 0 };
-            const UP: Self = Self { x: 0, y: -1 };
-            const UP_RIGHT: Self = Self { x: 1, y: -1 };
-            const RIGHT: Self = Self { x: 1, y: 0 };
-            const DOWN_RIGHT: Self = Self { x: 1, y: 1 };
-            const DOWN: Self = Self { x: 0, y: 1 };
-            const DOWN_LEFT: Self = Self { x: -1, y: 1 };
-            const LEFT: Self = Self { x: -1, y: 0 };
-            const UP_LEFT: Self = Self { x: -1, y: -1 };
-            #[inline]
-            fn new(x: $inner, y: $inner) -> Self {
-                Self { x, y }
-            }
-
-            #[inline]
-            fn x(&self) -> $inner {
-                self.x
-            }
-
-            #[inline]
-            fn y(&self) -> $inner {
-                self.y
-            }
-        }
-
-        impl Neg for $name {
-            type Output = Self;
-            fn neg(self) -> Self::Output {
-                Self {
-                    x: -self.x,
-                    y: -self.y,
-                }
-            }
-        }
-
-        impl Neg for &$name {
-            type Output = $name;
-            fn neg(self) -> Self::Output {
-                Self::Output {
-                    x: -self.x,
-                    y: -self.y,
-                }
-            }
-        }
-
-        impl Add for $name {
-            type Output = $name;
-            fn add(self, rhs: Self) -> Self::Output {
-                Self {
-                    x: self.x + rhs.x,
-                    y: self.y + rhs.y,
-                }
-            }
-        }
-
-        impl Add for &$name {
-            type Output = $name;
-
-            fn add(self, rhs: Self) -> Self::Output {
-                $name {
-                    x: self.x + rhs.x,
-                    y: self.y + rhs.y,
-                }
-            }
-        }
-
-        impl Mul<$inner> for $name {
-            type Output = $name;
-
-            fn mul(self, rhs: $inner) -> Self::Output {
-                Self {
-                    x: self.x * rhs,
-                    y: self.y * rhs,
-                }
-            }
-        }
-
-        impl Mul<isize> for $name {
-            type Output = $name;
-
-            fn mul(self, rhs: isize) -> Self::Output {
-                self.mul(rhs)
-            }
-        }
-
-        impl Mul<usize> for $name {
-            type Output = $name;
-
-            fn mul(self, rhs: usize) -> Self::Output {
-                Self {
-                    x: self.x * (rhs as $inner),
-                    y: self.y * (rhs as $inner),
-                }
-            }
-        }
-
-        impl Flippable for $name {
-            fn flip(&mut self, axes: FlipAxes) {
-                match axes {
-                    FlipAxes::None => {}
-                    FlipAxes::Horizontal => self.x = self.x.neg(),
-                    FlipAxes::Vertical => self.y = self.y.neg(),
-                    FlipAxes::Both => {
-                        self.x = self.x.neg();
-                        self.y = self.y.neg();
-                    }
-                }
-            }
-        }
-
-        impl Rotatable for $name {
-            fn rotate(&mut self, quarter_turns: QuarterTurns) {
-                *self = match quarter_turns {
-                    QuarterTurns::Zero => {
-                        return;
-                    }
-                    QuarterTurns::One => Self::new(self.y(), -self.x()),
-                    QuarterTurns::Two => Self::new(-self.x(), -self.y()),
-                    QuarterTurns::Three => Self::new(-self.y(), self.x()),
-                }
-            }
-        }
-
-        impl HasLocation for $name {
-            fn location(&self, scale: f32) -> Location {
-                let x = Into::<f32>::into(self.x()) * scale;
-                let y = Into::<f32>::into(self.y()) * scale;
-
-                Location { x, y }
-            }
-        }
-    };
+impl Neg for Vector {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        self.const_neg()
+    }
 }
 
-macro_rules! point_add {
-    ($absolute_name:ident, $relative_name:ident, $absolute_inner:ty, $relative_inner:ty) => {
-        impl<const W: $absolute_inner, const H: $absolute_inner> Add<$relative_name>
-            for $absolute_name<W, H>
-        {
-            type Output = Option<Self>;
-
-            fn add(self, rhs: $relative_name) -> Self::Output {
-                let x = (self.col() as $relative_inner) + rhs.x();
-                let y = (self.row() as $relative_inner) + rhs.y();
-                if x >= 0 && y >= 0 {
-                    Self::try_new(x as $absolute_inner, y as $absolute_inner)
-                } else {
-                    None
-                }
-            }
-        }
-    };
+impl Neg for &Vector {
+    type Output = Vector;
+    fn neg(self) -> Self::Output {
+        self.const_neg()
+    }
 }
 
-// macro_rules! adjacent_positions {
-//     ($absolute_name:ident, $relative_name:ident, $absolute_inner:ty) => {
+impl Add for Vector {
+    type Output = Vector;
+    fn add(self, rhs: Self) -> Self::Output {
+        self.const_add(&rhs)
+    }
+}
 
-//         impl<const W: $absolute_inner, const H: $absolute_inner> $absolute_name<W, H> {
-//             #[must_use]
-//             pub fn get_adjacent_positions<'a>(&'a self) -> impl Iterator<Item = Self> + 'a {
-//                 $relative_name:: UNITS.iter().filter_map(|x| self.add(*x))
-//             }
-//         }
-//     };
-// }
+impl Add for &Vector {
+    type Output = Vector;
 
-vector!(Vector16, i16);
-vector!(Vector8, i8);
+    fn add(self, rhs: Self) -> Self::Output {
+        self.const_add(rhs)
+    }
+}
 
-point_add!(Tile16, Vector16, u16, i16);
-point_add!(Tile16, Vector8, u16, i8);
+impl Mul<i8> for Vector {
+    type Output = Vector;
 
-point_add!(Tile8, Vector8, u8, i8);
+    fn mul(self, rhs: i8) -> Self::Output {
+        self.const_mul(rhs)
+    }
+}
 
-// // adjacent_positions!(Tile64, Vector64, u64);
-// // adjacent_positions!(Tile32, Vector32, u32);
-// // adjacent_positions!(Tile16, Vector16, u16);
-// // adjacent_positions!(Tile8, Vector8, u8);
+impl Mul<isize> for Vector {
+    type Output = Vector;
+
+    fn mul(self, rhs: isize) -> Self::Output {
+        self.const_mul(rhs as i8)
+    }
+}
+
+impl Mul<usize> for Vector {
+    type Output = Vector;
+
+    fn mul(self, rhs: usize) -> Self::Output {
+        self.const_mul(rhs as i8)
+    }
+}
+
+impl HasCenter for Vector {
+    #[must_use]
+    fn get_center(&self, scale: f32) -> Center {
+        let x = scale * (self.x as f32);
+        let y = scale * (self.y as f32);
+
+        Center { x, y }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use core::f32::consts;
+
+    use super::*;
+    use crate::prelude::*;
+    use itertools::Itertools;
+    use serde_test::{assert_tokens, Token};
+    type V = Vector;
+
+    #[test]
+    pub fn test_display() {
+        assert_eq!("Zero", Vector::new(0, 0).to_string());
+        assert_eq!("North", Vector::new(0, -1).to_string());
+        assert_eq!("Vector { x: 0, y: -2 }", Vector::new(0, -2).to_string());
+    }
+
+    #[test]
+    pub fn test_flip() {
+        assert_eq!(V::NORTH_EAST.flip(FlipAxes::Vertical), V::SOUTH_EAST);
+        assert_eq!(V::NORTH_EAST.flip(FlipAxes::Horizontal), V::NORTH_WEST);
+        assert_eq!(V::NORTH_EAST.flip(FlipAxes::Both), V::SOUTH_WEST);
+        assert_eq!(V::NORTH_EAST.flip(FlipAxes::None), V::NORTH_EAST);
+    }
+
+    #[test]
+    pub fn test_rotate() {
+        assert_eq!(V::NORTH.rotate(QuarterTurns::One), V::EAST);
+        assert_eq!(V::NORTH.rotate(QuarterTurns::Two), V::SOUTH);
+        assert_eq!(V::NORTH.rotate(QuarterTurns::Three), V::WEST);
+        assert_eq!(V::NORTH.rotate(QuarterTurns::Zero), V::NORTH);
+
+        assert_eq!(V::NORTH_WEST.rotate(QuarterTurns::One), V::NORTH_EAST);
+        assert_eq!(V::NORTH_WEST.rotate(QuarterTurns::Two), V::SOUTH_EAST);
+        assert_eq!(V::NORTH_WEST.rotate(QuarterTurns::Three), V::SOUTH_WEST);
+        assert_eq!(V::NORTH_WEST.rotate(QuarterTurns::Zero), V::NORTH_WEST);
+    }
+
+    #[test]
+    pub fn test_conditions() {
+        assert_eq!(V::ZERO.is_zero(), true);
+        assert_eq!(V::NORTH.is_zero(), false);
+
+        assert_eq!(V::ZERO.is_unit(), false);
+        assert_eq!(V::NORTH.is_unit(), true);
+        assert_eq!((V::NORTH.const_mul(2)).is_unit(), false);
+
+        assert_eq!(V::ZERO.is_diagonal(), false);
+        assert_eq!(V::NORTH.is_diagonal(), false);
+        assert_eq!(V::NORTH_EAST.is_diagonal(), false);
+    }
+
+    #[test]
+    pub fn test_functions() {
+        assert_eq!(V::NORTH.neg(), V::SOUTH);
+        assert_eq!((&V::NORTH).neg(), V::SOUTH);
+
+        assert_eq!(V::NORTH + V::EAST, V::NORTH_EAST);
+        assert_eq!(&V::NORTH + &V::EAST, V::NORTH_EAST);
+
+        assert_eq!(V::NORTH * -1i8, V::SOUTH);
+        assert_eq!(V::NORTH * -1isize, V::SOUTH);
+        assert_eq!(V::NORTH * 2usize, V::new(0, -2));
+    }
+
+    #[test]
+    pub fn test_centre() {
+        assert_eq!(V::SOUTH_WEST.get_center(2.0), Center::new(-2.0, 2.0))
+    }
+}
