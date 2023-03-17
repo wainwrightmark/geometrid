@@ -206,6 +206,11 @@ impl<const COLS: u8, const ROWS: u8> Tile<COLS, ROWS> {
     }
 
     #[must_use]
+    pub const fn get_north_west_vertex(&self) -> Vertex<COLS, ROWS> {
+        Vertex::new_unchecked(self.col(), self.row())
+    }
+
+    #[must_use]
     pub const fn manhattan_distance(&self, other: &Self) -> u8 {
         self.col().abs_diff(other.col()) + self.row().abs_diff(other.row())
     }
@@ -389,6 +394,8 @@ mod tests {
             tile.get_vertex(&Corner::SouthEast),
             Some(Vertex::new_const::<1, 1>())
         );
+
+        assert_eq!(tile.get_north_west_vertex(), Vertex::new_const::<0, 0>())
     }
 
     #[test]
