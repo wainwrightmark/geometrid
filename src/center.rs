@@ -102,4 +102,12 @@ mod tests {
         let b = Center::new(1., 3.);
         assert_eq!(a.angle_to(&b), consts::PI * 0.75)
     }
+
+    #[test]
+    pub fn test_angle_down(){
+        let a = Center::new(0.,0.);
+        let b = Center::new(0., 1.);
+
+        assert_eq!(a.angle_to(&b), consts::PI* 0.5)
+    }
 }

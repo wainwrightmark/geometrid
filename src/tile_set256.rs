@@ -13,20 +13,20 @@ use serde::{Deserialize, Serialize};
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
-pub struct TileSet256<const COLS: u8, const ROWS: u8, const SIZE: u32>(U256);
+pub struct TileSet256<const COLS: u8, const ROWS: u8, const SIZE: usize>(U256);
 
-impl<const COLS: u8, const ROWS: u8, const SIZE: u32> Default for TileSet256<COLS, ROWS, SIZE> {
+impl<const COLS: u8, const ROWS: u8, const SIZE: usize> Default for TileSet256<COLS, ROWS, SIZE> {
     fn default() -> Self {
         Self::assert_legal();
         Self(Default::default())
     }
 }
 
-impl<const COLS: u8, const ROWS: u8, const SIZE: u32> TileSet256<COLS, ROWS, SIZE> {
+impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, SIZE> {
     #[inline]
     const fn assert_legal() {
-        debug_assert!(SIZE == (COLS as u32 * ROWS as u32));
-        debug_assert!(SIZE <= <U256>::BITS);
+        debug_assert!(SIZE == (COLS as usize * ROWS as usize));
+        debug_assert!(SIZE <= <U256>::BITS as usize);
     }
 
     #[must_use]
@@ -96,8 +96,8 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: u32> TileSet256<COLS, ROWS, SIZ
     }
 
     #[must_use]
-    pub const fn count(&self) -> u32 {
-        self.0.count_ones()
+    pub const fn count(&self) -> usize {
+        self.0.count_ones() as usize
     }
 
     #[must_use]
@@ -112,18 +112,18 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: u32> TileSet256<COLS, ROWS, SIZ
 
     #[must_use]
     pub fn negate(&self) -> Self {
-        let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE);
+        let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
         Self(!self.0 & mask)
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct TileSetIter256<const SIZE: u32> {
+pub struct TileSetIter256<const SIZE: usize> {
     inner: U256,
-    index: u32,
+    index: usize,
 }
 
-impl<const SIZE: u32> Iterator for TileSetIter256<SIZE> {
+impl<const SIZE: usize> Iterator for TileSetIter256<SIZE> {
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -151,7 +151,7 @@ impl<const SIZE: u32> Iterator for TileSetIter256<SIZE> {
     }
 }
 
-impl<const W: u8, const H: u8, const SIZE: u32> fmt::Display for TileSet256<W, H, SIZE> {
+impl<const W: u8, const H: u8, const SIZE: usize> fmt::Display for TileSet256<W, H, SIZE> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self.iter().enumerate();
 

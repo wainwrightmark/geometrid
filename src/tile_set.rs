@@ -14,9 +14,9 @@ macro_rules! tile_set {
         #[must_use]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
         #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
-        pub struct $name<const COLS: u8, const ROWS: u8, const SIZE: u32>($inner);
+        pub struct $name<const COLS: u8, const ROWS: u8, const SIZE: usize>($inner);
 
-        impl<const COLS: u8, const ROWS: u8, const SIZE: u32> Default
+        impl<const COLS: u8, const ROWS: u8, const SIZE: usize> Default
             for $name<COLS, ROWS, SIZE>
         {
             fn default() -> Self {
@@ -25,11 +25,11 @@ macro_rules! tile_set {
             }
         }
 
-        impl<const COLS: u8, const ROWS: u8, const SIZE: u32> $name<COLS, ROWS, SIZE> {
+        impl<const COLS: u8, const ROWS: u8, const SIZE: usize> $name<COLS, ROWS, SIZE> {
             #[inline]
             const fn assert_legal() {
-                debug_assert!(SIZE == (COLS * ROWS) as u32);
-                debug_assert!(SIZE <= <$inner>::BITS);
+                debug_assert!(SIZE == (COLS as usize * ROWS as usize) );
+                debug_assert!(SIZE <= <$inner>::BITS as usize);
             }
 
             #[must_use]
@@ -115,18 +115,18 @@ macro_rules! tile_set {
 
             #[must_use]
             pub const fn negate(&self) -> Self {
-                let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE);
+                let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
                 Self(!self.0 & mask)
             }
         }
 
         #[derive(Debug, Clone)]
-        pub struct $iter_name<const SIZE: u32> {
+        pub struct $iter_name<const SIZE: usize> {
             inner: $inner,
-            index: u32,
+            index: usize,
         }
 
-        impl<const SIZE: u32> Iterator for $iter_name<SIZE> {
+        impl<const SIZE: usize> Iterator for $iter_name<SIZE> {
             type Item = bool;
 
             fn next(&mut self) -> Option<Self::Item> {
@@ -154,7 +154,7 @@ macro_rules! tile_set {
             }
         }
 
-        impl<const W: u8, const H: u8, const SIZE: u32> fmt::Display for $name<W, H, SIZE> {
+        impl<const W: u8, const H: u8, const SIZE: usize> fmt::Display for $name<W, H, SIZE> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let iter = self.iter().enumerate();
 
