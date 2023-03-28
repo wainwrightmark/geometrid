@@ -81,9 +81,18 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
     }
 
     #[must_use]
-    pub const fn iter(&self) -> impl Iterator<Item = bool> {
-        TileSetIter256::<SIZE> {
-            index: 0,
+    pub const fn iter(&self) -> impl DoubleEndedIterator<Item = bool> {
+        TileSetIter256 {
+            bottom_index: 0,
+            top_index: SIZE,
+            inner: self.0,
+        }
+    }
+
+    pub const fn row(&self, row: u8) -> impl DoubleEndedIterator<Item = bool> {
+        TileSetIter256 {
+            bottom_index: ((row * COLS)) as usize,
+            top_index: ((row + 1) * COLS) as usize,
             inner: self.0,
         }
     }
@@ -98,6 +107,15 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
     #[must_use]
     pub const fn count(&self) -> usize {
         self.0.count_ones() as usize
+    }
+
+    /// Get the scale to make the grid take up as much as possible of a given area
+    #[must_use]
+    pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
+        let x_multiplier = total_width / COLS as f32;
+        let y_multiplier = total_height / ROWS as f32;
+
+        x_multiplier.min(y_multiplier)
     }
 
     #[must_use]
@@ -117,37 +135,48 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct TileSetIter256<const SIZE: usize> {
+#[derive(Debug, Clone, Copy)]
+pub struct TileSetIter256 {
     inner: U256,
-    index: usize,
+    bottom_index: usize,
+    top_index: usize,
 }
 
-impl<const SIZE: usize> Iterator for TileSetIter256<SIZE> {
+impl Iterator for TileSetIter256 {
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index >= SIZE {
+        if self.bottom_index >= self.top_index {
             None
         } else {
-            let r = (self.inner >> self.index) & 1 == 1;
-            self.index += 1;
+            let r = (self.inner >> self.bottom_index) & 1 == 1;
+            self.bottom_index += 1;
             Some(r)
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (
-            (SIZE - self.index) as usize,
-            Some((SIZE - self.index) as usize),
-        )
+        (self.count(), Some(self.count()))
     }
 
     fn count(self) -> usize
     where
         Self: Sized,
     {
-        (SIZE - self.index) as usize
+        (self.top_index - self.bottom_index) as usize
+    }
+}
+
+impl DoubleEndedIterator for TileSetIter256 {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.bottom_index >= self.top_index {
+            None
+        } else {
+            self.top_index -= 1;
+            let r = (self.inner >> self.top_index) & 1 == 1;
+
+            Some(r)
+        }
     }
 }
 
@@ -262,5 +291,21 @@ mod tests {
             .into_iter(),
         );
         assert_eq!(grid.to_string(), "**_\n___\n___")
+    }
+
+    #[test]
+    fn test_iter_reverse(){
+        let grid = TileSet256::<3, 3, 9>::from_fn(|x|x.inner() >= 6);
+
+        assert_eq!(grid.iter().rev().map(|x| x.then(||"*").unwrap_or("_")).join(""), "***______");
+    }
+
+    #[test]
+    fn test_row(){
+        let grid = TileSet256::<3, 3, 9>::from_fn(|x|x.inner() % 2 == 1);
+
+        assert_eq!(grid.row(0).map(|x| x.then(||"*").unwrap_or("_")).join(""), "_*_");
+        assert_eq!(grid.row(1).map(|x| x.then(||"*").unwrap_or("_")).join(""), "*_*");
+        assert_eq!(grid.row(2).map(|x| x.then(||"*").unwrap_or("_")).join(""), "_*_");
     }
 }

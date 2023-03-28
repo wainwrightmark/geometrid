@@ -84,9 +84,18 @@ macro_rules! tile_set {
             }
 
             #[must_use]
-            pub const fn iter(&self) -> impl Iterator<Item = bool> {
-                $iter_name::<SIZE> {
-                    index: 0,
+            pub const fn iter(&self) -> impl DoubleEndedIterator<Item = bool> {
+                $iter_name {
+                    bottom_index: 0,
+                    top_index: SIZE,
+                    inner: self.0,
+                }
+            }
+
+            pub const fn row(&self, row: u8) -> impl DoubleEndedIterator<Item = bool> {
+                $iter_name {
+                    bottom_index: ((row * COLS)) as usize,
+                    top_index: ((row + 1) * COLS) as usize,
                     inner: self.0,
                 }
             }
@@ -101,6 +110,15 @@ macro_rules! tile_set {
             #[must_use]
             pub const fn count(&self) -> u32 {
                 self.0.count_ones()
+            }
+
+            /// Get the scale to make the grid take up as much as possible of a given area
+            #[must_use]
+            pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
+                let x_multiplier = total_width / COLS as f32;
+                let y_multiplier = total_height / ROWS as f32;
+
+                x_multiplier.min(y_multiplier)
             }
 
             #[must_use]
@@ -120,39 +138,51 @@ macro_rules! tile_set {
             }
         }
 
-        #[derive(Debug, Clone)]
-        pub struct $iter_name<const SIZE: usize> {
-            inner: $inner,
-            index: usize,
+        #[derive(Debug, Clone, Copy)]
+pub struct $iter_name {
+    inner: $inner,
+    bottom_index: usize,
+    top_index: usize,
+}
+
+
+impl Iterator for $iter_name {
+    type Item = bool;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.bottom_index >= self.top_index {
+            None
+        } else {
+            let r = (self.inner >> self.bottom_index) & 1 == 1;
+            self.bottom_index += 1;
+            Some(r)
         }
+    }
 
-        impl<const SIZE: usize> Iterator for $iter_name<SIZE> {
-            type Item = bool;
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.count(), Some(self.count()))
+    }
 
-            fn next(&mut self) -> Option<Self::Item> {
-                if self.index >= SIZE {
-                    None
-                } else {
-                    let r = (self.inner >> self.index) & 1 == 1;
-                    self.index += 1;
-                    Some(r)
-                }
-            }
+    fn count(self) -> usize
+    where
+        Self: Sized,
+    {
+        (self.top_index - self.bottom_index) as usize
+    }
+}
 
-            fn size_hint(&self) -> (usize, Option<usize>) {
-                (
-                    (SIZE - self.index) as usize,
-                    Some((SIZE - self.index) as usize),
-                )
-            }
+impl DoubleEndedIterator for $iter_name {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.bottom_index >= self.top_index {
+            None
+        } else {
+            self.top_index -= 1;
+            let r = (self.inner >> self.top_index) & 1 == 1;
 
-            fn count(self) -> usize
-            where
-                Self: Sized,
-            {
-                (SIZE - self.index) as usize
-            }
+            Some(r)
         }
+    }
+}
 
         impl<const W: u8, const H: u8, const SIZE: usize> fmt::Display for $name<W, H, SIZE> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -287,5 +317,22 @@ mod tests {
             .into_iter(),
         );
         assert_eq!(grid.to_string(), "**_\n___\n___")
+    }
+
+
+    #[test]
+    fn test_iter_reverse(){
+        let grid = TileSet16::<3, 3, 9>::from_fn(|x|x.inner() >= 6);
+
+        assert_eq!(grid.iter().rev().map(|x| x.then(||"*").unwrap_or("_")).join(""), "***______");
+    }
+
+    #[test]
+    fn test_row(){
+        let grid = TileSet16::<3, 3, 9>::from_fn(|x|x.inner() % 2 == 1);
+
+        assert_eq!(grid.row(0).map(|x| x.then(||"*").unwrap_or("_")).join(""), "_*_");
+        assert_eq!(grid.row(1).map(|x| x.then(||"*").unwrap_or("_")).join(""), "*_*");
+        assert_eq!(grid.row(2).map(|x| x.then(||"*").unwrap_or("_")).join(""), "_*_");
     }
 }
