@@ -81,7 +81,7 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
     }
 
     #[must_use]
-    pub const fn iter(&self) -> impl DoubleEndedIterator<Item = bool> {
+    pub const fn iter(&self) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
         TileSetIter256 {
             bottom_index: 0,
             top_index: SIZE,
@@ -89,12 +89,20 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
         }
     }
 
-    pub const fn row(&self, row: u8) -> impl DoubleEndedIterator<Item = bool> {
+    pub const fn row(&self, row: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
         TileSetIter256 {
-            bottom_index: ((row * COLS)) as usize,
+            bottom_index: (row * COLS) as usize,
             top_index: ((row + 1) * COLS) as usize,
             inner: self.0,
         }
+    }
+
+    pub fn enumerate(
+        &self,
+    ) -> impl DoubleEndedIterator<Item = (Tile<COLS, ROWS>, bool)> + ExactSizeIterator {
+        self.iter()
+            .enumerate()
+            .map(|(i, x)| (Tile::try_from_usize(i).unwrap(), x))
     }
 
     #[must_use]
@@ -140,6 +148,12 @@ pub struct TileSetIter256 {
     inner: U256,
     bottom_index: usize,
     top_index: usize,
+}
+
+impl ExactSizeIterator for TileSetIter256 {
+    fn len(&self) -> usize {
+        self.count()
+    }
 }
 
 impl Iterator for TileSetIter256 {
@@ -294,18 +308,40 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_reverse(){
-        let grid = TileSet256::<3, 3, 9>::from_fn(|x|x.inner() >= 6);
+    fn test_iter_reverse() {
+        let grid = TileSet256::<3, 3, 9>::from_fn(|x| x.inner() >= 6);
 
-        assert_eq!(grid.iter().rev().map(|x| x.then(||"*").unwrap_or("_")).join(""), "***______");
+        assert_eq!(
+            grid.iter()
+                .rev()
+                .map(|x| x.then(|| "*").unwrap_or("_"))
+                .join(""),
+            "***______"
+        );
     }
 
     #[test]
-    fn test_row(){
-        let grid = TileSet256::<3, 3, 9>::from_fn(|x|x.inner() % 2 == 1);
+    fn test_row() {
+        let grid = TileSet256::<3, 3, 9>::from_fn(|x| x.inner() % 2 == 1);
 
-        assert_eq!(grid.row(0).map(|x| x.then(||"*").unwrap_or("_")).join(""), "_*_");
-        assert_eq!(grid.row(1).map(|x| x.then(||"*").unwrap_or("_")).join(""), "*_*");
-        assert_eq!(grid.row(2).map(|x| x.then(||"*").unwrap_or("_")).join(""), "_*_");
+        assert_eq!(
+            grid.row(0).map(|x| x.then(|| "*").unwrap_or("_")).join(""),
+            "_*_"
+        );
+        assert_eq!(
+            grid.row(1).map(|x| x.then(|| "*").unwrap_or("_")).join(""),
+            "*_*"
+        );
+        assert_eq!(
+            grid.row(2).map(|x| x.then(|| "*").unwrap_or("_")).join(""),
+            "_*_"
+        );
+    }
+
+    #[test]
+    fn test_enumerate(){
+        let grid = TileSet256::<3, 3, 9>::from_fn(|x| x.inner() == 5 );
+
+        assert_eq!(grid.enumerate().map(|(t,x)| t.inner().to_string() + x.then(|| "*").unwrap_or("_") ).join(""), "0_1_2_3_4_5*6_7_8_");
     }
 }

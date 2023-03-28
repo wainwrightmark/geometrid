@@ -84,7 +84,7 @@ macro_rules! tile_set {
             }
 
             #[must_use]
-            pub const fn iter(&self) -> impl DoubleEndedIterator<Item = bool> {
+            pub const fn iter(&self) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
                 $iter_name {
                     bottom_index: 0,
                     top_index: SIZE,
@@ -92,12 +92,20 @@ macro_rules! tile_set {
                 }
             }
 
-            pub const fn row(&self, row: u8) -> impl DoubleEndedIterator<Item = bool> {
+            pub const fn row(&self, row: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
                 $iter_name {
                     bottom_index: ((row * COLS)) as usize,
                     top_index: ((row + 1) * COLS) as usize,
                     inner: self.0,
                 }
+            }
+
+            pub fn enumerate(
+                &self,
+            ) -> impl DoubleEndedIterator<Item = (Tile<COLS, ROWS>, bool)> + ExactSizeIterator {
+                self.iter()
+                    .enumerate()
+                    .map(|(i, x)| (Tile::try_from_usize(i).unwrap(), x))
             }
 
             #[must_use]
@@ -138,51 +146,56 @@ macro_rules! tile_set {
             }
         }
 
-        #[derive(Debug, Clone, Copy)]
-pub struct $iter_name {
-    inner: $inner,
-    bottom_index: usize,
-    top_index: usize,
-}
+            #[derive(Debug, Clone, Copy)]
+    pub struct $iter_name {
+        inner: $inner,
+        bottom_index: usize,
+        top_index: usize,
+    }
 
-
-impl Iterator for $iter_name {
-    type Item = bool;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.bottom_index >= self.top_index {
-            None
-        } else {
-            let r = (self.inner >> self.bottom_index) & 1 == 1;
-            self.bottom_index += 1;
-            Some(r)
+    impl ExactSizeIterator for $iter_name {
+        fn len(&self) -> usize {
+            self.count()
         }
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.count(), Some(self.count()))
-    }
+    impl Iterator for $iter_name {
+        type Item = bool;
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
-        (self.top_index - self.bottom_index) as usize
-    }
-}
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.bottom_index >= self.top_index {
+                None
+            } else {
+                let r = (self.inner >> self.bottom_index) & 1 == 1;
+                self.bottom_index += 1;
+                Some(r)
+            }
+        }
 
-impl DoubleEndedIterator for $iter_name {
-    fn next_back(&mut self) -> Option<Self::Item> {
-        if self.bottom_index >= self.top_index {
-            None
-        } else {
-            self.top_index -= 1;
-            let r = (self.inner >> self.top_index) & 1 == 1;
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            (self.count(), Some(self.count()))
+        }
 
-            Some(r)
+        fn count(self) -> usize
+        where
+            Self: Sized,
+        {
+            (self.top_index - self.bottom_index) as usize
         }
     }
-}
+
+    impl DoubleEndedIterator for $iter_name {
+        fn next_back(&mut self) -> Option<Self::Item> {
+            if self.bottom_index >= self.top_index {
+                None
+            } else {
+                self.top_index -= 1;
+                let r = (self.inner >> self.top_index) & 1 == 1;
+
+                Some(r)
+            }
+        }
+    }
 
         impl<const W: u8, const H: u8, const SIZE: usize> fmt::Display for $name<W, H, SIZE> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -319,20 +332,41 @@ mod tests {
         assert_eq!(grid.to_string(), "**_\n___\n___")
     }
 
-
     #[test]
-    fn test_iter_reverse(){
-        let grid = TileSet16::<3, 3, 9>::from_fn(|x|x.inner() >= 6);
+    fn test_iter_reverse() {
+        let grid = TileSet16::<3, 3, 9>::from_fn(|x| x.inner() >= 6);
 
-        assert_eq!(grid.iter().rev().map(|x| x.then(||"*").unwrap_or("_")).join(""), "***______");
+        assert_eq!(
+            grid.iter()
+                .rev()
+                .map(|x| x.then(|| "*").unwrap_or("_"))
+                .join(""),
+            "***______"
+        );
     }
 
     #[test]
-    fn test_row(){
-        let grid = TileSet16::<3, 3, 9>::from_fn(|x|x.inner() % 2 == 1);
+    fn test_row() {
+        let grid = TileSet16::<3, 3, 9>::from_fn(|x| x.inner() % 2 == 1);
 
-        assert_eq!(grid.row(0).map(|x| x.then(||"*").unwrap_or("_")).join(""), "_*_");
-        assert_eq!(grid.row(1).map(|x| x.then(||"*").unwrap_or("_")).join(""), "*_*");
-        assert_eq!(grid.row(2).map(|x| x.then(||"*").unwrap_or("_")).join(""), "_*_");
+        assert_eq!(
+            grid.row(0).map(|x| x.then(|| "*").unwrap_or("_")).join(""),
+            "_*_"
+        );
+        assert_eq!(
+            grid.row(1).map(|x| x.then(|| "*").unwrap_or("_")).join(""),
+            "*_*"
+        );
+        assert_eq!(
+            grid.row(2).map(|x| x.then(|| "*").unwrap_or("_")).join(""),
+            "_*_"
+        );
+    }
+
+    #[test]
+    fn test_enumerate(){
+        let grid = TileSet16::<3, 3, 9>::from_fn(|x| x.inner() == 5 );
+
+        assert_eq!(grid.enumerate().map(|(t,x)| t.inner().to_string() + x.then(|| "*").unwrap_or("_") ).join(""), "0_1_2_3_4_5*6_7_8_");
     }
 }
