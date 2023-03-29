@@ -147,9 +147,16 @@ impl<const COLS: u8, const ROWS: u8> Tile<COLS, ROWS> {
         Self::try_from_inner(next)
     }
 
+    /// Iterate through all tiles by row
     #[must_use]
     pub fn iter_by_row() -> impl Iterator<Item = Self> {
         ((Self::NORTH_WEST.0)..=(Self::SOUTH_EAST.0)).map(|x| Self(x))
+    }
+
+    /// Iterate through all tiles by column
+    #[must_use]
+    pub const fn iter_by_col() -> impl Iterator<Item = Self> {
+        TileByColumnIter(Some(Self(0)))
     }
 
     /// Iterate through adjacent elements (includes diagonals)
@@ -236,6 +243,22 @@ impl<const C: u8, const R: u8> HasCenter for Tile<C, R> {
     }
 }
 
+#[must_use]
+#[derive(Clone)]
+pub struct TileByColumnIter<const COLS: u8, const ROWS: u8>(Option<Tile<COLS, ROWS>>);
+
+impl<const C: u8, const R: u8> Iterator for TileByColumnIter<C, R> {
+    type Item = Tile<C, R>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let r = self.0?;
+
+        self.0 = (r + Vector::SOUTH).or_else(|| Tile::try_new(r.col() + 1, 0));
+
+        return Some(r);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -250,6 +273,16 @@ mod tests {
         assert_eq!(
             str,
             "(0,0)|(1,0)|(2,0)|(0,1)|(1,1)|(2,1)|(0,2)|(1,2)|(2,2)|(0,3)|(1,3)|(2,3)",
+        )
+    }
+
+    #[test]
+    fn test_iter_by_col(){
+        let str = Tile::<3, 4>::iter_by_col().join("|");
+
+        assert_eq!(
+            str,
+            "(0,0)|(0,1)|(0,2)|(0,3)|(1,0)|(1,1)|(1,2)|(1,3)|(2,0)|(2,1)|(2,2)|(2,3)",
         )
     }
 
