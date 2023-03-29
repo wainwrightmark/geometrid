@@ -4,8 +4,7 @@ use core::{
     ops::{Index, IndexMut, Shl, Shr},
 };
 
-use crate::prelude::*;
-
+use crate::{prelude::*, vector};
 use ethnum::U256;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
@@ -153,6 +152,20 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
         let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
         Self(!self.0 & mask)
     }
+
+    #[must_use]
+    pub fn shift_north(&self, rows: u8)-> Self{
+        let a =self.0.shr(rows * COLS);
+        let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
+        Self(a & mask)
+    }
+
+    #[must_use]
+    pub fn shift_south(&self, rows: u8)-> Self{
+        let a =self.0.shl(rows * COLS);
+        let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
+        Self(a & mask)
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -238,6 +251,7 @@ mod tests {
     use crate::prelude::*;
     use itertools::Itertools;
     use serde_test::{assert_tokens, Token};
+
 
     #[test]
     #[should_panic(expected = "assertion failed")]
@@ -385,5 +399,19 @@ mod tests {
         let grid = TileSet256::<3, 3, 9>::from_fn(|x| x.inner() == 5 );
 
         assert_eq!(grid.enumerate().map(|(t,x)| t.inner().to_string() + x.then(|| "*").unwrap_or("_") ).join(""), "0_1_2_3_4_5*6_7_8_");
+    }
+
+    #[test]
+    fn test_shift(){
+        let full_grid  = TileSet256::<2,3,6>::default().negate();
+
+        assert_eq!(full_grid.shift_north(0), full_grid);
+        assert_eq!(full_grid.shift_south(0), full_grid);
+
+        assert_eq!(full_grid.shift_north(1).to_string(), "**\n**\n__");
+        assert_eq!(full_grid.shift_south(1).to_string(), "__\n**\n**");
+
+        assert_eq!(full_grid.shift_north(2).to_string(), "**\n__\n__");
+        assert_eq!(full_grid.shift_south(2).to_string(), "__\n__\n**");
     }
 }

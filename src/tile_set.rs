@@ -1,7 +1,7 @@
 use core::{
     fmt::{self, Write},
     iter,
-    ops::{Index, IndexMut},
+    ops::*,
 };
 
 use crate::prelude::*;
@@ -109,6 +109,20 @@ macro_rules! tile_set {
                 top_index: ((COLS * (ROWS - 1)) + col + 1) as usize,
                 inner: self.0,
             }
+        }
+
+        #[must_use]
+        pub fn shift_north(&self, rows: u8)-> Self{
+            let a =self.0.shr(rows * COLS);
+            let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
+            Self(a & mask)
+        }
+
+        #[must_use]
+        pub fn shift_south(&self, rows: u8)-> Self{
+            let a =self.0.shl(rows * COLS);
+            let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
+            Self(a & mask)
         }
 
     #[must_use]
@@ -416,5 +430,19 @@ mod tests {
                 .join(""),
             "0_1_2_3_4_5*6_7_8_"
         );
+    }
+
+    #[test]
+    fn test_shift(){
+        let full_grid  = TileSet256::<2,3,6>::default().negate();
+
+        assert_eq!(full_grid.shift_north(0), full_grid);
+        assert_eq!(full_grid.shift_south(0), full_grid);
+
+        assert_eq!(full_grid.shift_north(1).to_string(), "**\n**\n__");
+        assert_eq!(full_grid.shift_south(1).to_string(), "__\n**\n**");
+
+        assert_eq!(full_grid.shift_north(2).to_string(), "**\n__\n__");
+        assert_eq!(full_grid.shift_south(2).to_string(), "__\n__\n**");
     }
 }
