@@ -184,13 +184,23 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
     }
 
     #[must_use]
-    pub fn intersect(&self, rhs: &Self) -> Self {
-        Self(self.0 | rhs.0)
+    pub const fn intersect(&self, rhs: &Self) -> Self {
+        let (left_high, left_low) = self.0.into_words();
+        let (right_high, right_low) = rhs.0.into_words();
+
+        let high = left_high | right_high;
+        let low = left_low | right_low;
+        Self(U256::from_words(high, low))
     }
 
     #[must_use]
-    pub fn union(&self, rhs: &Self) -> Self {
-        Self(self.0 & rhs.0)
+    pub const fn union(&self, rhs: &Self) -> Self {
+        let (left_high, left_low) = self.0.into_words();
+        let (right_high, right_low) = rhs.0.into_words();
+
+        let high = left_high & right_high;
+        let low = left_low & right_low;
+        Self(U256::from_words(high, low))
     }
 
     #[must_use]
