@@ -17,11 +17,16 @@ pub struct TileSet256<const COLS: u8, const ROWS: u8, const SIZE: usize>(U256);
 impl<const COLS: u8, const ROWS: u8, const SIZE: usize> Default for TileSet256<COLS, ROWS, SIZE> {
     fn default() -> Self {
         Self::assert_legal();
-        Self(Default::default())
+        Self::EMPTY
     }
 }
 
 impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, SIZE> {
+    pub const EMPTY: Self = {
+        Self::assert_legal();
+        Self(U256::new(0))
+    };
+
     #[inline]
     const fn assert_legal() {
         debug_assert!(SIZE == (COLS as usize * ROWS as usize));
@@ -40,6 +45,48 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
         }
 
         result
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn row_mask(row: u8) -> Self {
+        Self::assert_legal();
+        let mut upper : u128 = 0;
+        let mut lower : u128 = 0;
+        let mut tile = Tile::<COLS, ROWS>::try_new(0, row);
+
+        while let Some(t) = tile {
+            let i = t.inner();
+            match t.inner().checked_sub(128){
+                Some(i) => upper |= 1u128 << i ,
+                None => lower |= 1u128 << i ,
+            }
+            tile = t.const_add(&Vector::EAST);
+        }
+
+        let a = U256::from_words(upper, lower);
+        Self(a)
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn col_mask(col: u8) -> Self {
+        Self::assert_legal();
+        let mut upper : u128 = 0;
+        let mut lower : u128 = 0;
+        let mut tile = Tile::<COLS, ROWS>::try_new(col, 0);
+
+        while let Some(t) = tile {
+            let i = t.inner();
+            match t.inner().checked_sub(128){
+                Some(i) => upper |= 1u128 << i ,
+                None => lower |= 1u128 << i ,
+            }
+            tile = t.const_add(&Vector::SOUTH);
+        }
+
+        let a = U256::from_words(upper, lower);
+        Self(a)
     }
 
     #[must_use]
@@ -99,7 +146,6 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
 
     #[must_use]
     pub const fn col(&self, col: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
-
         TileSetIter256::<ROWS> {
             bottom_index: col as usize,
             top_index: ((COLS * (ROWS - 1)) + col + 1) as usize,
@@ -154,22 +200,22 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
     }
 
     #[must_use]
-    pub fn shift_north(&self, rows: u8)-> Self{
-        let a =self.0.shr(rows * COLS);
+    pub fn shift_north(&self, rows: u8) -> Self {
+        let a = self.0.shr(rows * COLS);
         let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
         Self(a & mask)
     }
 
     #[must_use]
-    pub fn shift_south(&self, rows: u8)-> Self{
-        let a =self.0.shl(rows * COLS);
+    pub fn shift_south(&self, rows: u8) -> Self {
+        let a = self.0.shl(rows * COLS);
         let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
         Self(a & mask)
     }
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct TileSetIter256<const STEP : u8> {
+pub struct TileSetIter256<const STEP: u8> {
     inner: U256,
     bottom_index: usize,
     top_index: usize,
@@ -185,8 +231,7 @@ impl<const STEP: u8> Iterator for TileSetIter256<STEP> {
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
-
-        if self.bottom_index  >= self.top_index {
+        if self.bottom_index >= self.top_index {
             None
         } else {
             let r = (self.inner >> self.bottom_index) & 1 == 1;
@@ -211,7 +256,7 @@ impl<const STEP: u8> Iterator for TileSetIter256<STEP> {
 
 impl<const STEP: u8> DoubleEndedIterator for TileSetIter256<STEP> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.top_index == 0{
+        if self.top_index == 0 {
             return None;
         }
         let next_index = self.top_index.saturating_sub(STEP as usize);
@@ -251,19 +296,6 @@ mod tests {
     use crate::prelude::*;
     use itertools::Itertools;
     use serde_test::{assert_tokens, Token};
-
-
-    #[test]
-    #[should_panic(expected = "assertion failed")]
-    fn test_wrong_size() {
-        let mut grid: TileSet256<16, 16, 255> = TileSet256::default();
-    }
-
-    #[test]
-    #[should_panic(expected = "assertion failed")]
-    fn test_too_big() {
-        let mut grid: TileSet256<17, 16, 264> = TileSet256::default();
-    }
 
     #[test]
     fn test_possible() {
@@ -330,7 +362,7 @@ mod tests {
 
     #[test]
     fn test_from_iter() {
-        let grid = TileSet256::<4,3,12>::from_iter(
+        let grid = TileSet256::<4, 3, 12>::from_iter(
             [
                 Tile::try_from_inner(0).unwrap(),
                 Tile::try_from_inner(1).unwrap(),
@@ -342,7 +374,7 @@ mod tests {
 
     #[test]
     fn test_iter_reverse() {
-        let grid = TileSet256::<4,3,12>::from_fn(|x| x.inner() >= 6);
+        let grid = TileSet256::<4, 3, 12>::from_fn(|x| x.inner() >= 6);
 
         assert_eq!(
             grid.iter()
@@ -355,7 +387,7 @@ mod tests {
 
     #[test]
     fn test_row() {
-        let grid = TileSet256::<4,3,12>::from_fn(|x| x.inner() % 3 == 1);
+        let grid = TileSet256::<4, 3, 12>::from_fn(|x| x.inner() % 3 == 1);
 
         assert_eq!(
             grid.row(0).map(|x| x.then(|| "*").unwrap_or("_")).join(""),
@@ -372,8 +404,8 @@ mod tests {
     }
 
     #[test]
-    fn test_col(){
-        let grid = TileSet256::<4,3,12>::from_fn(|x| x.inner() % 2 == 1);
+    fn test_col() {
+        let grid = TileSet256::<4, 3, 12>::from_fn(|x| x.inner() % 2 == 1);
 
         assert_eq!(
             grid.col(0).map(|x| x.then(|| "*").unwrap_or("_")).join(""),
@@ -395,15 +427,20 @@ mod tests {
     }
 
     #[test]
-    fn test_enumerate(){
-        let grid = TileSet256::<3, 3, 9>::from_fn(|x| x.inner() == 5 );
+    fn test_enumerate() {
+        let grid = TileSet256::<3, 3, 9>::from_fn(|x| x.inner() == 5);
 
-        assert_eq!(grid.enumerate().map(|(t,x)| t.inner().to_string() + x.then(|| "*").unwrap_or("_") ).join(""), "0_1_2_3_4_5*6_7_8_");
+        assert_eq!(
+            grid.enumerate()
+                .map(|(t, x)| t.inner().to_string() + x.then(|| "*").unwrap_or("_"))
+                .join(""),
+            "0_1_2_3_4_5*6_7_8_"
+        );
     }
 
     #[test]
-    fn test_shift(){
-        let full_grid  = TileSet256::<2,3,6>::default().negate();
+    fn test_shift() {
+        let full_grid = TileSet256::<2, 3, 6>::default().negate();
 
         assert_eq!(full_grid.shift_north(0), full_grid);
         assert_eq!(full_grid.shift_south(0), full_grid);
@@ -413,5 +450,23 @@ mod tests {
 
         assert_eq!(full_grid.shift_north(2).to_string(), "**\n__\n__");
         assert_eq!(full_grid.shift_south(2).to_string(), "__\n__\n**");
+    }
+
+    #[test]
+    fn test_row_mask(){
+        type Grid = TileSet256::<4, 3, 12>;
+        assert_eq!(Grid::row_mask(0).to_string(), "****\n____\n____");
+        assert_eq!(Grid::row_mask(1).to_string(), "____\n****\n____");
+        assert_eq!(Grid::row_mask(2).to_string(), "____\n____\n****");
+    }
+
+
+    #[test]
+    fn test_col_mask(){
+        type Grid = TileSet256::<4, 3, 12>;
+        assert_eq!(Grid::col_mask(0).to_string(), "*___\n*___\n*___");
+        assert_eq!(Grid::col_mask(1).to_string(), "_*__\n_*__\n_*__");
+        assert_eq!(Grid::col_mask(2).to_string(), "__*_\n__*_\n__*_");
+        assert_eq!(Grid::col_mask(3).to_string(), "___*\n___*\n___*");
     }
 }

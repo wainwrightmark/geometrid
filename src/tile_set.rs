@@ -20,12 +20,17 @@ macro_rules! tile_set {
             for $name<COLS, ROWS, SIZE>
         {
             fn default() -> Self {
-                Self::assert_legal();
-                Self(Default::default())
+                Self::EMPTY
             }
         }
 
         impl<const COLS: u8, const ROWS: u8, const SIZE: usize> $name<COLS, ROWS, SIZE> {
+
+            pub const EMPTY: Self = {
+                Self::assert_legal();
+                Self(0)
+            };
+
             #[inline]
             const fn assert_legal() {
                 debug_assert!(SIZE == (COLS as usize * ROWS as usize) );
@@ -124,6 +129,38 @@ macro_rules! tile_set {
             let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
             Self(a & mask)
         }
+
+        #[must_use]
+    #[inline]
+    pub const fn row_mask(row: u8) -> Self {
+        Self::assert_legal();
+        let mut inner : $inner = 0;
+        let mut tile = Tile::<COLS, ROWS>::try_new(0, row);
+
+        while let Some(t) = tile {
+            let i = t.inner();
+            inner |= 1 << i;
+            tile = t.const_add(&Vector::EAST);
+        }
+
+        Self(inner)
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn col_mask(col: u8) -> Self {
+        Self::assert_legal();
+        let mut inner : $inner = 0;
+        let mut tile = Tile::<COLS, ROWS>::try_new(col,  0);
+
+        while let Some(t) = tile {
+            let i = t.inner();
+            inner |= 1 << i;
+            tile = t.const_add(&Vector::SOUTH);
+        }
+
+        Self(inner)
+    }
 
     #[must_use]
     pub fn enumerate(
@@ -267,36 +304,6 @@ mod tests {
     use serde_test::{assert_tokens, Token};
 
     #[test]
-    #[should_panic(expected = "assertion failed")]
-    fn test_bad_set16() {
-        let mut grid: TileSet16<3, 3, 10> = TileSet16::default();
-    }
-
-    #[test]
-    #[should_panic(expected = "assertion failed")]
-    fn test_bad_set8() {
-        let mut grid: TileSet8<3, 3, 9> = TileSet8::default();
-    }
-
-    #[test]
-    #[should_panic(expected = "assertion failed")]
-    fn test_bad_set32() {
-        let mut grid: TileSet32<6, 6, 36> = TileSet32::default();
-    }
-
-    #[test]
-    #[should_panic(expected = "assertion failed")]
-    fn test_bad_set64() {
-        let mut grid: TileSet64<8, 8, 65> = TileSet64::default();
-    }
-
-    #[test]
-    #[should_panic(expected = "assertion failed")]
-    fn test_bad_set128() {
-        let mut grid: TileSet128<12, 11, 132> = TileSet128::default();
-    }
-
-    #[test]
     fn basic_tests() {
         let mut grid: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.inner() % 2 == 0);
 
@@ -434,7 +441,7 @@ mod tests {
 
     #[test]
     fn test_shift(){
-        let full_grid  = TileSet256::<2,3,6>::default().negate();
+        let full_grid  = TileSet16::<2,3,6>::default().negate();
 
         assert_eq!(full_grid.shift_north(0), full_grid);
         assert_eq!(full_grid.shift_south(0), full_grid);
@@ -444,5 +451,24 @@ mod tests {
 
         assert_eq!(full_grid.shift_north(2).to_string(), "**\n__\n__");
         assert_eq!(full_grid.shift_south(2).to_string(), "__\n__\n**");
+    }
+
+
+    #[test]
+    fn test_row_mask(){
+        type Grid = TileSet16::<4, 3, 12>;
+        assert_eq!(Grid::row_mask(0).to_string(), "****\n____\n____");
+        assert_eq!(Grid::row_mask(1).to_string(), "____\n****\n____");
+        assert_eq!(Grid::row_mask(2).to_string(), "____\n____\n****");
+    }
+
+
+    #[test]
+    fn test_col_mask(){
+        type Grid = TileSet16::<4, 3, 12>;
+        assert_eq!(Grid::col_mask(0).to_string(), "*___\n*___\n*___");
+        assert_eq!(Grid::col_mask(1).to_string(), "_*__\n_*__\n_*__");
+        assert_eq!(Grid::col_mask(2).to_string(), "__*_\n__*_\n__*_");
+        assert_eq!(Grid::col_mask(3).to_string(), "___*\n___*\n___*");
     }
 }
