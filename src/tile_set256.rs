@@ -183,23 +183,25 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
         x_multiplier.min(y_multiplier)
     }
 
+    /// Return the set of tiles in both self and `rhs`.
     #[must_use]
     pub const fn intersect(&self, rhs: &Self) -> Self {
         let (left_high, left_low) = self.0.into_words();
         let (right_high, right_low) = rhs.0.into_words();
 
-        let high = left_high | right_high;
-        let low = left_low | right_low;
+        let high = left_high & right_high;
+        let low = left_low & right_low;
         Self(U256::from_words(high, low))
     }
 
+    /// Return the set of tiles in either self or `rhs` or both.
     #[must_use]
     pub const fn union(&self, rhs: &Self) -> Self {
         let (left_high, left_low) = self.0.into_words();
         let (right_high, right_low) = rhs.0.into_words();
 
-        let high = left_high & right_high;
-        let low = left_low & right_low;
+        let high = left_high | right_high;
+        let low = left_low | right_low;
         Self(U256::from_words(high, low))
     }
 
@@ -345,12 +347,12 @@ mod tests {
 
     #[test]
     fn test_intersect() {
-        let grid_left: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.col() == 0);
-        let grid_right: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.col() == 2);
+        let grid_left: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.col() == 1);
+        let grid_right: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.row() == 1);
 
         assert_eq!(
             grid_left.intersect(&grid_right).to_string(),
-            "*_*\n*_*\n*_*"
+            "___\n_*_\n___"
         )
     }
 
@@ -359,7 +361,7 @@ mod tests {
         let grid_left: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.col() == 0);
         let grid_top: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.row() == 0);
 
-        assert_eq!(grid_left.union(&grid_top).to_string(), "*__\n___\n___")
+        assert_eq!(grid_left.union(&grid_top).to_string(), "***\n*__\n*__")
     }
 
     #[test]

@@ -194,12 +194,12 @@ macro_rules! tile_set {
 
             #[must_use]
             pub const fn intersect(&self, rhs: &Self) -> Self {
-                Self(self.0 | rhs.0)
+                Self(self.0 & rhs.0)
             }
 
             #[must_use]
             pub const fn union(&self, rhs: &Self) -> Self {
-                Self(self.0 & rhs.0)
+                Self(self.0 | rhs.0)
             }
 
             #[must_use]
@@ -336,12 +336,12 @@ mod tests {
 
     #[test]
     fn test_intersect() {
-        let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.col() == 0);
-        let grid_right: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.col() == 2);
+        let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.col() == 1);
+        let grid_right: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.row() == 1);
 
         assert_eq!(
             grid_left.intersect(&grid_right).to_string(),
-            "*_*\n*_*\n*_*"
+            "___\n_*_\n___"
         )
     }
 
@@ -350,7 +350,7 @@ mod tests {
         let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.col() == 0);
         let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.row() == 0);
 
-        assert_eq!(grid_left.union(&grid_top).to_string(), "*__\n___\n___")
+        assert_eq!(grid_left.union(&grid_top).to_string(), "***\n*__\n*__")
     }
 
     #[test]
