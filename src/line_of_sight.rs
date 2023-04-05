@@ -1,10 +1,10 @@
 use crate::prelude::*;
 
 /// Iterates all tiles in a line between `from` and `to` in some order
-pub fn line_of_sight_tiles<const COLS: u8, const ROWS: u8>(
-    from: &Tile<COLS, ROWS>,
-    to: &Tile<COLS, ROWS>,
-) -> impl Iterator<Item = Tile<COLS, ROWS>> {
+pub fn line_of_sight_tiles<const WIDTH: u8, const HEIGHT: u8>(
+    from: &Tile<WIDTH, HEIGHT>,
+    to: &Tile<WIDTH, HEIGHT>,
+) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> {
     LineOfSightTileIter {
         from: *from,
         to: *to,
@@ -14,33 +14,33 @@ pub fn line_of_sight_tiles<const COLS: u8, const ROWS: u8>(
 
 #[derive(Debug, Clone)]
 /// Iterates all tiles in a line between `from` and `to` in some order
-struct LineOfSightTileIter<const COLS: u8, const ROWS: u8> {
+struct LineOfSightTileIter<const WIDTH: u8, const HEIGHT: u8> {
     pub state: State,
-    pub from: Tile<COLS, ROWS>,
-    pub to: Tile<COLS, ROWS>,
+    pub from: Tile<WIDTH, HEIGHT>,
+    pub to: Tile<WIDTH, HEIGHT>,
 }
 
-impl<const COLS: u8, const ROWS: u8> Iterator for LineOfSightTileIter<COLS, ROWS> {
-    type Item = Tile<COLS, ROWS>;
+impl<const WIDTH: u8, const HEIGHT: u8> Iterator for LineOfSightTileIter<WIDTH, HEIGHT> {
+    type Item = Tile<WIDTH, HEIGHT>;
 
     fn next(&mut self) -> Option<Self::Item> {
         //println!("{self:?}");
         match self.state {
             State::Default => {
-                let abs_x = self.from.col().abs_diff(self.to.col());
-                let abs_y = self.from.row().abs_diff(self.to.row());
+                let abs_x = self.from.x().abs_diff(self.to.x());
+                let abs_y = self.from.y().abs_diff(self.to.y());
 
                 // let vector = ;
                 self.state = if abs_x == abs_y {
                     if abs_x == 0 {
                         State::Complete
                     } else {
-                        let x = if self.from.col() < self.to.col() {
+                        let x = if self.from.x() < self.to.x() {
                             1
                         } else {
                             -1
                         };
-                        let y = if self.from.row() < self.to.row() {
+                        let y = if self.from.y() < self.to.y() {
                             1
                         } else {
                             -1
@@ -49,13 +49,13 @@ impl<const COLS: u8, const ROWS: u8> Iterator for LineOfSightTileIter<COLS, ROWS
                     }
                 } else {
                     let vector = if abs_x > abs_y {
-                        if self.from.col() < self.to.col() {
+                        if self.from.x() < self.to.x() {
                             Vector::EAST
                         } else {
                             Vector::WEST
                         }
                     } else {
-                        if self.from.row() < self.to.row() {
+                        if self.from.y() < self.to.y() {
                             Vector::SOUTH
                         } else {
                             Vector::NORTH

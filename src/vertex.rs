@@ -18,7 +18,7 @@ use crate::{
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Vertex<const WIDTH: u8, const HEIGHT: u8>(u8);
 
-impl<const COLS: u8, const ROWS: u8, V: AsRef<Vector>> Add<V> for Vertex<COLS, ROWS> {
+impl<const WIDTH: u8, const HEIGHT: u8, V: AsRef<Vector>> Add<V> for Vertex<WIDTH, HEIGHT> {
     type Output = Option<Self>;
 
     fn add(self, rhs: V) -> Self::Output {
@@ -28,24 +28,24 @@ impl<const COLS: u8, const ROWS: u8, V: AsRef<Vector>> Add<V> for Vertex<COLS, R
 
 impl<const W: u8, const H: u8> fmt::Display for Vertex<W, H> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({},{})", self.col(), self.row())
+        write!(f, "({},{})", self.x(), self.y())
     }
 }
 
-impl<const COLS: u8, const ROWS: u8> Vertex<COLS, ROWS> {
-    const COLUMNS: u8 = COLS;
-    const ROWS: u8 = ROWS;
-    pub const COUNT: usize = (COLS + 1) as usize * (ROWS + 1) as usize;
+impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
+    const COLUMNS: u8 = WIDTH;
+    const HEIGHT: u8 = HEIGHT;
+    pub const COUNT: usize = (WIDTH + 1) as usize * (HEIGHT + 1) as usize;
 
     const NORTH_WEST: Self = Self(0);
     const NORTH_EAST: Self = Self::new_unchecked(Self::MAX_COL, 0);
     const SOUTH_WEST: Self = Self::new_unchecked(0, Self::MAX_ROW);
     const SOUTH_EAST: Self = Self::new_unchecked(Self::MAX_COL, Self::MAX_ROW);
 
-    const CENTER: Self = Self::new_unchecked(COLS / 2, ROWS / 2);
+    const CENTER: Self = Self::new_unchecked(WIDTH / 2, HEIGHT / 2);
 
-    const MAX_COL: u8 = COLS;
-    const MAX_ROW: u8 = ROWS;
+    const MAX_COL: u8 = WIDTH;
+    const MAX_ROW: u8 = HEIGHT;
 
     #[must_use]
     pub const fn new_const<const X: u8, const Y: u8>() -> Self {
@@ -56,7 +56,7 @@ impl<const COLS: u8, const ROWS: u8> Vertex<COLS, ROWS> {
     #[inline]
     pub(crate) const fn new_unchecked(x: u8, y: u8) -> Self {
         debug_assert!(x <= Self::COLUMNS);
-        debug_assert!(y <= Self::ROWS);
+        debug_assert!(y <= Self::HEIGHT);
         debug_assert!(Self::COUNT <= u8::MAX as usize);
         Self(x + ((Self::COLUMNS + 1) * y))
     }
@@ -81,25 +81,25 @@ impl<const COLS: u8, const ROWS: u8> Vertex<COLS, ROWS> {
         Some(Self(inner))
     }
 
-    pub const fn try_new(col: u8, row: u8) -> Option<Self> {
-        if col > COLS {
+    pub const fn try_new(x: u8, y: u8) -> Option<Self> {
+        if x > WIDTH {
             return None;
         }
-        if row > ROWS {
+        if y > HEIGHT {
             return None;
         }
 
-        let Some(i1) = row.checked_mul(COLS + 1) else {return None};
-        let Some(i2) = i1.checked_add(col) else {return None};
+        let Some(i1) = y.checked_mul(WIDTH + 1) else {return None};
+        let Some(i2) = i1.checked_add(x) else {return None};
 
         Self::try_from_inner(i2)
     }
 
-    pub const fn col(&self) -> u8 {
+    pub const fn x(&self) -> u8 {
         self.0 % (Self::COLUMNS + 1)
     }
 
-    pub const fn row(&self) -> u8 {
+    pub const fn y(&self) -> u8 {
         self.0 / (Self::COLUMNS + 1)
     }
 
@@ -107,9 +107,9 @@ impl<const COLS: u8, const ROWS: u8> Vertex<COLS, ROWS> {
         use FlipAxes::*;
         match axes {
             None => *self,
-            Horizontal => Self::new_unchecked(Self::MAX_COL - self.col(), self.row()),
-            Vertical => Self::new_unchecked(self.col(), Self::MAX_ROW - self.row()),
-            Both => Self::new_unchecked(Self::MAX_COL - self.col(), Self::MAX_ROW - self.row()),
+            Horizontal => Self::new_unchecked(Self::MAX_COL - self.x(), self.y()),
+            Vertical => Self::new_unchecked(self.x(), Self::MAX_ROW - self.y()),
+            Both => Self::new_unchecked(Self::MAX_COL - self.x(), Self::MAX_ROW - self.y()),
         }
     }
 
@@ -126,40 +126,40 @@ impl<const COLS: u8, const ROWS: u8> Vertex<COLS, ROWS> {
 
     #[must_use]
     pub const fn const_add(&self, vector: &Vector) -> Option<Self> {
-        let Some(c) = self.col().checked_add_signed(vector.x) else {return None;};
-        let Some(r) = self.row().checked_add_signed(vector.y) else {return None;};
+        let Some(c) = self.x().checked_add_signed(vector.x) else {return None;};
+        let Some(r) = self.y().checked_add_signed(vector.y) else {return None;};
 
         Self::try_new(c, r)
     }
 
     #[must_use]
-    pub const fn get_tile(&self, corner: &Corner) -> Option<Tile<COLS, ROWS>> {
+    pub const fn get_tile(&self, corner: &Corner) -> Option<Tile<WIDTH, HEIGHT>> {
         use Corner::*;
 
         match corner {
             NorthWest => {
-                let Some(col)  = self.col().checked_sub(1) else {return None};
-                let Some(row)  = self.row().checked_sub(1) else {return None};
-                Tile::try_new(col, row)
+                let Some(x)  = self.x().checked_sub(1) else {return None};
+                let Some(y)  = self.y().checked_sub(1) else {return None};
+                Tile::try_new(x, y)
             }
             NorthEast => {
-                let Some(row)  = self.row().checked_sub(1) else {return None};
-                Tile::try_new(self.col(), row)
+                let Some(y)  = self.y().checked_sub(1) else {return None};
+                Tile::try_new(self.x(), y)
             }
             SouthWest => {
-                let Some(col)  = self.col().checked_sub(1) else {return None};
-                Tile::try_new(col, self.row())
+                let Some(x)  = self.x().checked_sub(1) else {return None};
+                Tile::try_new(x, self.y())
             }
-            SouthEast => Tile::try_new(self.col(), self.row()),
+            SouthEast => Tile::try_new(self.x(), self.y()),
         }
     }
 }
 
-impl<const COLS: u8, const ROWS: u8> HasCenter for Vertex<COLS, ROWS> {
+impl<const WIDTH: u8, const HEIGHT: u8> HasCenter for Vertex<WIDTH, HEIGHT> {
     #[must_use]
     fn get_center(&self, scale: f32) -> Center {
-        let x = scale * (self.col() as f32);
-        let y = scale * (self.row() as f32);
+        let x = scale * (self.x() as f32);
+        let y = scale * (self.y() as f32);
 
         Center { x, y }
     }
@@ -169,9 +169,9 @@ impl<const L: u8> Vertex<L, L> {
     pub const fn rotate(&self, quarter_turns: QuarterTurns) -> Self {
         match quarter_turns {
             QuarterTurns::Zero => *self,
-            QuarterTurns::One => Self::new_unchecked(L - self.row(), self.col()),
-            QuarterTurns::Two => Self::new_unchecked(L - self.col(), L - self.row()),
-            QuarterTurns::Three => Self::new_unchecked(self.row(), L - self.col()),
+            QuarterTurns::One => Self::new_unchecked(L - self.y(), self.x()),
+            QuarterTurns::Two => Self::new_unchecked(L - self.x(), L - self.y()),
+            QuarterTurns::Three => Self::new_unchecked(self.y(), L - self.x()),
         }
     }
 }
@@ -221,7 +221,7 @@ mod tests {
     #[test]
     fn test_from() {
         for tile in Vertex::<3, 4>::iter_by_row() {
-            let n = Vertex::try_new(tile.col(), tile.row()).unwrap();
+            let n = Vertex::try_new(tile.x(), tile.y()).unwrap();
             assert_eq!(tile, n)
         }
     }

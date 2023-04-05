@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
-pub struct TileMap<T, const COLS: u8, const ROWS: u8, const SIZE: usize>(
+pub struct TileMap<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize>(
     #[cfg_attr(any(test, feature = "serde"), serde(with = "serde_arrays"))]
     #[cfg_attr(any(test, feature = "serde"), serde(bound(serialize = "T: Serialize")))]
     #[cfg_attr(
@@ -22,19 +22,19 @@ pub struct TileMap<T, const COLS: u8, const ROWS: u8, const SIZE: usize>(
     [T; SIZE],
 );
 
-impl<T: Default + Copy, const COLS: u8, const ROWS: u8, const SIZE: usize> Default
-    for TileMap<T, COLS, ROWS, SIZE>
+impl<T: Default + Copy, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Default
+    for TileMap<T, WIDTH, HEIGHT, SIZE>
 {
     fn default() -> Self {
-        debug_assert!(SIZE == (COLS * ROWS) as usize);
+        debug_assert!(SIZE == (WIDTH * HEIGHT) as usize);
         Self([T::default(); SIZE])
     }
 }
 
-impl<T, const COLS: u8, const ROWS: u8, const SIZE: usize> TileMap<T, COLS, ROWS, SIZE> {
+impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, HEIGHT, SIZE> {
     #[must_use]
-    pub fn from_fn<F: FnMut(Tile<COLS, ROWS>) -> T>(mut cb: F) -> Self {
-        debug_assert!(SIZE == (COLS * ROWS) as usize);
+    pub fn from_fn<F: FnMut(Tile<WIDTH, HEIGHT>) -> T>(mut cb: F) -> Self {
+        debug_assert!(SIZE == (WIDTH * HEIGHT) as usize);
         let arr = core::array::from_fn(|i| cb(Tile::try_from_usize(i).unwrap()));
         Self(arr)
     }
@@ -48,13 +48,13 @@ impl<T, const COLS: u8, const ROWS: u8, const SIZE: usize> TileMap<T, COLS, ROWS
     #[must_use]
     #[inline]
     pub fn from_inner(inner: [T; SIZE]) -> Self {
-        debug_assert!(SIZE == (COLS * ROWS) as usize);
+        debug_assert!(SIZE == (WIDTH * HEIGHT) as usize);
         Self(inner)
     }
 
     #[must_use]
     #[inline]
-    pub fn enumerate(&self) -> impl iter::Iterator<Item = (Tile<COLS, ROWS>, &'_ T)> {
+    pub fn enumerate(&self) -> impl iter::Iterator<Item = (Tile<WIDTH, HEIGHT>, &'_ T)> {
         self.0
             .iter()
             .enumerate()
@@ -62,7 +62,7 @@ impl<T, const COLS: u8, const ROWS: u8, const SIZE: usize> TileMap<T, COLS, ROWS
     }
 
     #[inline]
-    pub fn swap(&mut self, p1: Tile<COLS, ROWS>, p2: Tile<COLS, ROWS>) {
+    pub fn swap(&mut self, p1: Tile<WIDTH, HEIGHT>, p2: Tile<WIDTH, HEIGHT>) {
         self.0.swap(p1.into(), p2.into());
     }
 
@@ -80,32 +80,32 @@ impl<T, const COLS: u8, const ROWS: u8, const SIZE: usize> TileMap<T, COLS, ROWS
 
     #[must_use]
     #[inline]
-    pub fn row(&self, row: u8) -> &[T] {
-        let start = row * COLS;
-        let end = start + COLS;
+    pub fn row(&self, y: u8) -> &[T] {
+        let start = y * WIDTH;
+        let end = start + WIDTH;
         &self.0[(start as usize)..(end as usize)]
     }
 
     #[must_use]
     #[inline]
-    pub fn row_mut(&mut self, row: u8) -> &mut [T] {
-        let start = row * COLS;
-        let end = start + COLS;
+    pub fn row_mut(&mut self, y: u8) -> &mut [T] {
+        let start = y * WIDTH;
+        let end = start + WIDTH;
         &mut self.0[(start as usize)..(end as usize)]
     }
 
     #[must_use]
     pub fn column_iter(&self, column: u8) -> impl DoubleEndedIterator<Item = &T> + '_ {
-        (0..ROWS)
-            .map(move |row| column + (row * COLS))
+        (0..HEIGHT)
+            .map(move |y| column + (y * WIDTH))
             .map(|x| &self.0[x as usize])
     }
 
     /// Get the scale to make the grid take up as much as possible of a given area
     #[must_use]
     pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
-        let x_multiplier = total_width / COLS as f32;
-        let y_multiplier = total_height / ROWS as f32;
+        let x_multiplier = total_width / WIDTH as f32;
+        let y_multiplier = total_height / HEIGHT as f32;
 
         x_multiplier.min(y_multiplier)
     }
@@ -114,35 +114,35 @@ impl<T, const COLS: u8, const ROWS: u8, const SIZE: usize> TileMap<T, COLS, ROWS
         match axes {
             FlipAxes::None => {}
             FlipAxes::Horizontal => {
-                for y in 0..ROWS {
-                    for x in 0..COLS / 2 {
-                        let p1 = Tile::<COLS, ROWS>::new_unchecked(x, y);
+                for y in 0..HEIGHT {
+                    for x in 0..WIDTH / 2 {
+                        let p1 = Tile::<WIDTH, HEIGHT>::new_unchecked(x, y);
                         let p2 = p1.flip(axes);
                         self.swap(p1, p2);
                     }
                 }
             }
             FlipAxes::Vertical => {
-                for y in 0..ROWS / 2 {
-                    for x in 0..COLS {
-                        let p1 = Tile::<COLS, ROWS>::try_new(x, y).unwrap();
+                for y in 0..HEIGHT / 2 {
+                    for x in 0..WIDTH {
+                        let p1 = Tile::<WIDTH, HEIGHT>::try_new(x, y).unwrap();
                         let p2 = p1.flip(axes);
                         self.swap(p1, p2);
                     }
                 }
             }
             FlipAxes::Both => {
-                for y in 0..ROWS / 2 {
-                    for x in 0..COLS {
-                        let p1 = Tile::<COLS, ROWS>::try_new(x, y).unwrap();
+                for y in 0..HEIGHT / 2 {
+                    for x in 0..WIDTH {
+                        let p1 = Tile::<WIDTH, HEIGHT>::try_new(x, y).unwrap();
                         let p2 = p1.flip(axes);
                         self.swap(p1, p2);
                     }
                 }
 
-                if COLS % 2 != 0 {
-                    for x in 0..(COLS / 2) {
-                        let p1 = Tile::<COLS, ROWS>::try_new(x, ROWS / 2).unwrap();
+                if WIDTH % 2 != 0 {
+                    for x in 0..(WIDTH / 2) {
+                        let p1 = Tile::<WIDTH, HEIGHT>::try_new(x, HEIGHT / 2).unwrap();
                         let p2 = p1.flip(axes);
                         self.swap(p1, p2);
                     }
@@ -159,15 +159,15 @@ impl<T, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
                 return;
             }
             QuarterTurns::One => {
-                for row in 0..=(L / 2) {
-                    for column in row..=(L / 2) {
-                        let o_row = L - (1 + row);
-                        let o_column = L - (1 + column);
-                        if row != o_row || column != o_column {
-                            let p0 = Tile::new_unchecked(column, row);
-                            let p1 = Tile::new_unchecked(row, o_column);
-                            let p2 = Tile::new_unchecked(o_column, o_row);
-                            let p3 = Tile::new_unchecked(o_row, column);
+                for y in 0..=(L / 2) {
+                    for x in y..=(L / 2) {
+                        let o_y = L - (1 + y);
+                        let o_x = L - (1 + x);
+                        if y != o_y || x != o_x {
+                            let p0 = Tile::new_unchecked(x, y);
+                            let p1 = Tile::new_unchecked(y, o_x);
+                            let p2 = Tile::new_unchecked(o_x, o_y);
+                            let p3 = Tile::new_unchecked(o_y, x);
 
                             //0123
                             self.swap(p0, p3); //3120
@@ -178,15 +178,15 @@ impl<T, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
                 }
             }
             QuarterTurns::Two => {
-                for row in 0..=(L / 2) {
-                    for column in row..=(L / 2) {
-                        let o_row = L - (1 + row);
-                        let o_column = L - (1 + column);
-                        if row != o_row || column != o_column {
-                            let p0 = Tile::new_unchecked(column, row);
-                            let p1 = Tile::new_unchecked(row, o_column);
-                            let p2 = Tile::new_unchecked(o_row, column);
-                            let p3 = Tile::new_unchecked(o_column, o_row);
+                for y in 0..=(L / 2) {
+                    for x in y..=(L / 2) {
+                        let o_y = L - (1 + y);
+                        let o_x = L - (1 + x);
+                        if y != o_y || x != o_x {
+                            let p0 = Tile::new_unchecked(x, y);
+                            let p1 = Tile::new_unchecked(y, o_x);
+                            let p2 = Tile::new_unchecked(o_y, x);
+                            let p3 = Tile::new_unchecked(o_x, o_y);
 
                             //0123
                             self.swap(p0, p3); //3120
@@ -196,15 +196,15 @@ impl<T, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
                 }
             }
             QuarterTurns::Three => {
-                for row in 0..=(L / 2) {
-                    for column in row..=(L / 2) {
-                        let o_row = L - (1 + row);
-                        let o_column = L - (1 + column);
-                        if row != o_row || column != o_column {
-                            let p0 = Tile::new_unchecked(column, row);
-                            let p1 = Tile::new_unchecked(row, o_column);
-                            let p2 = Tile::new_unchecked(o_column, o_row);
-                            let p3 = Tile::new_unchecked(o_row, column);
+                for y in 0..=(L / 2) {
+                    for x in y..=(L / 2) {
+                        let o_y = L - (1 + y);
+                        let o_x = L - (1 + x);
+                        if y != o_y || x != o_x {
+                            let p0 = Tile::new_unchecked(x, y);
+                            let p1 = Tile::new_unchecked(y, o_x);
+                            let p2 = Tile::new_unchecked(o_x, o_y);
+                            let p3 = Tile::new_unchecked(o_y, x);
 
                             //0123
                             self.swap(p1, p2); //0213

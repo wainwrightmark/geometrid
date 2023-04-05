@@ -91,6 +91,7 @@ impl DynamicVertex {
     /// Get the nearest vertex to this center.
     /// Will round away from 0.0
     #[must_use]
+    #[cfg(any(test, feature = "std"))]
     pub fn from_center(center: &Center, scale: f32) -> Self {
         let x = center.x / scale;
         let y = center.y / scale;

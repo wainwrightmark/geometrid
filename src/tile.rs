@@ -15,9 +15,9 @@ use serde::{Deserialize, Serialize};
 #[must_use]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
-pub struct Tile<const COLS: u8, const ROWS: u8>(u8);
+pub struct Tile<const WIDTH: u8, const HEIGHT: u8>(u8);
 
-impl<const COLS: u8, const ROWS: u8, V: AsRef<Vector>> Add<V> for Tile<COLS, ROWS> {
+impl<const WIDTH: u8, const HEIGHT: u8, V: AsRef<Vector>> Add<V> for Tile<WIDTH, HEIGHT> {
     type Output = Option<Self>;
 
     fn add(self, rhs: V) -> Self::Output {
@@ -25,51 +25,51 @@ impl<const COLS: u8, const ROWS: u8, V: AsRef<Vector>> Add<V> for Tile<COLS, ROW
     }
 }
 
-impl<const COLS: u8, const ROWS: u8> From<Tile<COLS, ROWS>> for u8 {
-    fn from(value: Tile<COLS, ROWS>) -> Self {
+impl<const WIDTH: u8, const HEIGHT: u8> From<Tile<WIDTH, HEIGHT>> for u8 {
+    fn from(value: Tile<WIDTH, HEIGHT>) -> Self {
         value.0
     }
 }
-impl<const COLS: u8, const ROWS: u8> From<&Tile<COLS, ROWS>> for u8 {
-    fn from(value: &Tile<COLS, ROWS>) -> Self {
+impl<const WIDTH: u8, const HEIGHT: u8> From<&Tile<WIDTH, HEIGHT>> for u8 {
+    fn from(value: &Tile<WIDTH, HEIGHT>) -> Self {
         value.0
     }
 }
 
-impl<const COLS: u8, const ROWS: u8> From<Tile<COLS, ROWS>> for usize {
-    fn from(value: Tile<COLS, ROWS>) -> Self {
+impl<const WIDTH: u8, const HEIGHT: u8> From<Tile<WIDTH, HEIGHT>> for usize {
+    fn from(value: Tile<WIDTH, HEIGHT>) -> Self {
         value.0.into()
     }
 }
-impl<const COLS: u8, const ROWS: u8> From<&Tile<COLS, ROWS>> for usize {
-    fn from(value: &Tile<COLS, ROWS>) -> Self {
+impl<const WIDTH: u8, const HEIGHT: u8> From<&Tile<WIDTH, HEIGHT>> for usize {
+    fn from(value: &Tile<WIDTH, HEIGHT>) -> Self {
         value.0.into()
     }
 }
 
-impl<const COLS: u8, const ROWS: u8> Display for Tile<COLS, ROWS> {
+impl<const WIDTH: u8, const HEIGHT: u8> Display for Tile<WIDTH, HEIGHT> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "({},{})", self.col(), self.row())
+        write!(f, "({},{})", self.x(), self.y())
     }
 }
-impl<const COLS: u8, const ROWS: u8> core::fmt::Debug for Tile<COLS, ROWS> {
+impl<const WIDTH: u8, const HEIGHT: u8> core::fmt::Debug for Tile<WIDTH, HEIGHT> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "({},{})", self.col(), self.row())
+        write!(f, "({},{})", self.x(), self.y())
     }
 }
 
-impl<const COLS: u8, const ROWS: u8> Tile<COLS, ROWS> {
+impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
     pub const NORTH_WEST: Self = Self(0);
     pub const NORTH_EAST: Self = Self::new_unchecked(Self::MAX_COL, 0);
     pub const SOUTH_WEST: Self = Self::new_unchecked(0, Self::MAX_ROW);
     pub const SOUTH_EAST: Self = Self::new_unchecked(Self::MAX_COL, Self::MAX_ROW);
 
-    pub const MAX_COL: u8 = COLS - 1;
-    pub const MAX_ROW: u8 = ROWS - 1;
+    pub const MAX_COL: u8 = WIDTH - 1;
+    pub const MAX_ROW: u8 = HEIGHT - 1;
 
-    pub const COUNT: usize = COLS as usize * ROWS as usize;
+    pub const COUNT: usize = WIDTH as usize * HEIGHT as usize;
 
-    pub const CENTER: Self = Self::new_unchecked(COLS / 2, ROWS / 2);
+    pub const CENTER: Self = Self::new_unchecked(WIDTH / 2, HEIGHT / 2);
 
     #[must_use]
     pub const fn new_const<const X: u8, const Y: u8>() -> Self {
@@ -77,34 +77,34 @@ impl<const COLS: u8, const ROWS: u8> Tile<COLS, ROWS> {
     }
 
     #[must_use]
-    pub(crate) const fn new_unchecked(col: u8, row: u8) -> Self {
-        debug_assert!(col < COLS);
-        debug_assert!(row < ROWS);
+    pub(crate) const fn new_unchecked(x: u8, y: u8) -> Self {
+        debug_assert!(x < WIDTH);
+        debug_assert!(y < HEIGHT);
         debug_assert!(Self::COUNT <= u8::MAX as usize);
-        Self(col + (COLS * row))
+        Self(x + (WIDTH * y))
     }
 
     #[must_use]
-    pub const fn try_new(col: u8, row: u8) -> Option<Self> {
-        if col >= COLS {
+    pub const fn try_new(x: u8, y: u8) -> Option<Self> {
+        if x >= WIDTH {
             return None;
         }
-        if row >= ROWS {
+        if y >= HEIGHT {
             return None;
         }
-        let Some(i1) = row.checked_mul(COLS) else{return None};
-        let Some(i2) = i1.checked_add(col) else {return  None};
+        let Some(i1) = y.checked_mul(WIDTH) else{return None};
+        let Some(i2) = i1.checked_add(x) else {return  None};
         Self::try_from_inner(i2)
     }
 
     #[must_use]
-    pub const fn col(&self) -> u8 {
-        self.0 % COLS
+    pub const fn x(&self) -> u8 {
+        self.0 % WIDTH
     }
 
     #[must_use]
-    pub const fn row(&self) -> u8 {
-        self.0 / COLS
+    pub const fn y(&self) -> u8 {
+        self.0 / WIDTH
     }
 
     #[must_use]
@@ -135,9 +135,9 @@ impl<const COLS: u8, const ROWS: u8> Tile<COLS, ROWS> {
         use FlipAxes::*;
         match axes {
             None => *self,
-            Horizontal => Self::new_unchecked(Self::MAX_COL - self.col(), self.row()),
-            Vertical => Self::new_unchecked(self.col(), Self::MAX_ROW - self.row()),
-            Both => Self::new_unchecked(Self::MAX_COL - self.col(), Self::MAX_ROW - self.row()),
+            Horizontal => Self::new_unchecked(Self::MAX_COL - self.x(), self.y()),
+            Vertical => Self::new_unchecked(self.x(), Self::MAX_ROW - self.y()),
+            Both => Self::new_unchecked(Self::MAX_COL - self.x(), Self::MAX_ROW - self.y()),
         }
     }
 
@@ -173,7 +173,7 @@ impl<const COLS: u8, const ROWS: u8> Tile<COLS, ROWS> {
 
     /// Whether two tiles are adjacent (includes diagonals)
     pub fn is_adjacent_to(&self, rhs: &Self) -> bool {
-        self != rhs && self.col().abs_diff(rhs.col()) <= 1 && self.row().abs_diff(rhs.row()) <= 1
+        self != rhs && self.x().abs_diff(rhs.x()) <= 1 && self.y().abs_diff(rhs.y()) <= 1
     }
 
     /// Whether two tiles are contiguous (does not include diagonals)
@@ -181,8 +181,8 @@ impl<const COLS: u8, const ROWS: u8> Tile<COLS, ROWS> {
         if self == rhs {
             return false;
         }
-        let c = self.col().abs_diff(rhs.col());
-        let r = self.row().abs_diff(rhs.row());
+        let c = self.x().abs_diff(rhs.x());
+        let r = self.y().abs_diff(rhs.y());
 
         if c <= 1 && r <= 1 {
             if (c == 1) ^ (r == 1) {
@@ -194,32 +194,32 @@ impl<const COLS: u8, const ROWS: u8> Tile<COLS, ROWS> {
 
     #[must_use]
     pub const fn const_add(&self, vector: &Vector) -> Option<Self> {
-        let Some(c) = self.col().checked_add_signed(vector.x) else {return None;};
-        let Some(r) = self.row().checked_add_signed(vector.y) else {return None;};
+        let Some(c) = self.x().checked_add_signed(vector.x) else {return None;};
+        let Some(r) = self.y().checked_add_signed(vector.y) else {return None;};
 
         Self::try_new(c, r)
     }
 
     #[must_use]
-    pub const fn get_vertex(&self, corner: &Corner) -> Option<Vertex<COLS, ROWS>> {
+    pub const fn get_vertex(&self, corner: &Corner) -> Option<Vertex<WIDTH, HEIGHT>> {
         use Corner::*;
 
         match corner {
-            NorthWest => Vertex::try_new(self.col(), self.row()),
-            NorthEast => Vertex::try_new(self.col() + 1, self.row()),
-            SouthWest => Vertex::try_new(self.col(), self.row() + 1),
-            SouthEast => Vertex::try_new(self.col() + 1, self.row() + 1),
+            NorthWest => Vertex::try_new(self.x(), self.y()),
+            NorthEast => Vertex::try_new(self.x() + 1, self.y()),
+            SouthWest => Vertex::try_new(self.x(), self.y() + 1),
+            SouthEast => Vertex::try_new(self.x() + 1, self.y() + 1),
         }
     }
 
     #[must_use]
-    pub const fn get_north_west_vertex(&self) -> Vertex<COLS, ROWS> {
-        Vertex::new_unchecked(self.col(), self.row())
+    pub const fn get_north_west_vertex(&self) -> Vertex<WIDTH, HEIGHT> {
+        Vertex::new_unchecked(self.x(), self.y())
     }
 
     #[must_use]
     pub const fn manhattan_distance(&self, other: &Self) -> u8 {
-        self.col().abs_diff(other.col()) + self.row().abs_diff(other.row())
+        self.x().abs_diff(other.x()) + self.y().abs_diff(other.y())
     }
 }
 
@@ -227,17 +227,17 @@ impl<const L: u8> Tile<L, L> {
     pub const fn rotate(&self, quarter_turns: QuarterTurns) -> Self {
         match quarter_turns {
             QuarterTurns::Zero => *self,
-            QuarterTurns::One => Self::new_unchecked(L - 1 - self.row(), self.col()),
-            QuarterTurns::Two => Self::new_unchecked(L - 1 - self.col(), L - 1 - self.row()),
-            QuarterTurns::Three => Self::new_unchecked(self.row(), L - 1 - self.col()),
+            QuarterTurns::One => Self::new_unchecked(L - 1 - self.y(), self.x()),
+            QuarterTurns::Two => Self::new_unchecked(L - 1 - self.x(), L - 1 - self.y()),
+            QuarterTurns::Three => Self::new_unchecked(self.y(), L - 1 - self.x()),
         }
     }
 }
 
 impl<const C: u8, const R: u8> HasCenter for Tile<C, R> {
     fn get_center(&self, scale: f32) -> crate::center::Center {
-        let x = scale * ((self.col() as f32) + 0.5);
-        let y = scale * ((self.row() as f32) + 0.5);
+        let x = scale * ((self.x() as f32) + 0.5);
+        let y = scale * ((self.y() as f32) + 0.5);
 
         Center { x, y }
     }
@@ -245,7 +245,7 @@ impl<const C: u8, const R: u8> HasCenter for Tile<C, R> {
 
 #[must_use]
 #[derive(Clone)]
-pub struct TileByColumnIter<const COLS: u8, const ROWS: u8>(Option<Tile<COLS, ROWS>>);
+pub struct TileByColumnIter<const WIDTH: u8, const HEIGHT: u8>(Option<Tile<WIDTH, HEIGHT>>);
 
 impl<const C: u8, const R: u8> Iterator for TileByColumnIter<C, R> {
     type Item = Tile<C, R>;
@@ -253,7 +253,7 @@ impl<const C: u8, const R: u8> Iterator for TileByColumnIter<C, R> {
     fn next(&mut self) -> Option<Self::Item> {
         let r = self.0?;
 
-        self.0 = (r + Vector::SOUTH).or_else(|| Tile::try_new(r.col() + 1, 0));
+        self.0 = (r + Vector::SOUTH).or_else(|| Tile::try_new(r.x() + 1, 0));
 
         return Some(r);
     }
@@ -289,7 +289,7 @@ mod tests {
     #[test]
     fn test_from() {
         for tile in Tile::<3, 4>::iter_by_row() {
-            let n = Tile::try_new(tile.col(), tile.row()).unwrap();
+            let n = Tile::try_new(tile.x(), tile.y()).unwrap();
             assert_eq!(tile, n)
         }
     }

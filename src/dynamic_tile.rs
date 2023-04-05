@@ -90,6 +90,7 @@ impl DynamicTile {
 
     /// Gets the nearest tile to this center
     #[must_use]
+    #[cfg(any(test, feature = "std"))]
     pub fn from_center(center: &Center, scale: f32) -> Self {
         let x = center.x / scale;
         let y = center.y / scale;

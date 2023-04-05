@@ -14,17 +14,17 @@ macro_rules! tile_set {
         #[must_use]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
         #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
-        pub struct $name<const COLS: u8, const ROWS: u8, const SIZE: usize>($inner);
+        pub struct $name<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize>($inner);
 
-        impl<const COLS: u8, const ROWS: u8, const SIZE: usize> Default
-            for $name<COLS, ROWS, SIZE>
+        impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Default
+            for $name<WIDTH, HEIGHT, SIZE>
         {
             fn default() -> Self {
                 Self::EMPTY
             }
         }
 
-        impl<const COLS: u8, const ROWS: u8, const SIZE: usize> $name<COLS, ROWS, SIZE> {
+        impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> $name<WIDTH, HEIGHT, SIZE> {
 
             pub const EMPTY: Self = {
                 Self::assert_legal();
@@ -33,16 +33,16 @@ macro_rules! tile_set {
 
             #[inline]
             const fn assert_legal() {
-                debug_assert!(SIZE == (COLS as usize * ROWS as usize) );
+                debug_assert!(SIZE == (WIDTH as usize * HEIGHT as usize) );
                 debug_assert!(SIZE <= <$inner>::BITS as usize);
             }
 
             #[must_use]
-            pub fn from_fn<F: FnMut(Tile<COLS, ROWS>) -> bool>(mut cb: F) -> Self {
+            pub fn from_fn<F: FnMut(Tile<WIDTH, HEIGHT>) -> bool>(mut cb: F) -> Self {
                 Self::assert_legal();
 
                 let mut result = Self::default();
-                for tile in Tile::<COLS, ROWS>::iter_by_row() {
+                for tile in Tile::<WIDTH, HEIGHT>::iter_by_row() {
                     if cb(tile) {
                         result.set_bit(&tile, true);
                     }
@@ -58,7 +58,7 @@ macro_rules! tile_set {
                 Self(inner)
             }
 
-            pub fn from_iter(iter: impl Iterator<Item = Tile<COLS, ROWS>>) -> Self {
+            pub fn from_iter(iter: impl Iterator<Item = Tile<WIDTH, HEIGHT>>) -> Self {
                 Self::assert_legal();
                 let mut r = Self::default();
                 for x in iter {
@@ -74,7 +74,7 @@ macro_rules! tile_set {
             }
 
             #[inline]
-            pub fn set_bit(&mut self, tile: &Tile<COLS, ROWS>, bit: bool) {
+            pub fn set_bit(&mut self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) {
                 if bit {
                     self.0 |= (1 as $inner << tile.inner() as u32);
                 } else {
@@ -84,7 +84,7 @@ macro_rules! tile_set {
 
             #[must_use]
             #[inline]
-            pub const fn get_bit(&self, tile: &Tile<COLS, ROWS>) -> bool {
+            pub const fn get_bit(&self, tile: &Tile<WIDTH, HEIGHT>) -> bool {
                 (self.0 >> tile.inner() as u32) & 1 == 1
             }
 
@@ -98,44 +98,44 @@ macro_rules! tile_set {
             }
 
         #[must_use]
-        pub const fn row(&self, row: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
+        pub const fn row(&self, y: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
             $iter_name::<1> {
-                bottom_index: (row * COLS) as usize,
-                top_index: ((row + 1) * COLS) as usize,
+                bottom_index: (y * WIDTH) as usize,
+                top_index: ((y + 1) * WIDTH) as usize,
                 inner: self.0,
             }
         }
 
         #[must_use]
-        pub const fn col(&self, col: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
+        pub const fn col(&self, x: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
 
-            $iter_name::<ROWS> {
-                bottom_index: col as usize,
-                top_index: ((COLS * (ROWS - 1)) + col + 1) as usize,
+            $iter_name::<HEIGHT> {
+                bottom_index: x as usize,
+                top_index: ((WIDTH * (HEIGHT - 1)) + x + 1) as usize,
                 inner: self.0,
             }
         }
 
         #[must_use]
         pub fn shift_north(&self, rows: u8)-> Self{
-            let a =self.0.shr(rows * COLS);
+            let a =self.0.shr(rows * WIDTH);
             let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
             Self(a & mask)
         }
 
         #[must_use]
         pub fn shift_south(&self, rows: u8)-> Self{
-            let a =self.0.shl(rows * COLS);
+            let a =self.0.shl(rows * WIDTH);
             let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
             Self(a & mask)
         }
 
         #[must_use]
     #[inline]
-    pub const fn row_mask(row: u8) -> Self {
+    pub const fn row_mask(y: u8) -> Self {
         Self::assert_legal();
         let mut inner : $inner = 0;
-        let mut tile = Tile::<COLS, ROWS>::try_new(0, row);
+        let mut tile = Tile::<WIDTH, HEIGHT>::try_new(0, y);
 
         while let Some(t) = tile {
             let i = t.inner();
@@ -148,10 +148,10 @@ macro_rules! tile_set {
 
     #[must_use]
     #[inline]
-    pub const fn col_mask(col: u8) -> Self {
+    pub const fn col_mask(x: u8) -> Self {
         Self::assert_legal();
         let mut inner : $inner = 0;
-        let mut tile = Tile::<COLS, ROWS>::try_new(col,  0);
+        let mut tile = Tile::<WIDTH, HEIGHT>::try_new(x,  0);
 
         while let Some(t) = tile {
             let i = t.inner();
@@ -165,14 +165,14 @@ macro_rules! tile_set {
     #[must_use]
     pub fn enumerate(
         &self,
-    ) -> impl DoubleEndedIterator<Item = (Tile<COLS, ROWS>, bool)> + ExactSizeIterator {
+    ) -> impl DoubleEndedIterator<Item = (Tile<WIDTH, HEIGHT>, bool)> + ExactSizeIterator {
         self.iter()
             .enumerate()
             .map(|(i, x)| (Tile::try_from_usize(i).unwrap(), x))
     }
 
             #[must_use]
-            pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<COLS, ROWS>> {
+            pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> {
                 self.iter()
                     .enumerate()
                     .flat_map(|(i, b)| b.then(|| Tile::try_from_usize(i).unwrap()))
@@ -186,8 +186,8 @@ macro_rules! tile_set {
             /// Get the scale to make the grid take up as much as possible of a given area
             #[must_use]
             pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
-                let x_multiplier = total_width / COLS as f32;
-                let y_multiplier = total_height / ROWS as f32;
+                let x_multiplier = total_width / WIDTH as f32;
+                let y_multiplier = total_height / HEIGHT as f32;
 
                 x_multiplier.min(y_multiplier)
             }
@@ -336,8 +336,8 @@ mod tests {
 
     #[test]
     fn test_intersect() {
-        let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.col() == 1);
-        let grid_right: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.row() == 1);
+        let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.x() == 1);
+        let grid_right: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.y() == 1);
 
         assert_eq!(
             grid_left.intersect(&grid_right).to_string(),
@@ -347,8 +347,8 @@ mod tests {
 
     #[test]
     fn test_union() {
-        let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.col() == 0);
-        let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.row() == 0);
+        let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.x() == 0);
+        let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.y() == 0);
 
         assert_eq!(grid_left.union(&grid_top).to_string(), "***\n*__\n*__")
     }
