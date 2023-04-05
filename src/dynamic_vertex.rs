@@ -180,4 +180,19 @@ mod tests {
             Vector::new(-2, 3).into()
         );
     }
+
+    #[test]
+    pub fn test_from_center(){
+        fn t(x: f32, y: f32, scale: f32, expected_x: i8, expected_y: i8){
+            let actual  = DynamicVertex::from_center(&Center { x, y }, scale);
+            assert_eq!(DynamicVertex(Vector { x: expected_x, y: expected_y }), actual)
+        }
+
+        t(0.,0., 1.0, 0, 0);
+        t(0.9,0.9, 1.0, 1, 1);
+        t(0.9,0.9, 0.5, 2, 2);
+
+        t(5., -4., 1., 5, -4);
+        t(5., -4., 2., 3, -2);
+    }
 }

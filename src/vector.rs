@@ -144,6 +144,15 @@ impl Vector {
     pub const fn is_diagonal(&self) -> bool {
         !self.x == 0 && !self.y == 0
     }
+
+
+    pub const fn horizontal_component(&self)-> Self{
+        Self{x: self.x, y: 0}
+    }
+
+    pub const fn vertical_component(&self)-> Self{
+        Self{x: 0, y: self.y}
+    }
 }
 
 impl Neg for Vector {

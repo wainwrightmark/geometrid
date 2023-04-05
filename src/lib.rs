@@ -17,6 +17,7 @@ pub mod shape;
 pub mod tile;
 pub mod tile_map;
 pub mod tile_set;
+pub mod line_of_sight;
 #[cfg(any(test, feature = "u256"))]
 pub mod tile_set256;
 pub mod vector;
@@ -29,6 +30,7 @@ pub mod prelude {
     pub use crate::dynamic_vertex::*;
     pub use crate::flip_axes::*;
     pub use crate::line_finder::*;
+    pub use crate::line_of_sight::*;
     pub use crate::polyomino::*;
     pub use crate::quarter_turns::*;
     pub use crate::rectangle::*;
