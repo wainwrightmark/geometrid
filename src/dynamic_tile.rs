@@ -87,6 +87,19 @@ impl DynamicTile {
 
         DynamicVertex(Vector { x, y })
     }
+
+    /// Gets the nearest tile to this center
+    #[must_use]
+    pub fn from_center(center: &Center, scale: f32) -> Self {
+        let x = center.x / scale;
+        let y = center.y / scale;
+
+        let x = x.floor() as i8;
+        let y = y.floor() as i8;
+
+        let vector = Vector { x, y };
+        Self(vector)
+    }
 }
 
 impl<V: AsRef<Vector>> Add<V> for DynamicTile {

@@ -87,6 +87,20 @@ impl DynamicVertex {
 
         DynamicTile(Vector { x, y })
     }
+
+    /// Get the nearest vertex to this center.
+    /// Will round away from 0.0
+    #[must_use]
+    pub fn from_center(center: &Center, scale: f32) -> Self {
+        let x = center.x / scale;
+        let y = center.y / scale;
+
+        let x = x.round() as i8;
+        let y = y.round() as i8;
+
+        let vector = Vector { x, y };
+        Self(vector)
+    }
 }
 
 impl HasCenter for DynamicVertex {
