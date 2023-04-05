@@ -12,16 +12,16 @@ use serde::{Deserialize, Serialize};
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
-pub struct TileSet256<const COLS: u8, const ROWS: u8, const SIZE: usize>(U256);
+pub struct TileSet256<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize>(U256);
 
-impl<const COLS: u8, const ROWS: u8, const SIZE: usize> Default for TileSet256<COLS, ROWS, SIZE> {
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Default for TileSet256<WIDTH, HEIGHT, SIZE> {
     fn default() -> Self {
         Self::assert_legal();
         Self::EMPTY
     }
 }
 
-impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, SIZE> {
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEIGHT, SIZE> {
     pub const EMPTY: Self = {
         Self::assert_legal();
         Self(U256::new(0))
@@ -29,16 +29,16 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
 
     #[inline]
     const fn assert_legal() {
-        debug_assert!(SIZE == (COLS as usize * ROWS as usize));
+        debug_assert!(SIZE == (WIDTH as usize * HEIGHT as usize));
         debug_assert!(SIZE <= <U256>::BITS as usize);
     }
 
     #[must_use]
-    pub fn from_fn<F: FnMut(Tile<COLS, ROWS>) -> bool>(mut cb: F) -> Self {
+    pub fn from_fn<F: FnMut(Tile<WIDTH, HEIGHT>) -> bool>(mut cb: F) -> Self {
         Self::assert_legal();
 
         let mut result = Self::default();
-        for tile in Tile::<COLS, ROWS>::iter_by_row() {
+        for tile in Tile::<WIDTH, HEIGHT>::iter_by_row() {
             if cb(tile) {
                 result.set_bit(&tile, true);
             }
@@ -49,11 +49,11 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
 
     #[must_use]
     #[inline]
-    pub const fn row_mask(row: u8) -> Self {
+    pub const fn row_mask(y: u8) -> Self {
         Self::assert_legal();
         let mut upper : u128 = 0;
         let mut lower : u128 = 0;
-        let mut tile = Tile::<COLS, ROWS>::try_new(0, row);
+        let mut tile = Tile::<WIDTH, HEIGHT>::try_new(0, y);
 
         while let Some(t) = tile {
             let i = t.inner();
@@ -70,11 +70,11 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
 
     #[must_use]
     #[inline]
-    pub const fn col_mask(col: u8) -> Self {
+    pub const fn col_mask(x: u8) -> Self {
         Self::assert_legal();
         let mut upper : u128 = 0;
         let mut lower : u128 = 0;
-        let mut tile = Tile::<COLS, ROWS>::try_new(col, 0);
+        let mut tile = Tile::<WIDTH, HEIGHT>::try_new(x, 0);
 
         while let Some(t) = tile {
             let i = t.inner();
@@ -96,7 +96,7 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
         Self(inner)
     }
 
-    pub fn from_iter(iter: impl Iterator<Item = Tile<COLS, ROWS>>) -> Self {
+    pub fn from_iter(iter: impl Iterator<Item = Tile<WIDTH, HEIGHT>>) -> Self {
         Self::assert_legal();
         let mut r = Self::default();
         for x in iter {
@@ -112,7 +112,7 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
     }
 
     #[inline]
-    pub fn set_bit(&mut self, tile: &Tile<COLS, ROWS>, bit: bool) {
+    pub fn set_bit(&mut self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) {
         if bit {
             self.0 |= U256::ONE.shl(tile.inner());
         } else {
@@ -122,7 +122,7 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
 
     #[must_use]
     #[inline]
-    pub fn get_bit(&self, tile: &Tile<COLS, ROWS>) -> bool {
+    pub fn get_bit(&self, tile: &Tile<WIDTH, HEIGHT>) -> bool {
         (self.0.shr(tile.inner())) & U256::ONE == U256::ONE
     }
 
@@ -136,19 +136,19 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
     }
 
     #[must_use]
-    pub const fn row(&self, row: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
+    pub const fn row(&self, y: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
         TileSetIter256::<1> {
-            bottom_index: (row * COLS) as usize,
-            top_index: ((row + 1) * COLS) as usize,
+            bottom_index: (y * WIDTH) as usize,
+            top_index: ((y + 1) * WIDTH) as usize,
             inner: self.0,
         }
     }
 
     #[must_use]
-    pub const fn col(&self, col: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
-        TileSetIter256::<ROWS> {
-            bottom_index: col as usize,
-            top_index: ((COLS * (ROWS - 1)) + col + 1) as usize,
+    pub const fn col(&self, x: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
+        TileSetIter256::<HEIGHT> {
+            bottom_index: x as usize,
+            top_index: ((WIDTH * (HEIGHT - 1)) + x + 1) as usize,
             inner: self.0,
         }
     }
@@ -156,14 +156,14 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
     #[must_use]
     pub fn enumerate(
         &self,
-    ) -> impl DoubleEndedIterator<Item = (Tile<COLS, ROWS>, bool)> + ExactSizeIterator {
+    ) -> impl DoubleEndedIterator<Item = (Tile<WIDTH, HEIGHT>, bool)> + ExactSizeIterator {
         self.iter()
             .enumerate()
             .map(|(i, x)| (Tile::try_from_usize(i).unwrap(), x))
     }
 
     #[must_use]
-    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<COLS, ROWS>> {
+    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> {
         self.iter()
             .enumerate()
             .flat_map(|(i, b)| b.then(|| Tile::try_from_usize(i).unwrap()))
@@ -177,8 +177,8 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
     /// Get the scale to make the grid take up as much as possible of a given area
     #[must_use]
     pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
-        let x_multiplier = total_width / COLS as f32;
-        let y_multiplier = total_height / ROWS as f32;
+        let x_multiplier = total_width / WIDTH as f32;
+        let y_multiplier = total_height / HEIGHT as f32;
 
         x_multiplier.min(y_multiplier)
     }
@@ -213,14 +213,14 @@ impl<const COLS: u8, const ROWS: u8, const SIZE: usize> TileSet256<COLS, ROWS, S
 
     #[must_use]
     pub fn shift_north(&self, rows: u8) -> Self {
-        let a = self.0.shr(rows * COLS);
+        let a = self.0.shr(rows * WIDTH);
         let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
         Self(a & mask)
     }
 
     #[must_use]
     pub fn shift_south(&self, rows: u8) -> Self {
-        let a = self.0.shl(rows * COLS);
+        let a = self.0.shl(rows * WIDTH);
         let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
         Self(a & mask)
     }
@@ -347,8 +347,8 @@ mod tests {
 
     #[test]
     fn test_intersect() {
-        let grid_left: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.col() == 1);
-        let grid_right: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.row() == 1);
+        let grid_left: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.x() == 1);
+        let grid_right: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.y() == 1);
 
         assert_eq!(
             grid_left.intersect(&grid_right).to_string(),
@@ -358,8 +358,8 @@ mod tests {
 
     #[test]
     fn test_union() {
-        let grid_left: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.col() == 0);
-        let grid_top: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.row() == 0);
+        let grid_left: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.x() == 0);
+        let grid_top: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.y() == 0);
 
         assert_eq!(grid_left.union(&grid_top).to_string(), "***\n*__\n*__")
     }
