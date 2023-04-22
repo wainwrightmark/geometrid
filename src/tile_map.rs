@@ -9,6 +9,9 @@ use crate::prelude::*;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
+/// A grid
+/// A map from tiles to values.
+/// If the values are just booleans, use TileSet instead
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]

@@ -5,7 +5,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    center::{Center, HasCenter},
+    location::{Location, HasCenter},
     corner::Corner,
     flip_axes::FlipAxes,
     quarter_turns::QuarterTurns,
@@ -13,6 +13,7 @@ use crate::{
     vector::Vector,
 };
 
+/// A vertex in 2d space
 #[must_use]
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
@@ -157,11 +158,11 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
 
 impl<const WIDTH: u8, const HEIGHT: u8> HasCenter for Vertex<WIDTH, HEIGHT> {
     #[must_use]
-    fn get_center(&self, scale: f32) -> Center {
+    fn get_center(&self, scale: f32) -> Location {
         let x = scale * (self.x() as f32);
         let y = scale * (self.y() as f32);
 
-        Center { x, y }
+        Location { x, y }
     }
 }
 
@@ -277,7 +278,7 @@ mod tests {
     fn test_get_center() {
         let tile: Vertex<1, 2> = Vertex::new_const::<1, 2>();
 
-        assert_eq!(tile.get_center(2.0), Center::new(2.0, 4.0));
+        assert_eq!(tile.get_center(2.0), Location::new(2.0, 4.0));
     }
 
     #[test]

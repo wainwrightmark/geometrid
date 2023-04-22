@@ -1,7 +1,7 @@
 use core::{fmt::Display, ops::Add};
 
 use crate::{
-    center::{Center, HasCenter},
+    location::{Location, HasCenter},
     corner::Corner,
     flip_axes::FlipAxes,
     quarter_turns::QuarterTurns,
@@ -12,6 +12,7 @@ use crate::{
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
+/// A tile in 2d space
 #[must_use]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
@@ -235,11 +236,11 @@ impl<const L: u8> Tile<L, L> {
 }
 
 impl<const C: u8, const R: u8> HasCenter for Tile<C, R> {
-    fn get_center(&self, scale: f32) -> crate::center::Center {
+    fn get_center(&self, scale: f32) -> crate::location::Location {
         let x = scale * ((self.x() as f32) + 0.5);
         let y = scale * ((self.y() as f32) + 0.5);
 
-        Center { x, y }
+        Location { x, y }
     }
 }
 
@@ -367,7 +368,7 @@ mod tests {
     fn test_get_center() {
         let tile: Tile<3, 3> = Tile::new_const::<1, 2>();
 
-        assert_eq!(tile.get_center(2.0), Center::new(3.0, 5.0));
+        assert_eq!(tile.get_center(2.0), Location::new(3.0, 5.0));
     }
 
     #[test]

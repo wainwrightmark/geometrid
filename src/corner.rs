@@ -2,6 +2,7 @@
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumCount, EnumIter};
 
+/// The Corner of a tile
 #[derive(
     Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Display, EnumCount, EnumIter,
 )]

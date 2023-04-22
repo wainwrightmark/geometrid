@@ -1,6 +1,7 @@
 use crate::prelude::*;
 
-/// Iterates all tiles in a line between `from` and `to` in some order
+/// Iterates all tiles in a line between `from` and `to` in some order.
+/// The order in which the tiles are returned may be unstable.
 pub fn line_of_sight_tiles<const WIDTH: u8, const HEIGHT: u8>(
     from: &Tile<WIDTH, HEIGHT>,
     to: &Tile<WIDTH, HEIGHT>,

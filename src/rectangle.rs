@@ -5,11 +5,15 @@ use crate::prelude::*;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
+/// A rectangle in a 2d space
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Rectangle {
+    /// The north vest vertex of the rectangle
     pub north_west: DynamicVertex,
+    /// The number of tiles wide
     pub width: u8,
+    /// The number of tiles tall
     pub height: u8,
 }
 
@@ -22,13 +26,14 @@ impl Rectangle {
         }
     }
 
+    /// The total number of tiles of the rectangle
     pub fn area(&self) -> usize {
         self.width as usize * self.height as usize
     }
 }
 
 impl HasCenter for Rectangle {
-    fn get_center(&self, scale: f32) -> Center {
+    fn get_center(&self, scale: f32) -> Location {
         let mut center = self.north_west.get_center(scale);
         center.x += (self.width as f32 * 0.5 * scale);
         center.y += (self.height as f32 * 0.5 * scale);
@@ -138,7 +143,7 @@ mod tests {
         let rect = Rectangle::new(Vector::NORTH_EAST.into(), 2, 4);
 
         let center = rect.get_center(3.0);
-        assert_eq!(center, Center::new(6.0, 3.0))
+        assert_eq!(center, Location::new(6.0, 3.0))
     }
 
     #[test]

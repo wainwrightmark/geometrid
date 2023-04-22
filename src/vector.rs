@@ -7,11 +7,13 @@ use core::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    center::{Center, HasCenter},
+    location::{Location, HasCenter},
     flip_axes::FlipAxes,
     quarter_turns::QuarterTurns,
 };
 
+/// A 2d vector.
+/// The main use is that they can be added to any other primitive type.
 #[must_use]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
@@ -210,11 +212,11 @@ impl Mul<usize> for Vector {
 
 impl HasCenter for Vector {
     #[must_use]
-    fn get_center(&self, scale: f32) -> Center {
+    fn get_center(&self, scale: f32) -> Location {
         let x = scale * (self.x as f32);
         let y = scale * (self.y as f32);
 
-        Center { x, y }
+        Location { x, y }
     }
 }
 
@@ -285,6 +287,6 @@ mod tests {
 
     #[test]
     pub fn test_centre() {
-        assert_eq!(V::SOUTH_WEST.get_center(2.0), Center::new(-2.0, 2.0))
+        assert_eq!(V::SOUTH_WEST.get_center(2.0), Location::new(-2.0, 2.0))
     }
 }

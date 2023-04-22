@@ -3,15 +3,19 @@ use core::ops::Add;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumCount, EnumIter};
 
+/// The number of quarter turns to rotate clockwise
 #[derive(
     Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Display, EnumCount, EnumIter,
 )]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub enum QuarterTurns {
+    /// Do not rotate
     #[default]
     Zero,
+
     One,
     Two,
+    /// Corresponds to one quarter turn anticlockwise
     Three,
 }
 

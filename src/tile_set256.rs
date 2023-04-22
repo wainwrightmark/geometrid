@@ -9,6 +9,8 @@ use ethnum::U256;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
+/// A grid
+/// A map from tiles to bools. Can contain
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]

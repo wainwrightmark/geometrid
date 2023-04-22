@@ -11,6 +11,9 @@ use serde::{Deserialize, Serialize};
 
 macro_rules! tile_set {
     ($name:ident,$iter_name:ident, $inner: ty) => {
+
+        /// A grid
+        /// A map from tiles to bools. Can store up to 256 tiles.
         #[must_use]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
         #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]

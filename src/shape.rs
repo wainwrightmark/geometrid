@@ -6,7 +6,6 @@ use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// A general shape made of tiles.
-/// These are represented by vectors
 pub trait Shape :// Flippable + Rotatable +
  HasCenter + IntoIterator<Item = DynamicTile>{
     type OutlineIter: Iterator<Item = DynamicVertex>;

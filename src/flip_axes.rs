@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use strum::{Display, EnumCount, EnumIter};
 
+/// The axes across which to flip
 #[derive(
     Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Display, EnumCount, EnumIter,
 )]

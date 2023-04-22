@@ -1,6 +1,7 @@
 pub use crate::prelude::*;
 
 impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, HEIGHT, SIZE> {
+    /// Find lines in the grid which meet particular conditions
     pub fn get_lines<'a, F: Fn(&T) -> bool>(
         &'a self,
         directions: &'a [Vector],
@@ -28,11 +29,16 @@ struct LineFinder<'a, T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize, F
     pub min_length: usize,
 }
 
+/// A line in a grid
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Line<'a, T, const WIDTH: u8, const HEIGHT: u8> {
+    /// The value at the first tile
     pub first_item: &'a T,
+    /// The first tile
     pub origin: Tile<WIDTH, HEIGHT>,
+    /// The direction of the line
     pub direction: Vector,
+    /// The number of tiles, including the origin
     pub length: usize,
 }
 
