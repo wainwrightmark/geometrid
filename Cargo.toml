@@ -6,7 +6,7 @@ description = "Everything you would ever need to work with constant sized square
 documentation = "https://docs.rs/geometrid"
 repository = "https://github.com/wainwrightmark/geometrid"
 readme = "README.md"
-keywords = ["2d", "grid", "coordinate", "polyomino", "game", "puzzle"]
+keywords = ["2d", "grid", "polyomino", "game", "puzzle"]
 categories = [
 ]
 license = "MIT"
