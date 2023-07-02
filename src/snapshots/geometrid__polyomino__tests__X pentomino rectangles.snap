@@ -5,24 +5,24 @@ expression: rectangles
 [
   {
     "north_west": {
-      "x": -1,
-      "y": 0
+      "x": 0,
+      "y": 1
     },
     "width": 3,
     "height": 1
   },
   {
     "north_west": {
-      "x": 0,
-      "y": -1
+      "x": 1,
+      "y": 0
     },
     "width": 1,
     "height": 1
   },
   {
     "north_west": {
-      "x": 0,
-      "y": 1
+      "x": 1,
+      "y": 2
     },
     "width": 1,
     "height": 1

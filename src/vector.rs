@@ -155,6 +155,18 @@ impl Vector {
     pub const fn vertical_component(&self)-> Self{
         Self{x: 0, y: self.y}
     }
+    /// Greater than operation that can be computed at compile time
+    pub const fn const_gt(&self, other: &Self)-> bool{
+
+        if self.x > other.x{
+            return true;
+        }else if self.x < other.x{
+            return false;
+        }
+        else {
+            self.y > other.y
+        }
+    }
 }
 
 impl Neg for Vector {
