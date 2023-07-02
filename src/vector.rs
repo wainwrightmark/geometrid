@@ -7,7 +7,7 @@ use core::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    location::{Location, HasCenter},
+    point::{Point, HasCenter},
     flip_axes::FlipAxes,
     quarter_turns::QuarterTurns,
 };
@@ -212,11 +212,11 @@ impl Mul<usize> for Vector {
 
 impl HasCenter for Vector {
     #[must_use]
-    fn get_center(&self, scale: f32) -> Location {
+    fn get_center(&self, scale: f32) -> Point {
         let x = scale * (self.x as f32);
         let y = scale * (self.y as f32);
 
-        Location { x, y }
+        Point { x, y }
     }
 }
 
@@ -287,6 +287,6 @@ mod tests {
 
     #[test]
     pub fn test_centre() {
-        assert_eq!(V::SOUTH_WEST.get_center(2.0), Location::new(-2.0, 2.0))
+        assert_eq!(V::SOUTH_WEST.get_center(2.0), Point::new(-2.0, 2.0))
     }
 }

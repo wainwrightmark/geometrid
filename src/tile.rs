@@ -1,7 +1,7 @@
 use core::{fmt::Display, ops::Add};
 
 use crate::{
-    location::{Location, HasCenter},
+    point::{Point, HasCenter},
     corner::Corner,
     flip_axes::FlipAxes,
     quarter_turns::QuarterTurns,
@@ -236,11 +236,11 @@ impl<const L: u8> Tile<L, L> {
 }
 
 impl<const C: u8, const R: u8> HasCenter for Tile<C, R> {
-    fn get_center(&self, scale: f32) -> crate::location::Location {
+    fn get_center(&self, scale: f32) -> crate::point::Point {
         let x = scale * ((self.x() as f32) + 0.5);
         let y = scale * ((self.y() as f32) + 0.5);
 
-        Location { x, y }
+        Point { x, y }
     }
 }
 
@@ -368,7 +368,7 @@ mod tests {
     fn test_get_center() {
         let tile: Tile<3, 3> = Tile::new_const::<1, 2>();
 
-        assert_eq!(tile.get_center(2.0), Location::new(3.0, 5.0));
+        assert_eq!(tile.get_center(2.0), Point::new(3.0, 5.0));
     }
 
     #[test]

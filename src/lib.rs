@@ -4,7 +4,7 @@
 #![allow(warnings, dead_code, unused_imports, unused_mut)]
 #![warn(clippy::pedantic)]
 
-pub mod location;
+pub mod point;
 pub mod corner;
 pub mod dynamic_tile;
 pub mod dynamic_vertex;
@@ -24,7 +24,7 @@ pub mod vector;
 pub mod vertex;
 
 pub mod prelude {
-    pub use crate::location::*;
+    pub use crate::point::*;
     pub use crate::corner::*;
     pub use crate::dynamic_tile::*;
     pub use crate::dynamic_vertex::*;
