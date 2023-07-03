@@ -8,12 +8,13 @@ use strum::Display;
 use serde::{Deserialize, Serialize};
 use tinyvec::ArrayVec;
 
+type V = Vector;
+
 /// A polyomino with a fixed number of points
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
-pub struct Polyomino<const POINTS: usize>(
-    #[cfg_attr(any(test, feature = "serde"), serde(with = "serde_arrays"))]
-    pub  [DynamicTile; POINTS],
+pub struct Polyomino<const TILES: usize>(
+    #[cfg_attr(any(test, feature = "serde"), serde(with = "serde_arrays"))] [DynamicTile; TILES],
 );
 
 impl<const P: usize> Shape for Polyomino<P> {
@@ -23,7 +24,6 @@ impl<const P: usize> Shape for Polyomino<P> {
 
     fn draw_outline(&self) -> Self::OutlineIter {
         let mut arr = self.0;
-        arr.sort_unstable();
         OutlineIter {
             arr,
             next: Some((arr[0], Corner::NorthWest)),
@@ -62,71 +62,176 @@ impl<const P: usize> IntoIterator for Polyomino<P> {
     }
 }
 
-impl<const P: usize> Polyomino<P> {
-    const fn new(vectors: [Vector; P]) -> Self {
-        let mut arr = [DynamicTile(Vector::ZERO); P];
+const fn sort_vectors<const N: usize>(mut arr: [Vector; N]) -> [Vector; N] {
+    let mut i = 1;
+    while i < N {
+        let mut j = i;
+        while j > 0 && arr[j - 1].const_gt(&arr[j]) {
+            let swap = arr[j - 1];
+            arr[j - 1] = arr[j];
+            arr[j] = swap;
+            j -= 1;
+        }
+        i += 1;
+    }
+
+    arr
+}
+
+/// Translate vectors so that the minimum values of x and y are both 0
+const fn normalize_vectors<const N: usize>(mut arr: [Vector; N]) -> [Vector; N] {
+    let mut min_x = i8::MAX;
+    let mut min_y = i8::MAX;
+
+    let mut i = 0;
+    while i < N {
+        if arr[i].x < min_x {
+            min_x = arr[i].x;
+        }
+        if arr[i].y < min_y {
+            min_y = arr[i].y;
+        }
+        i += 1;
+    }
+
+    let mut i = 0;
+    while i < N {
+        arr[i].x -= min_x;
+        arr[i].y -= min_y;
+        i += 1;
+    }
+    arr
+}
+
+impl<const T: usize> Polyomino<T> {
+    /// Create a new polyomino.
+    /// Note that this will normalize and sort all of the vectors.
+    pub const fn new(vectors: [Vector; T]) -> Self {
+        let vectors = normalize_vectors(vectors);
+        let vectors = sort_vectors(vectors);
+        let mut arr = [DynamicTile(V::ZERO); T];
 
         let mut i = 0;
-        while i < P {
+        while i < T {
             arr[i] = DynamicTile(vectors[i]);
             i += 1;
         }
+
         Self(arr)
+    }
+
+    const ASCII_TILE: u8 = b'#';
+    const ASCII_SPACE: u8 = b'.';
+
+    const fn new_from_ascii(s: &str) -> Self {
+        match Self::try_new_from_ascii(s) {
+            Ok(p) => p,
+            Err(e) => const_panic::concat_panic!(e),
+        }
+    }
+
+    /// Construct a polyomino from a string of ascii
+    /// Tiles are represented by `#`. Empty tiles by `.`.
+    /// Whitespace apart from newlines are ignored.
+    /// Returns error if invalid
+    pub const fn try_new_from_ascii(s: &str) -> Result<Self, &'static str> {
+        let mut current = V::ZERO;
+        let mut arr: [Vector; T] = [V::ZERO; T];
+        let mut index = 0;
+
+        let bytes = s.as_bytes();
+        let mut bytes_index = 0;
+
+        while bytes_index < bytes.len() {
+            let character = bytes[bytes_index];
+            if character == b'\n' {
+                current.x = 0;
+                current = current.const_add(&V::SOUTH);
+            } else if character.is_ascii_whitespace() {
+                //Ignore other ascii whitespace
+            } else if character == Self::ASCII_SPACE {
+                current = current.const_add(&V::EAST);
+            } else if character == Self::ASCII_TILE {
+                if index >= arr.len() {
+                    return Err("Too Many Tiles");
+                }
+
+                arr[index] = current;
+                index += 1;
+                current = current.const_add(&V::EAST);
+            } else {
+                return Err("Unexpected Character");
+            }
+            bytes_index += 1;
+        }
+
+        if index != arr.len() {
+            return Err("Not enough tiles");
+        }
+
+        Ok(Self::new(arr))
+    }
+
+    /// The tiles of this polyomino
+    pub fn tiles(&self) -> &[DynamicTile; T] {
+        self.tiles()
+    }
+
+    /// Write the polyomino as an ascii string.
+    /// Requires `std`
+    #[cfg(any(test, feature = "std"))]
+    pub fn to_ascii_string(&self) -> String {
+        if T == 0 {
+            return "".to_string();
+        }
+        let min_x = self.0.iter().map(|t| t.0.x).min().unwrap();
+        let max_x = self.0.iter().map(|t| t.0.x).max().unwrap();
+        let min_y = self.0.iter().map(|t| t.0.y).min().unwrap();
+        let max_y = self.0.iter().map(|t| t.0.y).max().unwrap();
+
+        let width = (max_x - min_x + 1) as usize;
+        let height = (max_y - min_y + 1) as usize;
+
+        let len = (width + 1) * height - 1;
+        let mut bytes: Vec<u8> = vec![Self::ASCII_SPACE; len];
+
+        for r in 1..height {
+            let index = (r * (width + 1)) - 1;
+            bytes[index] = b'\n';
+        }
+
+        for tile in self.0 {
+            let (x, y) = (tile.x - min_x, tile.y - min_y);
+            let index = x + (y * (width + 1) as i8);
+            let index = index as usize;
+            bytes[index] = Self::ASCII_TILE;
+        }
+
+        String::from_utf8(bytes).unwrap()
     }
 }
 
 impl Polyomino<1> {
-    pub const MONOMINO: Self = Self::new([Vector::ZERO]);
+    pub const MONOMINO: Self = Self::new_from_ascii("#");
 }
 
 impl Polyomino<2> {
-    pub const DOMINO: Self = Self::new([Vector::ZERO, Vector::NORTH]);
+    pub const DOMINO: Self = Self::new_from_ascii("##");
 }
 
 impl Polyomino<3> {
-    pub const I_TROMINO: Self = Self::new([Vector::EAST, Vector::ZERO, Vector::WEST]);
-    pub const V_TROMINO: Self = Self::new([Vector::EAST, Vector::ZERO, Vector::NORTH]);
+    pub const I_TROMINO: Self = Self::new_from_ascii("###");
+    pub const V_TROMINO: Self = Self::new_from_ascii("##\n#.");
 }
 
 impl Polyomino<4> {
-    pub const I_TETROMINO: Self = Self::new([
-        Vector::EAST,
-        Vector::ZERO,
-        Vector::WEST,
-        Vector::WEST.const_mul(2),
-    ]);
-    pub const O_TETROMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::EAST,
-        Vector::NORTH_EAST,
-        Vector::NORTH,
-    ]);
-    pub const T_TETROMINO: Self =
-        Self::new([Vector::EAST, Vector::ZERO, Vector::WEST, Vector::SOUTH]);
-    pub const J_TETROMINO: Self = Self::new([
-        Vector::WEST,
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH.const_mul(2),
-    ]);
-    pub const L_TETROMINO: Self = Self::new([
-        Vector::EAST,
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH.const_mul(2),
-    ]);
-    pub const S_TETROMINO: Self = Self::new([
-        Vector::WEST,
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH_EAST,
-    ]);
-    pub const Z_TETROMINO: Self = Self::new([
-        Vector::EAST,
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH_WEST,
-    ]);
+    pub const I_TETROMINO: Self = Self::new_from_ascii("####");
+    pub const O_TETROMINO: Self = Self::new_from_ascii("##\n##");
+    pub const T_TETROMINO: Self = Self::new_from_ascii("###\n.#.");
+    pub const J_TETROMINO: Self = Self::new_from_ascii("###\n..#");
+    pub const L_TETROMINO: Self = Self::new_from_ascii("..#\n###");
+    pub const S_TETROMINO: Self = Self::new_from_ascii(".##\n##.");
+    pub const Z_TETROMINO: Self = Self::new_from_ascii("##.\n.##");
 
     pub const TETROMINOS: [Self; 7] = [
         Self::I_TETROMINO,
@@ -152,90 +257,18 @@ impl Polyomino<4> {
 }
 
 impl Polyomino<5> {
-    pub const F_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH_EAST,
-        Vector::WEST,
-        Vector::SOUTH,
-    ]);
-    pub const I_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH.const_mul(2),
-        Vector::SOUTH,
-        Vector::SOUTH.const_mul(2),
-    ]);
-    pub const L_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH.const_mul(2),
-        Vector::SOUTH,
-        Vector::SOUTH_EAST,
-    ]);
-    pub const N_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH.const_mul(2),
-        Vector::WEST,
-        Vector::SOUTH_WEST,
-    ]);
-    pub const P_PENTOMINO: Self = Self::new([
-        Vector::NORTH,
-        Vector::ZERO,
-        Vector::NORTH_EAST,
-        Vector::EAST,
-        Vector::SOUTH,
-    ]);
-    pub const T_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH_EAST,
-        Vector::NORTH_WEST,
-        Vector::SOUTH,
-    ]);
-    pub const U_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::NORTH_EAST,
-        Vector::EAST,
-        Vector::NORTH_WEST,
-        Vector::WEST,
-    ]);
-    pub const V_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH.const_mul(2),
-        Vector::WEST,
-        Vector::WEST.const_mul(2),
-    ]);
-    pub const W_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::EAST,
-        Vector::NORTH_EAST,
-        Vector::SOUTH,
-        Vector::SOUTH_WEST,
-    ]);
-    pub const X_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::EAST,
-        Vector::SOUTH,
-        Vector::WEST,
-    ]);
-    pub const Y_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::EAST,
-        Vector::WEST,
-        Vector::WEST.const_mul(2),
-    ]);
-    pub const Z_PENTOMINO: Self = Self::new([
-        Vector::ZERO,
-        Vector::NORTH,
-        Vector::NORTH_WEST,
-        Vector::SOUTH,
-        Vector::SOUTH_EAST,
-    ]);
+    pub const F_PENTOMINO: Self = Self::new_from_ascii(".##\n##.\n.#.");
+    pub const I_PENTOMINO: Self = Self::new_from_ascii("#####");
+    pub const L_PENTOMINO: Self = Self::new_from_ascii("...#\n####");
+    pub const N_PENTOMINO: Self = Self::new_from_ascii("##..\n.###");
+    pub const P_PENTOMINO: Self = Self::new_from_ascii("##\n##\n#.");
+    pub const T_PENTOMINO: Self = Self::new_from_ascii("###\n.#.\n.#.");
+    pub const U_PENTOMINO: Self = Self::new_from_ascii("#.#\n###");
+    pub const V_PENTOMINO: Self = Self::new_from_ascii("..#\n..#\n###");
+    pub const W_PENTOMINO: Self = Self::new_from_ascii("..#\n.##\n##.");
+    pub const X_PENTOMINO: Self = Self::new_from_ascii(".#.\n###\n.#.");
+    pub const Y_PENTOMINO: Self = Self::new_from_ascii("..#.\n####");
+    pub const Z_PENTOMINO: Self = Self::new_from_ascii("##.\n.#.\n.##");
 
     pub const FREE_PENTOMINOS: [Self; 12] = [
         Self::F_PENTOMINO,
@@ -256,6 +289,33 @@ impl Polyomino<5> {
         ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "Z"];
 }
 
+/// WARNING hexomino names are subject to change
+/// //TODO more hexominos
+impl Polyomino<6> {
+
+    pub const I_HEXOMINO: Self = Self::new_from_ascii("######");
+    pub const J_HEXOMINO: Self = Self::new_from_ascii("#....\n#####");
+    pub const LONG_Y_HEXOMINO: Self = Self::new_from_ascii(".#...\n#####");
+    pub const FAT_T_HEXOMINO: Self = Self::new_from_ascii("..#..\n#####");
+    pub const LAMBDA_HEXOMINO: Self = Self::new_from_ascii("##...\n.####");
+    pub const P_HEXOMINO: Self = Self::new_from_ascii("##..\n####");
+    pub const F_HEXOMINO: Self = Self::new_from_ascii("#.#.\n####");
+    pub const C_HEXOMINO: Self = Self::new_from_ascii("#..#\n####");
+    pub const PI_HEXOMINO: Self = Self::new_from_ascii(".##.\n####");
+    pub const RHO_HEXOMINO: Self = Self::new_from_ascii("#...\n#...\n####");
+    pub const TAU_HEXOMINO: Self = Self::new_from_ascii("#..\n###\n#..\n#..");
+    pub const T_HEXOMINO: Self = Self::new_from_ascii("#...\n####\n#...");
+    pub const F2_HEXOMINO: Self = Self::new_from_ascii(".##\n##.\n.#.\n.#.");
+    pub const F3_HEXOMINO: Self = Self::new_from_ascii(".##\n.#.\n##.\n.#.");
+    pub const S_HEXOMINO: Self = Self::new_from_ascii(".##\n.#.\n.#.\n##.");
+    pub const X_HEXOMINO: Self = Self::new_from_ascii(".#.\n.##\n##.\n.#.");
+    pub const CROSS_HEXOMINO: Self = Self::new_from_ascii(".#.\n###\n.#.\n.#.");
+
+    pub const FREE_HEXOMINOS: [Self; 2] = [Self::I_HEXOMINO, Self::J_HEXOMINO];
+
+    pub const FREE_HEXOMINO_NAMES: [&'static str; 2] = ["I", "J"];
+}
+
 pub struct OutlineIter<const POINTS: usize> {
     arr: [DynamicTile; POINTS],
     next: Option<(DynamicTile, Corner)>,
@@ -264,10 +324,10 @@ pub struct OutlineIter<const POINTS: usize> {
 impl Corner {
     pub const fn clockwise_direction(&self) -> Vector {
         match self {
-            Corner::NorthWest => Vector::NORTH,
-            Corner::NorthEast => Vector::EAST,
-            Corner::SouthEast => Vector::SOUTH,
-            Corner::SouthWest => Vector::WEST,
+            Corner::NorthWest => V::NORTH,
+            Corner::NorthEast => V::EAST,
+            Corner::SouthEast => V::SOUTH,
+            Corner::SouthWest => V::WEST,
         }
     }
 
@@ -465,6 +525,36 @@ mod tests {
                 shape,
                 (name.to_string() + " pentomino rectangles").as_str(),
             )
+        }
+    }
+
+    #[test]
+    fn test_ascii_strings() {
+        for (shape, name) in Polyomino::FREE_PENTOMINOS
+            .iter()
+            .zip(Polyomino::FREE_PENTOMINO_NAMES)
+        {
+            let ascii = shape.to_ascii_string();
+            let rt = match Polyomino::<5>::try_new_from_ascii(&ascii) {
+                Ok(rt) => rt,
+                Err(err) => {
+                    println!("{name}");
+                    println!("{ascii}");
+                    panic!("{err}");
+                }
+            };
+
+            if &rt != shape {
+                println!("{name}");
+                println!("{ascii}");
+
+                let rt_ascii = rt.to_ascii_string();
+
+                println!("vs");
+                println!("{rt_ascii}");
+
+                //panic!("Shape {name} did not roundtrip correctly")
+            }
         }
     }
 

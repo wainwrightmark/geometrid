@@ -1,7 +1,9 @@
 # geometrid
+
+![GITHUB](https://img.shields.io/github/last-commit/wainwrightmark/geometrid)
 ![Crates.io](https://img.shields.io/crates/v/geometrid)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/wainwrightmark/geometrid/build.yml)
-
+![docs](https://img.shields.io/docsrs/geometrid)
 
 2d grids, tiles, and vertices, focusing in particular on grids whose size is a compile time constant. Also contains features for Shapes and Polyominos and other common features of 2d grid based games.
 
@@ -36,6 +38,7 @@ A 2x2 grid of tiles looks like this
 ```
 
 The vertices of the same grid look like this
+
 ```
  (0,0)   (1,0)   (2,0)
 ┌───────┬───────┐
