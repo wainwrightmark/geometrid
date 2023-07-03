@@ -5,7 +5,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    location::{Location, HasCenter},
+    point::{Point, HasCenter},
     corner::Corner,
     flip_axes::FlipAxes,
     quarter_turns::QuarterTurns,
@@ -158,11 +158,11 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
 
 impl<const WIDTH: u8, const HEIGHT: u8> HasCenter for Vertex<WIDTH, HEIGHT> {
     #[must_use]
-    fn get_center(&self, scale: f32) -> Location {
+    fn get_center(&self, scale: f32) -> Point {
         let x = scale * (self.x() as f32);
         let y = scale * (self.y() as f32);
 
-        Location { x, y }
+        Point { x, y }
     }
 }
 
@@ -278,7 +278,7 @@ mod tests {
     fn test_get_center() {
         let tile: Vertex<1, 2> = Vertex::new_const::<1, 2>();
 
-        assert_eq!(tile.get_center(2.0), Location::new(2.0, 4.0));
+        assert_eq!(tile.get_center(2.0), Point::new(2.0, 4.0));
     }
 
     #[test]

@@ -8,7 +8,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    location::{Location, HasCenter},
+    point::{Point, HasCenter},
     corner::Corner,
     flip_axes::FlipAxes,
     prelude::DynamicTile,
@@ -93,7 +93,7 @@ impl DynamicVertex {
     /// Will round away from 0.0
     #[must_use]
     #[cfg(any(test, feature = "std"))]
-    pub fn from_center(center: &Location, scale: f32) -> Self {
+    pub fn from_center(center: &Point, scale: f32) -> Self {
         let x = center.x / scale;
         let y = center.y / scale;
 
@@ -107,11 +107,11 @@ impl DynamicVertex {
 
 impl HasCenter for DynamicVertex {
     #[must_use]
-    fn get_center(&self, scale: f32) -> Location {
+    fn get_center(&self, scale: f32) -> Point {
         let x = scale * (self.0.x as f32);
         let y = scale * (self.0.y as f32);
 
-        Location { x, y }
+        Point { x, y }
     }
 }
 
@@ -152,7 +152,7 @@ mod tests {
     pub fn test_center() {
         let vertex: DynamicVertex = Vector::new(-2, 3).into();
 
-        assert_eq!(vertex.get_center(3.0), Location::new(-6.0, 9.0))
+        assert_eq!(vertex.get_center(3.0), Point::new(-6.0, 9.0))
     }
     #[test]
     pub fn test_add() {
@@ -186,7 +186,7 @@ mod tests {
     #[test]
     pub fn test_from_center(){
         fn t(x: f32, y: f32, scale: f32, expected_x: i8, expected_y: i8){
-            let actual  = DynamicVertex::from_center(&Location { x, y }, scale);
+            let actual  = DynamicVertex::from_center(&Point { x, y }, scale);
             assert_eq!(DynamicVertex(Vector { x: expected_x, y: expected_y }), actual)
         }
 
