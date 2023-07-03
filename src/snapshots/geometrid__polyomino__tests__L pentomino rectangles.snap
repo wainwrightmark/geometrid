@@ -6,17 +6,17 @@ expression: rectangles
   {
     "north_west": {
       "x": 0,
-      "y": 3
+      "y": 1
     },
-    "width": 2,
+    "width": 4,
     "height": 1
   },
   {
     "north_west": {
-      "x": 0,
+      "x": 3,
       "y": 0
     },
     "width": 1,
-    "height": 3
+    "height": 1
   }
 ]
