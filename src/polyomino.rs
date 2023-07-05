@@ -310,10 +310,26 @@ impl Polyomino<6> {
     pub const S_HEXOMINO: Self = Self::new_from_ascii(".##\n.#.\n.#.\n##.");
     pub const X_HEXOMINO: Self = Self::new_from_ascii(".#.\n.##\n##.\n.#.");
     pub const CROSS_HEXOMINO: Self = Self::new_from_ascii(".#.\n###\n.#.\n.#.");
+    pub const FOUR_HEXOMINO: Self = Self::new_from_ascii(".#.\n###\n#..\n#..");
+    pub const N_HEXOMINO: Self = Self::new_from_ascii(".#\n##\n#.\n##");
+    pub const Z_HEXOMINO: Self = Self::new_from_ascii(".#\n.#\n##\n#.\n#.");
+    pub const EIGHT_HEXOMINO: Self = Self::new_from_ascii(".#\n##\n##\n#.");
+    pub const O_HEXOMINO: Self = Self::new_from_ascii("##\n##\n##");
+    pub const SEVEN_HEXOMINO: Self = Self::new_from_ascii("..#\n###\n.#.\n.#.");
+    pub const D_HEXOMINO: Self = Self::new_from_ascii("###\n.##\n.#.");
+    pub const THREE_HEXOMINO: Self = Self::new_from_ascii("..#\n.##\n##.\n.#.");
+    pub const TWO_HEXOMINO: Self = Self::new_from_ascii("..#\n###\n#..\n#..");
+    pub const W_HEXOMINO: Self = Self::new_from_ascii(".##\n##.\n#..\n#..");
+    pub const U_HEXOMINO: Self = Self::new_from_ascii("###\n#.#\n#..");
+    pub const ONE_HEXOMINO: Self = Self::new_from_ascii("#.#\n###\n#..");
+    pub const Y_HEXOMINO: Self = Self::new_from_ascii("#.#\n###\n.#.");
+    pub const FIVE_HEXOMINO: Self = Self::new_from_ascii(".##\n.#.\n##.\n#..");
+    pub const V_HEXOMINO: Self = Self::new_from_ascii("#..\n##.\n###");
+    pub const AMPERSAND_HEXOMINO: Self = Self::new_from_ascii(".#.\n###\n##.");
+    pub const Q_HEXOMINO: Self = Self::new_from_ascii("..#\n###\n##.");
+    pub const M_HEXOMINO: Self = Self::new_from_ascii("..#\n.##\n##.\n#..");
 
-    pub const FREE_HEXOMINOS: [Self; 2] = [Self::I_HEXOMINO, Self::J_HEXOMINO];
-
-    pub const FREE_HEXOMINO_NAMES: [&'static str; 2] = ["I", "J"];
+    pub const FREE_HEXOMINOS: [Self; 2] = [Self::I_HEXOMINO, Self::J_HEXOMINO];    
 }
 
 pub struct OutlineIter<const POINTS: usize> {
@@ -529,7 +545,7 @@ mod tests {
     }
 
     #[test]
-    fn test_ascii_strings() {
+    fn test_pentomino_ascii_strings() {
         for (shape, name) in Polyomino::FREE_PENTOMINOS
             .iter()
             .zip(Polyomino::FREE_PENTOMINO_NAMES)
@@ -553,7 +569,35 @@ mod tests {
                 println!("vs");
                 println!("{rt_ascii}");
 
-                //panic!("Shape {name} did not roundtrip correctly")
+                panic!("Shape {name} did not roundtrip correctly")
+            }
+        }
+    }
+    
+    #[test]
+    fn test_hexomino_ascii_strings() {
+        for (index, shape) in Polyomino::FREE_HEXOMINOS.iter().enumerate()
+        {
+            let ascii = shape.to_ascii_string();
+            let rt = match Polyomino::<6>::try_new_from_ascii(&ascii) {
+                Ok(rt) => rt,
+                Err(err) => {
+                    println!("Hexomino {index}");
+                    println!("{ascii}");
+                    panic!("{err}");
+                }
+            };
+
+            if &rt != shape {
+                println!("Hexomino {index}");
+                println!("{ascii}");
+
+                let rt_ascii = rt.to_ascii_string();
+
+                println!("vs");
+                println!("{rt_ascii}");
+
+                panic!("Hexomino {index} did not roundtrip correctly")
             }
         }
     }
