@@ -17,6 +17,7 @@ Possible header types:
 - Added more polyominos
 - Breaking Changes - all polyominos are now in normalized form
 - Breaking Changes - replaced `Point` with `glam::f32::Vec2`. This and the `HasCenter` trait are behind the `glam` feature.
+- Added `EnumIs` derives to all enums
 
 
 ## v0.2.0 (2023-7-02)
