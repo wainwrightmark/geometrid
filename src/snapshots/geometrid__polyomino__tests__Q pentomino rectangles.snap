@@ -1,0 +1,22 @@
+---
+source: src/polyomino.rs
+expression: rectangles
+---
+[
+  {
+    "north_west": {
+      "x": 1,
+      "y": 0
+    },
+    "width": 1,
+    "height": 3
+  },
+  {
+    "north_west": {
+      "x": 0,
+      "y": 0
+    },
+    "width": 1,
+    "height": 2
+  }
+]

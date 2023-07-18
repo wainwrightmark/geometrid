@@ -314,8 +314,7 @@ impl Polyomino<5> {
 .##\n\
 ##.\n\
 .#.\
-",
-    );
+");
     pub const I_PENTOMINO: Self = Self::new_from_ascii(
         "\
 #####\
@@ -331,8 +330,7 @@ impl Polyomino<5> {
         "\
 ##..\n\
 .###\
-",
-    );
+");
     pub const P_PENTOMINO: Self = Self::new_from_ascii(
         "\
 ##\n\
@@ -388,6 +386,47 @@ impl Polyomino<5> {
 ",
     );
 
+    pub const S_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+.##\n\
+.#.\n\
+##\
+",
+    );
+
+    pub const J_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+#...\n\
+####\
+",
+    );
+
+    pub const Q_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+##\n\
+##\n\
+.#\
+");
+
+pub const LAMBDA_PENTOMINO: Self = Self::new_from_ascii(
+    "\
+.#..\n\
+####\
+");
+
+pub const SEVEN_PENTOMINO: Self = Self::new_from_ascii(
+    "\
+##.\n\
+.##\n\
+.#.\
+");
+
+pub const FIVE_PENTOMINO: Self = Self::new_from_ascii(
+    "\
+..##\n\
+###.\
+");
+
     pub const FREE_PENTOMINOS: [Self; 12] = [
         Self::F_PENTOMINO,
         Self::I_PENTOMINO,
@@ -405,6 +444,31 @@ impl Polyomino<5> {
 
     pub const FREE_PENTOMINO_NAMES: [&'static str; 12] =
         ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "Z"];
+
+    pub const ALL_PENTOMINOS: [Self; 18] = [
+        Self::F_PENTOMINO,
+        Self::I_PENTOMINO,
+        Self::L_PENTOMINO,
+        Self::N_PENTOMINO,
+        Self::P_PENTOMINO,
+        Self::T_PENTOMINO,
+        Self::U_PENTOMINO,
+        Self::V_PENTOMINO,
+        Self::W_PENTOMINO,
+        Self::X_PENTOMINO,
+        Self::Y_PENTOMINO,
+        Self::Z_PENTOMINO,
+
+        Self::SEVEN_PENTOMINO,
+        Self::J_PENTOMINO,
+        Self::FIVE_PENTOMINO,
+        Self::Q_PENTOMINO,
+        Self::LAMBDA_PENTOMINO,
+        Self::S_PENTOMINO,
+    ];
+
+    pub const ALL_PENTOMINO_NAMES: [&'static str; 18] =
+        ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "Z", "7", "J", "5", "Q", "λ", "S" ];
 }
 
 /// WARNING hexomino names are subject to change
@@ -857,9 +921,9 @@ mod tests {
 
     #[test]
     fn test_pentomino_outlines() {
-        for (shape, name) in Polyomino::FREE_PENTOMINOS
+        for (shape, name) in Polyomino::ALL_PENTOMINOS
             .iter()
-            .zip(Polyomino::FREE_PENTOMINO_NAMES)
+            .zip(Polyomino::ALL_PENTOMINO_NAMES)
         {
             test_outline(shape, (name.to_string() + " pentomino outline").as_str())
         }
@@ -867,9 +931,9 @@ mod tests {
 
     #[test]
     fn test_pentomino_rectangles() {
-        for (shape, name) in Polyomino::FREE_PENTOMINOS
+        for (shape, name) in Polyomino::ALL_PENTOMINOS
             .iter()
-            .zip(Polyomino::FREE_PENTOMINO_NAMES)
+            .zip(Polyomino::ALL_PENTOMINO_NAMES)
         {
             test_deconstruct_into_rectangles(
                 shape,
@@ -880,9 +944,9 @@ mod tests {
 
     #[test]
     fn test_pentomino_ascii_strings() {
-        for (shape, name) in Polyomino::FREE_PENTOMINOS
+        for (shape, name) in Polyomino::ALL_PENTOMINOS
             .iter()
-            .zip(Polyomino::FREE_PENTOMINO_NAMES)
+            .zip(Polyomino::ALL_PENTOMINO_NAMES)
         {
             let ascii = shape.to_ascii_string();
             let rt = match Polyomino::<5>::try_new_from_ascii(&ascii) {

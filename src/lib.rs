@@ -4,12 +4,13 @@
 #![allow(warnings, dead_code, unused_imports, unused_mut)]
 #![warn(clippy::pedantic)]
 
-pub mod has_center;
 pub mod corner;
 pub mod dynamic_tile;
 pub mod dynamic_vertex;
 pub mod flip_axes;
+pub mod has_center;
 pub mod line_finder;
+pub mod line_of_sight;
 pub mod polyomino;
 pub mod quarter_turns;
 pub mod rectangle;
@@ -17,18 +18,17 @@ pub mod shape;
 pub mod tile;
 pub mod tile_map;
 pub mod tile_set;
-pub mod line_of_sight;
 #[cfg(any(test, feature = "u256"))]
 pub mod tile_set256;
 pub mod vector;
 pub mod vertex;
 
 pub mod prelude {
-    pub use crate::has_center::*;
     pub use crate::corner::*;
     pub use crate::dynamic_tile::*;
     pub use crate::dynamic_vertex::*;
     pub use crate::flip_axes::*;
+    pub use crate::has_center::*;
     pub use crate::line_finder::*;
     pub use crate::line_of_sight::*;
     pub use crate::polyomino::*;
