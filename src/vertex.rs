@@ -199,6 +199,7 @@ impl<const W: u8, const H: u8> From<&Vertex<W, H>> for usize {
 mod tests {
     use super::*;
     use crate::vertex::*;
+    use strum::*;
     use itertools::Itertools;
     #[cfg(any(test, feature = "serde"))]
     use serde_test::{assert_tokens, Token};
@@ -322,6 +323,17 @@ mod tests {
             vertex.rotate(QuarterTurns::Three),
             Vertex::new_const::<0, 3>()
         );
+    }
+
+    #[test]
+    fn get_tile_none(){
+        let vertex: Vertex<3, 3> = Vertex::new_const::<0,0>();
+
+        assert_eq!(vertex.get_tile(&Corner::NorthWest), None);
+        assert_eq!(vertex.get_tile(&Corner::NorthEast), None);
+
+        assert_eq!(vertex.get_tile(&Corner::SouthWest), None);
+
     }
 
     #[test]

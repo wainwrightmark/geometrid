@@ -474,4 +474,15 @@ mod tests {
         assert_eq!(Grid::col_mask(2).to_string(), "__*_\n__*_\n__*_");
         assert_eq!(Grid::col_mask(3).to_string(), "___*\n___*\n___*");
     }
+
+    #[test]
+    fn test_get_scale(){
+        type Grid = TileSet16::<4, 3, 12>;
+
+        let scale_square = Grid::get_scale(100.0, 100.0);
+        let scale_rect = Grid::get_scale(100.0, 50.0);
+
+        assert_eq!(scale_square, 25.0);
+        assert_eq!(scale_rect, 16.666666)
+    }
 }
