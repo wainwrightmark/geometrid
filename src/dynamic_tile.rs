@@ -11,7 +11,7 @@ use crate::prelude::*;
 
 /// A tile in a dynamically sized 2d space
 #[must_use]
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 #[cfg_attr(any(test, feature = "serde"), serde(transparent))]
 pub struct DynamicTile(pub Vector);
@@ -177,19 +177,23 @@ mod tests {
     }
 
     #[test]
-    pub fn test_from_center(){
-        fn t(x: f32, y: f32, scale: f32, expected_x: i8, expected_y: i8){
-            let actual  = DynamicTile::from_center(&glam::f32::Vec2 { x, y }, scale);
-            assert_eq!(DynamicTile(Vector { x: expected_x, y: expected_y }), actual)
+    pub fn test_from_center() {
+        fn t(x: f32, y: f32, scale: f32, expected_x: i8, expected_y: i8) {
+            let actual = DynamicTile::from_center(&glam::f32::Vec2 { x, y }, scale);
+            assert_eq!(
+                DynamicTile(Vector {
+                    x: expected_x,
+                    y: expected_y
+                }),
+                actual
+            )
         }
 
-        t(0.,0., 1.0, 0, 0);
-        t(0.9,0.9, 1.0, 0, 0);
-        t(0.9,0.9, 0.5, 1, 1);
+        t(0., 0., 1.0, 0, 0);
+        t(0.9, 0.9, 1.0, 0, 0);
+        t(0.9, 0.9, 0.5, 1, 1);
 
         t(5., -4., 1., 5, -4);
         t(5., -4., 2., 2, -2);
     }
-
-
 }

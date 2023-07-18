@@ -12,11 +12,13 @@ use serde::{Deserialize, Serialize};
 /// A grid
 /// A map from tiles to bools. Can contain
 #[must_use]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct TileSet256<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize>(U256);
 
-impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Default for TileSet256<WIDTH, HEIGHT, SIZE> {
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Default
+    for TileSet256<WIDTH, HEIGHT, SIZE>
+{
     fn default() -> Self {
         Self::assert_legal();
         Self::EMPTY
@@ -53,15 +55,15 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     #[inline]
     pub const fn row_mask(y: u8) -> Self {
         Self::assert_legal();
-        let mut upper : u128 = 0;
-        let mut lower : u128 = 0;
+        let mut upper: u128 = 0;
+        let mut lower: u128 = 0;
         let mut tile = Tile::<WIDTH, HEIGHT>::try_new(0, y);
 
         while let Some(t) = tile {
             let i = t.inner();
-            match t.inner().checked_sub(128){
-                Some(i) => upper |= 1u128 << i ,
-                None => lower |= 1u128 << i ,
+            match t.inner().checked_sub(128) {
+                Some(i) => upper |= 1u128 << i,
+                None => lower |= 1u128 << i,
             }
             tile = t.const_add(&Vector::EAST);
         }
@@ -74,15 +76,15 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     #[inline]
     pub const fn col_mask(x: u8) -> Self {
         Self::assert_legal();
-        let mut upper : u128 = 0;
-        let mut lower : u128 = 0;
+        let mut upper: u128 = 0;
+        let mut lower: u128 = 0;
         let mut tile = Tile::<WIDTH, HEIGHT>::try_new(x, 0);
 
         while let Some(t) = tile {
             let i = t.inner();
-            match t.inner().checked_sub(128){
-                Some(i) => upper |= 1u128 << i ,
-                None => lower |= 1u128 << i ,
+            match t.inner().checked_sub(128) {
+                Some(i) => upper |= 1u128 << i,
+                None => lower |= 1u128 << i,
             }
             tile = t.const_add(&Vector::SOUTH);
         }
@@ -228,7 +230,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Copy, Clone, Debug)]
 pub struct TileSetIter256<const STEP: u8> {
     inner: U256,
     bottom_index: usize,
@@ -467,17 +469,16 @@ mod tests {
     }
 
     #[test]
-    fn test_row_mask(){
-        type Grid = TileSet256::<4, 3, 12>;
+    fn test_row_mask() {
+        type Grid = TileSet256<4, 3, 12>;
         assert_eq!(Grid::row_mask(0).to_string(), "****\n____\n____");
         assert_eq!(Grid::row_mask(1).to_string(), "____\n****\n____");
         assert_eq!(Grid::row_mask(2).to_string(), "____\n____\n****");
     }
 
-
     #[test]
-    fn test_col_mask(){
-        type Grid = TileSet256::<4, 3, 12>;
+    fn test_col_mask() {
+        type Grid = TileSet256<4, 3, 12>;
         assert_eq!(Grid::col_mask(0).to_string(), "*___\n*___\n*___");
         assert_eq!(Grid::col_mask(1).to_string(), "_*__\n_*__\n_*__");
         assert_eq!(Grid::col_mask(2).to_string(), "__*_\n__*_\n__*_");
@@ -485,8 +486,8 @@ mod tests {
     }
 
     #[test]
-    fn test_get_scale(){
-        type Grid = TileSet256::<4, 3, 12>;
+    fn test_get_scale() {
+        type Grid = TileSet256<4, 3, 12>;
 
         let scale_square = Grid::get_scale(100.0, 100.0);
         let scale_rect = Grid::get_scale(100.0, 50.0);

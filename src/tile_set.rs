@@ -213,7 +213,7 @@ macro_rules! tile_set {
         }
 
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Copy, Clone, Debug)]
 pub struct $iter_name<const STEP : u8> {
     inner: $inner,
     bottom_index: usize,
@@ -443,8 +443,8 @@ mod tests {
     }
 
     #[test]
-    fn test_shift(){
-        let full_grid  = TileSet16::<2,3,6>::default().negate();
+    fn test_shift() {
+        let full_grid = TileSet16::<2, 3, 6>::default().negate();
 
         assert_eq!(full_grid.shift_north(0), full_grid);
         assert_eq!(full_grid.shift_south(0), full_grid);
@@ -456,19 +456,17 @@ mod tests {
         assert_eq!(full_grid.shift_south(2).to_string(), "__\n__\n**");
     }
 
-
     #[test]
-    fn test_row_mask(){
-        type Grid = TileSet16::<4, 3, 12>;
+    fn test_row_mask() {
+        type Grid = TileSet16<4, 3, 12>;
         assert_eq!(Grid::row_mask(0).to_string(), "****\n____\n____");
         assert_eq!(Grid::row_mask(1).to_string(), "____\n****\n____");
         assert_eq!(Grid::row_mask(2).to_string(), "____\n____\n****");
     }
 
-
     #[test]
-    fn test_col_mask(){
-        type Grid = TileSet16::<4, 3, 12>;
+    fn test_col_mask() {
+        type Grid = TileSet16<4, 3, 12>;
         assert_eq!(Grid::col_mask(0).to_string(), "*___\n*___\n*___");
         assert_eq!(Grid::col_mask(1).to_string(), "_*__\n_*__\n_*__");
         assert_eq!(Grid::col_mask(2).to_string(), "__*_\n__*_\n__*_");
@@ -476,8 +474,8 @@ mod tests {
     }
 
     #[test]
-    fn test_get_scale(){
-        type Grid = TileSet16::<4, 3, 12>;
+    fn test_get_scale() {
+        type Grid = TileSet16<4, 3, 12>;
 
         let scale_square = Grid::get_scale(100.0, 100.0);
         let scale_rect = Grid::get_scale(100.0, 50.0);

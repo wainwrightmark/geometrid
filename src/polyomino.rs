@@ -11,7 +11,7 @@ use tinyvec::ArrayVec;
 type V = Vector;
 
 /// A polyomino with a fixed number of points
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Polyomino<const TILES: usize>(
     #[cfg_attr(any(test, feature = "serde"), serde(with = "serde_arrays"))] [DynamicTile; TILES],
@@ -314,7 +314,8 @@ impl Polyomino<5> {
 .##\n\
 ##.\n\
 .#.\
-");
+",
+    );
     pub const I_PENTOMINO: Self = Self::new_from_ascii(
         "\
 #####\
@@ -330,7 +331,8 @@ impl Polyomino<5> {
         "\
 ##..\n\
 .###\
-");
+",
+    );
     pub const P_PENTOMINO: Self = Self::new_from_ascii(
         "\
 ##\n\
@@ -406,26 +408,30 @@ impl Polyomino<5> {
 ##\n\
 ##\n\
 .#\
-");
+",
+    );
 
-pub const LAMBDA_PENTOMINO: Self = Self::new_from_ascii(
-    "\
+    pub const LAMBDA_PENTOMINO: Self = Self::new_from_ascii(
+        "\
 .#..\n\
 ####\
-");
+",
+    );
 
-pub const SEVEN_PENTOMINO: Self = Self::new_from_ascii(
-    "\
+    pub const SEVEN_PENTOMINO: Self = Self::new_from_ascii(
+        "\
 ##.\n\
 .##\n\
 .#.\
-");
+",
+    );
 
-pub const FIVE_PENTOMINO: Self = Self::new_from_ascii(
-    "\
+    pub const FIVE_PENTOMINO: Self = Self::new_from_ascii(
+        "\
 ..##\n\
 ###.\
-");
+",
+    );
 
     pub const FREE_PENTOMINOS: [Self; 12] = [
         Self::F_PENTOMINO,
@@ -458,7 +464,6 @@ pub const FIVE_PENTOMINO: Self = Self::new_from_ascii(
         Self::X_PENTOMINO,
         Self::Y_PENTOMINO,
         Self::Z_PENTOMINO,
-
         Self::SEVEN_PENTOMINO,
         Self::J_PENTOMINO,
         Self::FIVE_PENTOMINO,
@@ -467,8 +472,9 @@ pub const FIVE_PENTOMINO: Self = Self::new_from_ascii(
         Self::S_PENTOMINO,
     ];
 
-    pub const ALL_PENTOMINO_NAMES: [&'static str; 18] =
-        ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "Z", "7", "J", "5", "Q", "λ", "S" ];
+    pub const ALL_PENTOMINO_NAMES: [&'static str; 18] = [
+        "F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "Z", "7", "J", "5", "Q", "λ", "S",
+    ];
 }
 
 /// WARNING hexomino names are subject to change

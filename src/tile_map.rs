@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 /// A map from tiles to values.
 /// If the values are just booleans, use TileSet instead
 #[must_use]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct TileMap<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize>(
     #[cfg_attr(any(test, feature = "serde"), serde(with = "serde_arrays"))]

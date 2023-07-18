@@ -4,7 +4,7 @@ use strum::*;
 
 /// The Corner of a tile
 #[derive(
-    Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Display, EnumCount, EnumIter, EnumIs
+    Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Display, EnumCount, EnumIter, EnumIs,
 )]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub enum Corner {

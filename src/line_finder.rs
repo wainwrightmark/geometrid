@@ -19,7 +19,7 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 struct LineFinder<'a, T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize, F: Fn(&T) -> bool> {
     pub grid: &'a TileMap<T, WIDTH, HEIGHT, SIZE>,
     pub directions: &'a [Vector],
@@ -30,7 +30,7 @@ struct LineFinder<'a, T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize, F
 }
 
 /// A line in a grid
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Line<'a, T, const WIDTH: u8, const HEIGHT: u8> {
     /// The value at the first tile
     pub first_item: &'a T,

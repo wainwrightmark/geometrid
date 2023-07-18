@@ -5,7 +5,19 @@ use strum::*;
 
 /// The axes across which to flip
 #[derive(
-    Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Display, EnumCount, EnumIter, EnumIs
+    Default,
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Display,
+    EnumCount,
+    EnumIter,
+    EnumIs,
 )]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub enum FlipAxes {

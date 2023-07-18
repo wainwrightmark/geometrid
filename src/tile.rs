@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 /// A tile in 2d space
 #[must_use]
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Tile<const WIDTH: u8, const HEIGHT: u8>(u8);
 
@@ -272,7 +272,7 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_by_col(){
+    fn test_iter_by_col() {
         let str = Tile::<3, 4>::iter_by_col().join("|");
 
         assert_eq!(

@@ -11,7 +11,7 @@ use crate::prelude::*;
 /// A 2d vector.
 /// The main use is that they can be added to any other primitive type.
 #[must_use]
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Default)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Vector {
     pub x: i8,
@@ -143,23 +143,20 @@ impl Vector {
         !self.x == 0 && !self.y == 0
     }
 
-
-    pub const fn horizontal_component(&self)-> Self{
-        Self{x: self.x, y: 0}
+    pub const fn horizontal_component(&self) -> Self {
+        Self { x: self.x, y: 0 }
     }
 
-    pub const fn vertical_component(&self)-> Self{
-        Self{x: 0, y: self.y}
+    pub const fn vertical_component(&self) -> Self {
+        Self { x: 0, y: self.y }
     }
     /// Greater than operation that can be computed at compile time
-    pub const fn const_gt(&self, other: &Self)-> bool{
-
-        if self.x > other.x{
+    pub const fn const_gt(&self, other: &Self) -> bool {
+        if self.x > other.x {
             return true;
-        }else if self.x < other.x{
+        } else if self.x < other.x {
             return false;
-        }
-        else {
+        } else {
             self.y > other.y
         }
     }
@@ -296,6 +293,9 @@ mod tests {
 
     #[test]
     pub fn test_centre() {
-        assert_eq!(V::SOUTH_WEST.get_center(2.0), glam::f32::Vec2::new(-2.0, 2.0))
+        assert_eq!(
+            V::SOUTH_WEST.get_center(2.0),
+            glam::f32::Vec2::new(-2.0, 2.0)
+        )
     }
 }

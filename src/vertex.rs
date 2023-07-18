@@ -8,7 +8,7 @@ use crate::prelude::*;
 
 /// A vertex in 2d space
 #[must_use]
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Vertex<const WIDTH: u8, const HEIGHT: u8>(u8);
 
@@ -199,10 +199,10 @@ impl<const W: u8, const H: u8> From<&Vertex<W, H>> for usize {
 mod tests {
     use super::*;
     use crate::vertex::*;
-    use strum::*;
     use itertools::Itertools;
     #[cfg(any(test, feature = "serde"))]
     use serde_test::{assert_tokens, Token};
+    use strum::*;
 
     #[test]
     fn test_iter_by_row() {
@@ -326,14 +326,13 @@ mod tests {
     }
 
     #[test]
-    fn get_tile_none(){
-        let vertex: Vertex<3, 3> = Vertex::new_const::<0,0>();
+    fn get_tile_none() {
+        let vertex: Vertex<3, 3> = Vertex::new_const::<0, 0>();
 
         assert_eq!(vertex.get_tile(&Corner::NorthWest), None);
         assert_eq!(vertex.get_tile(&Corner::NorthEast), None);
 
         assert_eq!(vertex.get_tile(&Corner::SouthWest), None);
-
     }
 
     #[test]

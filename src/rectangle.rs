@@ -6,7 +6,7 @@ use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// A rectangle in a 2d space
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Rectangle {
     /// The north vest vertex of the rectangle
@@ -86,7 +86,7 @@ impl IntoIterator for Rectangle {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RectangleIterator {
     pub rectangle: Rectangle,
     pub next: Option<DynamicTile>,

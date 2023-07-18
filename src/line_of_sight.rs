@@ -13,7 +13,7 @@ pub fn line_of_sight_tiles<const WIDTH: u8, const HEIGHT: u8>(
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 /// Iterates all tiles in a line between `from` and `to` in some order
 struct LineOfSightTileIter<const WIDTH: u8, const HEIGHT: u8> {
     pub state: State,
@@ -36,16 +36,8 @@ impl<const WIDTH: u8, const HEIGHT: u8> Iterator for LineOfSightTileIter<WIDTH, 
                     if abs_x == 0 {
                         State::Complete
                     } else {
-                        let x = if self.from.x() < self.to.x() {
-                            1
-                        } else {
-                            -1
-                        };
-                        let y = if self.from.y() < self.to.y() {
-                            1
-                        } else {
-                            -1
-                        };
+                        let x = if self.from.x() < self.to.x() { 1 } else { -1 };
+                        let y = if self.from.y() < self.to.y() { 1 } else { -1 };
                         State::Diagonal1(Vector { x, y })
                     }
                 } else {
@@ -98,7 +90,7 @@ impl<const WIDTH: u8, const HEIGHT: u8> Iterator for LineOfSightTileIter<WIDTH, 
     }
 }
 
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
 enum State {
     #[default]
     Default,
