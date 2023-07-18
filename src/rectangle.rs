@@ -32,8 +32,9 @@ impl Rectangle {
     }
 }
 
+#[cfg(any(test, feature = "glam"))]
 impl HasCenter for Rectangle {
-    fn get_center(&self, scale: f32) -> Point {
+    fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
         let mut center = self.north_west.get_center(scale);
         center.x += (self.width as f32 * 0.5 * scale);
         center.y += (self.height as f32 * 0.5 * scale);
@@ -143,7 +144,7 @@ mod tests {
         let rect = Rectangle::new(Vector::NORTH_EAST.into(), 2, 4);
 
         let center = rect.get_center(3.0);
-        assert_eq!(center, Point::new(6.0, 3.0))
+        assert_eq!(center, glam::f32::Vec2::new(6.0, 3.0))
     }
 
     #[test]

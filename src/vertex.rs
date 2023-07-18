@@ -4,14 +4,7 @@ use itertools::Itertools;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    point::{Point, HasCenter},
-    corner::Corner,
-    flip_axes::FlipAxes,
-    quarter_turns::QuarterTurns,
-    tile::Tile,
-    vector::Vector,
-};
+use crate::prelude::*;
 
 /// A vertex in 2d space
 #[must_use]
@@ -156,13 +149,14 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
     }
 }
 
+#[cfg(any(test, feature = "glam"))]
 impl<const WIDTH: u8, const HEIGHT: u8> HasCenter for Vertex<WIDTH, HEIGHT> {
     #[must_use]
-    fn get_center(&self, scale: f32) -> Point {
+    fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
         let x = scale * (self.x() as f32);
         let y = scale * (self.y() as f32);
 
-        Point { x, y }
+        glam::f32::Vec2 { x, y }
     }
 }
 
@@ -278,7 +272,7 @@ mod tests {
     fn test_get_center() {
         let tile: Vertex<1, 2> = Vertex::new_const::<1, 2>();
 
-        assert_eq!(tile.get_center(2.0), Point::new(2.0, 4.0));
+        assert_eq!(tile.get_center(2.0), glam::f32::Vec2::new(2.0, 4.0));
     }
 
     #[test]

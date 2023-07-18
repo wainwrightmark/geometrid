@@ -7,15 +7,7 @@ use itertools::Itertools;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    point::{Point, HasCenter},
-    corner::Corner,
-    flip_axes::FlipAxes,
-    prelude::DynamicVertex,
-    quarter_turns::QuarterTurns,
-    tile::Tile,
-    vector::Vector,
-};
+use crate::prelude::*;
 
 /// A tile in a dynamically sized 2d space
 #[must_use]
@@ -91,8 +83,8 @@ impl DynamicTile {
 
     /// Gets the nearest tile to this center
     #[must_use]
-    #[cfg(any(test, feature = "std"))]
-    pub fn from_center(center: &Point, scale: f32) -> Self {
+    #[cfg(any(test, all(feature = "std", feature = "glam")))]
+    pub fn from_center(center: &glam::f32::Vec2, scale: f32) -> Self {
         let x = center.x / scale;
         let y = center.y / scale;
 
@@ -112,13 +104,14 @@ impl<V: AsRef<Vector>> Add<V> for DynamicTile {
     }
 }
 
+#[cfg(any(test, feature = "glam"))]
 impl HasCenter for DynamicTile {
     #[must_use]
-    fn get_center(&self, scale: f32) -> Point {
+    fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
         let x = scale * ((self.0.x as f32) + 0.5);
         let y = scale * ((self.0.y as f32) + 0.5);
 
-        Point { x, y }
+        glam::f32::Vec2 { x, y }
     }
 }
 
@@ -151,7 +144,7 @@ mod tests {
     pub fn test_center() {
         let tile: DynamicTile = Vector::new(-2, 3).into();
 
-        assert_eq!(tile.get_center(3.0), Point::new(-4.5, 10.5))
+        assert_eq!(tile.get_center(3.0), glam::f32::Vec2::new(-4.5, 10.5))
     }
 
     #[test]
@@ -186,7 +179,7 @@ mod tests {
     #[test]
     pub fn test_from_center(){
         fn t(x: f32, y: f32, scale: f32, expected_x: i8, expected_y: i8){
-            let actual  = DynamicTile::from_center(&Point { x, y }, scale);
+            let actual  = DynamicTile::from_center(&glam::f32::Vec2 { x, y }, scale);
             assert_eq!(DynamicTile(Vector { x: expected_x, y: expected_y }), actual)
         }
 

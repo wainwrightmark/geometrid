@@ -4,7 +4,7 @@ use core::{
     ops::{Index, IndexMut, Shl, Shr},
 };
 
-use crate::{prelude::*, vector};
+use crate::prelude::*;
 use ethnum::U256;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};

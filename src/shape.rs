@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 /// A general shape made of tiles.
 pub trait Shape :// Flippable + Rotatable +
- HasCenter + IntoIterator<Item = DynamicTile>{
+  IntoIterator<Item = DynamicTile>{
     type OutlineIter: Iterator<Item = DynamicVertex>;
     type RectangleIter: Iterator<Item = Rectangle>;
 

@@ -20,6 +20,7 @@ The crate has the following optional features:
 | `std`   | Required for some floating point functions   | `false` |
 | `serde` | `Serialize` and `Deserialize` for most types | `false` |
 | `u256`  | Enables `TileSet256`                         | `false` |
+| `glam`  | Enables `HasCenter`                          | `false` |
 
 One of the hardest problems in creating 2d grids is deciding which way is up. This crate uses compass points to describe directions. Going North corresponds to decreasing the value of the `y` coordinate, Going East corresponds to increasing the value of the `x` coordinate.
 

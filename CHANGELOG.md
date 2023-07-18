@@ -12,6 +12,13 @@ Possible header types:
 
 [crates.io]: https://crates.io/crates/geometrid
 
+## v0.3.0 (2023-7-18)
+
+- Added more polyominos
+- Breaking Changes - all polyominos are now in normalized form
+- Breaking Changes - replaced `Point` with `glam::f32::Vec2`. This and the `HasCenter` trait are behind the `glam` feature.
+
+
 ## v0.2.0 (2023-7-02)
 
 - Rename `Location` to `Point`

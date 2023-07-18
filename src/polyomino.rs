@@ -35,8 +35,9 @@ impl<const P: usize> Shape for Polyomino<P> {
     }
 }
 
+#[cfg(any(test, feature = "glam"))]
 impl<const P: usize> HasCenter for Polyomino<P> {
-    fn get_center(&self, scale: f32) -> Point {
+    fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
         let mut x = 0;
         let mut y = 0;
 
@@ -45,7 +46,7 @@ impl<const P: usize> HasCenter for Polyomino<P> {
             y += point.y;
         }
 
-        Point {
+        glam::f32::Vec2 {
             x: (0.5 + ((x as f32) / (P as f32))) * scale,
             y: (0.5 + ((y as f32) / (P as f32))) * scale,
         }
@@ -943,7 +944,7 @@ mod tests {
         let min_x = outline.iter().map(|q| q.x).min().unwrap() as f32;
         let min_y = outline.iter().map(|q| q.y).min().unwrap() as f32;
 
-        let Point {
+        let glam::f32::Vec2 {
             x: centre_x,
             y: centre_y,
         } = shape.get_center(1.0);

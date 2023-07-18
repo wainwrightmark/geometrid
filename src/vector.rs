@@ -6,11 +6,7 @@ use core::{
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    point::{Point, HasCenter},
-    flip_axes::FlipAxes,
-    quarter_turns::QuarterTurns,
-};
+use crate::prelude::*;
 
 /// A 2d vector.
 /// The main use is that they can be added to any other primitive type.
@@ -222,13 +218,14 @@ impl Mul<usize> for Vector {
     }
 }
 
+#[cfg(any(test, feature = "glam"))]
 impl HasCenter for Vector {
     #[must_use]
-    fn get_center(&self, scale: f32) -> Point {
+    fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
         let x = scale * (self.x as f32);
         let y = scale * (self.y as f32);
 
-        Point { x, y }
+        glam::f32::Vec2 { x, y }
     }
 }
 
@@ -299,6 +296,6 @@ mod tests {
 
     #[test]
     pub fn test_centre() {
-        assert_eq!(V::SOUTH_WEST.get_center(2.0), Point::new(-2.0, 2.0))
+        assert_eq!(V::SOUTH_WEST.get_center(2.0), glam::f32::Vec2::new(-2.0, 2.0))
     }
 }

@@ -1,13 +1,6 @@
 use core::{fmt::Display, ops::Add};
 
-use crate::{
-    point::{Point, HasCenter},
-    corner::Corner,
-    flip_axes::FlipAxes,
-    quarter_turns::QuarterTurns,
-    vector::Vector,
-    vertex::Vertex,
-};
+use crate::prelude::*;
 
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
@@ -235,12 +228,13 @@ impl<const L: u8> Tile<L, L> {
     }
 }
 
+#[cfg(any(test, feature = "glam"))]
 impl<const C: u8, const R: u8> HasCenter for Tile<C, R> {
-    fn get_center(&self, scale: f32) -> crate::point::Point {
+    fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
         let x = scale * ((self.x() as f32) + 0.5);
         let y = scale * ((self.y() as f32) + 0.5);
 
-        Point { x, y }
+        glam::f32::Vec2 { x, y }
     }
 }
 
@@ -368,7 +362,7 @@ mod tests {
     fn test_get_center() {
         let tile: Tile<3, 3> = Tile::new_const::<1, 2>();
 
-        assert_eq!(tile.get_center(2.0), Point::new(3.0, 5.0));
+        assert_eq!(tile.get_center(2.0), glam::f32::Vec2::new(3.0, 5.0));
     }
 
     #[test]
