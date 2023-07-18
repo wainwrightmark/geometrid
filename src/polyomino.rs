@@ -212,26 +212,77 @@ impl<const T: usize> Polyomino<T> {
 }
 
 impl Polyomino<1> {
-    pub const MONOMINO: Self = Self::new_from_ascii("#");
+    pub const MONOMINO: Self = Self::new_from_ascii(
+        "\
+#\
+",
+    );
 }
 
 impl Polyomino<2> {
-    pub const DOMINO: Self = Self::new_from_ascii("##");
+    pub const DOMINO: Self = Self::new_from_ascii(
+        "\
+##\
+",
+    );
 }
 
 impl Polyomino<3> {
-    pub const I_TROMINO: Self = Self::new_from_ascii("###");
-    pub const V_TROMINO: Self = Self::new_from_ascii("##\n#.");
+    pub const I_TROMINO: Self = Self::new_from_ascii(
+        "\
+    ###\
+    ",
+    );
+    pub const V_TROMINO: Self = Self::new_from_ascii(
+        "
+    ##\n\
+    #.\
+    ",
+    );
 }
 
 impl Polyomino<4> {
-    pub const I_TETROMINO: Self = Self::new_from_ascii("####");
-    pub const O_TETROMINO: Self = Self::new_from_ascii("##\n##");
-    pub const T_TETROMINO: Self = Self::new_from_ascii("###\n.#.");
-    pub const J_TETROMINO: Self = Self::new_from_ascii("###\n..#");
-    pub const L_TETROMINO: Self = Self::new_from_ascii("..#\n###");
-    pub const S_TETROMINO: Self = Self::new_from_ascii(".##\n##.");
-    pub const Z_TETROMINO: Self = Self::new_from_ascii("##.\n.##");
+    pub const I_TETROMINO: Self = Self::new_from_ascii(
+        "\
+####\
+",
+    );
+    pub const O_TETROMINO: Self = Self::new_from_ascii(
+        "\
+##\n\
+##\
+",
+    );
+    pub const T_TETROMINO: Self = Self::new_from_ascii(
+        "\
+###\n\
+.#.\
+",
+    );
+    pub const J_TETROMINO: Self = Self::new_from_ascii(
+        "\
+###\n\
+..#\
+",
+    );
+    pub const L_TETROMINO: Self = Self::new_from_ascii(
+        "\
+..#\n\
+###\
+",
+    );
+    pub const S_TETROMINO: Self = Self::new_from_ascii(
+        "\
+.##\n\
+##.\
+",
+    );
+    pub const Z_TETROMINO: Self = Self::new_from_ascii(
+        "\
+##.\n\
+.##\
+",
+    );
 
     pub const TETROMINOS: [Self; 7] = [
         Self::I_TETROMINO,
@@ -257,18 +308,84 @@ impl Polyomino<4> {
 }
 
 impl Polyomino<5> {
-    pub const F_PENTOMINO: Self = Self::new_from_ascii(".##\n##.\n.#.");
-    pub const I_PENTOMINO: Self = Self::new_from_ascii("#####");
-    pub const L_PENTOMINO: Self = Self::new_from_ascii("...#\n####");
-    pub const N_PENTOMINO: Self = Self::new_from_ascii("##..\n.###");
-    pub const P_PENTOMINO: Self = Self::new_from_ascii("##\n##\n#.");
-    pub const T_PENTOMINO: Self = Self::new_from_ascii("###\n.#.\n.#.");
-    pub const U_PENTOMINO: Self = Self::new_from_ascii("#.#\n###");
-    pub const V_PENTOMINO: Self = Self::new_from_ascii("..#\n..#\n###");
-    pub const W_PENTOMINO: Self = Self::new_from_ascii("..#\n.##\n##.");
-    pub const X_PENTOMINO: Self = Self::new_from_ascii(".#.\n###\n.#.");
-    pub const Y_PENTOMINO: Self = Self::new_from_ascii("..#.\n####");
-    pub const Z_PENTOMINO: Self = Self::new_from_ascii("##.\n.#.\n.##");
+    pub const F_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+.##\n\
+##.\n\
+.#.\
+",
+    );
+    pub const I_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+#####\
+",
+    );
+    pub const L_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+...#\n\
+####\
+",
+    );
+    pub const N_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+##..\n\
+.###\
+",
+    );
+    pub const P_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+##\n\
+##\n\
+#.\
+",
+    );
+    pub const T_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+###\n\
+.#.\n\
+.#.\
+",
+    );
+    pub const U_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+#.#\n\
+###\
+",
+    );
+    pub const V_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+..#\n\
+..#\n\
+###\
+",
+    );
+    pub const W_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+..#\n\
+.##\n\
+##.\
+",
+    );
+    pub const X_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+.#.\n\
+###\n\
+.#.\
+",
+    );
+    pub const Y_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+..#.\n\
+####\
+",
+    );
+    pub const Z_PENTOMINO: Self = Self::new_from_ascii(
+        "\
+##.\n\
+.#.\n\
+.##\
+",
+    );
 
     pub const FREE_PENTOMINOS: [Self; 12] = [
         Self::F_PENTOMINO,
@@ -292,44 +409,260 @@ impl Polyomino<5> {
 /// WARNING hexomino names are subject to change
 /// //TODO more hexominos
 impl Polyomino<6> {
+    pub const I_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+######\
+",
+    );
+    pub const J_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+#....\n\
+#####\
+",
+    );
+    pub const LONG_Y_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.#...\n\
+#####\
+",
+    );
+    pub const FAT_T_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+..#..\n\
+#####\
+",
+    );
+    pub const LAMBDA_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+##...\n\
+.####\
+",
+    );
+    pub const P_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+##..\n\
+####\
+",
+    );
+    pub const F_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+#.#.\n\
+####\
+",
+    );
+    pub const C_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+#..#\n\
+####\
+",
+    );
+    pub const PI_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.##.\n\
+####\
+",
+    );
+    pub const RHO_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+#...\n\
+#...\n\
+####\
+",
+    );
+    pub const TAU_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+#..\n\
+###\n\
+#..\n\
+#..\
+",
+    );
+    pub const T_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+#...\n\
+####\n\
+#...\
+",
+    );
+    pub const F2_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.##\n\
+##.\n\
+.#.\n\
+.#.\
+",
+    );
+    pub const F3_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.##\n\
+.#.\n\
+##.\n\
+.#.\
+",
+    );
+    pub const S_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.##\n\
+.#.\n\
+.#.\n\
+##.\
+",
+    );
+    pub const X_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.#.\n\
+.##\n\
+##.\n\
+.#.\
+",
+    );
+    pub const CROSS_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.#.\n\
+###\n\
+.#.\n\
+.#.\
+",
+    );
+    pub const FOUR_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.#.\n\
+###\n\
+#..\n\
+#..\
+",
+    );
+    pub const N_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.#\n\
+##\n\
+#.\n\
+##\
+",
+    );
+    pub const Z_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.#\n\
+.#\n\
+##\n\
+#.\n\
+#.\
+",
+    );
+    pub const EIGHT_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.#\n\
+##\n\
+##\n\
+#.\
+",
+    );
+    pub const O_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+##\n\
+##\n\
+##\
+",
+    );
+    pub const SEVEN_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+..#\n\
+###\n\
+.#.\n\
+.#.\
+",
+    );
+    pub const D_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+###\n\
+.##\n\
+.#.\
+",
+    );
+    pub const THREE_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+..#\n\
+.##\n\
+##.\n\
+.#.\
+",
+    );
+    pub const TWO_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+..#\n\
+###\n\
+#..\n\
+#..\
+",
+    );
+    pub const W_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.##\n\
+##.\n\
+#..\n\
+#..\
+",
+    );
+    pub const U_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+###\n\
+#.#\n\
+#..\
+",
+    );
+    pub const ONE_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+#.#\n\
+###\n\
+#..\
+",
+    );
+    pub const Y_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+#.#\n\
+###\n\
+.#.\
+",
+    );
+    pub const FIVE_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.##\n\
+.#.\n\
+##.\n\
+#..\
+",
+    );
+    pub const V_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+#..\n\
+##.\n\
+###\
+",
+    );
+    pub const AMPERSAND_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+.#.\n\
+###\n\
+##.\
+",
+    );
+    pub const Q_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+..#\n\
+###\n\
+##.\
+",
+    );
+    pub const M_HEXOMINO: Self = Self::new_from_ascii(
+        "\
+..#\n\
+.##\n\
+##.\n\
+#..\
+",
+    );
 
-    pub const I_HEXOMINO: Self = Self::new_from_ascii("######");
-    pub const J_HEXOMINO: Self = Self::new_from_ascii("#....\n#####");
-    pub const LONG_Y_HEXOMINO: Self = Self::new_from_ascii(".#...\n#####");
-    pub const FAT_T_HEXOMINO: Self = Self::new_from_ascii("..#..\n#####");
-    pub const LAMBDA_HEXOMINO: Self = Self::new_from_ascii("##...\n.####");
-    pub const P_HEXOMINO: Self = Self::new_from_ascii("##..\n####");
-    pub const F_HEXOMINO: Self = Self::new_from_ascii("#.#.\n####");
-    pub const C_HEXOMINO: Self = Self::new_from_ascii("#..#\n####");
-    pub const PI_HEXOMINO: Self = Self::new_from_ascii(".##.\n####");
-    pub const RHO_HEXOMINO: Self = Self::new_from_ascii("#...\n#...\n####");
-    pub const TAU_HEXOMINO: Self = Self::new_from_ascii("#..\n###\n#..\n#..");
-    pub const T_HEXOMINO: Self = Self::new_from_ascii("#...\n####\n#...");
-    pub const F2_HEXOMINO: Self = Self::new_from_ascii(".##\n##.\n.#.\n.#.");
-    pub const F3_HEXOMINO: Self = Self::new_from_ascii(".##\n.#.\n##.\n.#.");
-    pub const S_HEXOMINO: Self = Self::new_from_ascii(".##\n.#.\n.#.\n##.");
-    pub const X_HEXOMINO: Self = Self::new_from_ascii(".#.\n.##\n##.\n.#.");
-    pub const CROSS_HEXOMINO: Self = Self::new_from_ascii(".#.\n###\n.#.\n.#.");
-    pub const FOUR_HEXOMINO: Self = Self::new_from_ascii(".#.\n###\n#..\n#..");
-    pub const N_HEXOMINO: Self = Self::new_from_ascii(".#\n##\n#.\n##");
-    pub const Z_HEXOMINO: Self = Self::new_from_ascii(".#\n.#\n##\n#.\n#.");
-    pub const EIGHT_HEXOMINO: Self = Self::new_from_ascii(".#\n##\n##\n#.");
-    pub const O_HEXOMINO: Self = Self::new_from_ascii("##\n##\n##");
-    pub const SEVEN_HEXOMINO: Self = Self::new_from_ascii("..#\n###\n.#.\n.#.");
-    pub const D_HEXOMINO: Self = Self::new_from_ascii("###\n.##\n.#.");
-    pub const THREE_HEXOMINO: Self = Self::new_from_ascii("..#\n.##\n##.\n.#.");
-    pub const TWO_HEXOMINO: Self = Self::new_from_ascii("..#\n###\n#..\n#..");
-    pub const W_HEXOMINO: Self = Self::new_from_ascii(".##\n##.\n#..\n#..");
-    pub const U_HEXOMINO: Self = Self::new_from_ascii("###\n#.#\n#..");
-    pub const ONE_HEXOMINO: Self = Self::new_from_ascii("#.#\n###\n#..");
-    pub const Y_HEXOMINO: Self = Self::new_from_ascii("#.#\n###\n.#.");
-    pub const FIVE_HEXOMINO: Self = Self::new_from_ascii(".##\n.#.\n##.\n#..");
-    pub const V_HEXOMINO: Self = Self::new_from_ascii("#..\n##.\n###");
-    pub const AMPERSAND_HEXOMINO: Self = Self::new_from_ascii(".#.\n###\n##.");
-    pub const Q_HEXOMINO: Self = Self::new_from_ascii("..#\n###\n##.");
-    pub const M_HEXOMINO: Self = Self::new_from_ascii("..#\n.##\n##.\n#..");
-
-    pub const FREE_HEXOMINOS: [Self; 2] = [Self::I_HEXOMINO, Self::J_HEXOMINO];    
+    pub const FREE_HEXOMINOS: [Self; 2] = [Self::I_HEXOMINO, Self::J_HEXOMINO];
 }
 
 pub struct OutlineIter<const POINTS: usize> {
@@ -573,11 +906,10 @@ mod tests {
             }
         }
     }
-    
+
     #[test]
     fn test_hexomino_ascii_strings() {
-        for (index, shape) in Polyomino::FREE_HEXOMINOS.iter().enumerate()
-        {
+        for (index, shape) in Polyomino::FREE_HEXOMINOS.iter().enumerate() {
             let ascii = shape.to_ascii_string();
             let rt = match Polyomino::<6>::try_new_from_ascii(&ascii) {
                 Ok(rt) => rt,
