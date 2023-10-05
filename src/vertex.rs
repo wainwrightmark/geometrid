@@ -89,6 +89,15 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
         Self::try_from_inner(i2)
     }
 
+    #[must_use]
+    pub const fn try_from_dynamic(dynamic_vertex: DynamicVertex)-> Option<Self>{
+        if dynamic_vertex.0.x.is_negative() || dynamic_vertex.0.y.is_negative(){
+            return None;
+        }
+
+        Self::try_new(dynamic_vertex.0.x.unsigned_abs(), dynamic_vertex.0.y.unsigned_abs())
+    }
+
     pub const fn x(&self) -> u8 {
         self.0 % (Self::COLUMNS + 1)
     }
@@ -353,5 +362,30 @@ mod tests {
         assert_eq!(vertex.get_tile(&NorthEast), Some(Tile::new_const::<1, 0>()));
         assert_eq!(vertex.get_tile(&SouthWest), Some(Tile::new_const::<0, 1>()));
         assert_eq!(vertex.get_tile(&SouthEast), Some(Tile::new_const::<1, 1>()));
+    }
+
+    #[test]
+    fn test_from_dynamic(){
+        let pairs= [
+            ((0i8, 0i8), Some((0u8,0u8))),
+            ((1i8, 2i8), Some((1u8,2u8))),
+            ((3i8, 0i8), Some((3u8, 0u8))),
+            ((0i8, 3i8), Some((0u8, 3u8))),
+            ((4i8, 0i8), None),
+            ((0i8, 4i8), None),
+            ((-1i8, 0i8), None),
+            ((0i8, -1i8), None),
+
+        ];
+
+        for ((dyn_x, dyn_y), tile_option) in pairs{
+            let expected = tile_option.map(|(x,y)| Vertex::<3,3>::try_new(x, y).unwrap());
+
+            let dynamic_tile = DynamicVertex(Vector { x: dyn_x, y: dyn_y });
+
+            let actual = Vertex::<3,3>::try_from_dynamic(dynamic_tile);
+
+            assert_eq!(actual, expected);
+        }
     }
 }

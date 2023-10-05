@@ -131,7 +131,10 @@ mod tests {
     #[test]
     pub fn test_rotate() {
         let tile: DynamicTile = Vector::new(-2, 3).into();
-        assert_eq!(tile.rotate(QuarterTurns::One), Vector::new(-3, -2).into());
+        let rotated = tile.rotate(QuarterTurns::One);
+        assert_eq!(rotated.x, -3);
+        assert_eq!(rotated.y, -2);
+        assert_eq!(rotated, Vector::new(-3, -2).into());
     }
 
     #[test]

@@ -140,7 +140,7 @@ impl Vector {
 
     /// Returns true if this is a diagonal vector, having both an x and a y component
     pub const fn is_diagonal(&self) -> bool {
-        !self.x == 0 && !self.y == 0
+        self.x != 0 && self.y != 0
     }
 
     pub const fn horizontal_component(&self) -> Self {
@@ -275,7 +275,7 @@ mod tests {
 
         assert_eq!(V::ZERO.is_diagonal(), false);
         assert_eq!(V::NORTH.is_diagonal(), false);
-        assert_eq!(V::NORTH_EAST.is_diagonal(), false);
+        assert_eq!(V::NORTH_EAST.is_diagonal(), true);
     }
 
     #[test]

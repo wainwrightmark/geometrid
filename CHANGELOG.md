@@ -12,6 +12,12 @@ Possible header types:
 
 [crates.io]: https://crates.io/crates/geometrid
 
+## v0.4.0 (2023-10-05)
+
+- Fixed a bug in `Polyomino.tiles()`
+- Added `TryFromDynamic` for `Tile` and `Vertex`
+- Bumped dependency versions
+
 ## v0.3.0 (2023-7-18)
 
 - Added more polyominos

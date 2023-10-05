@@ -1,5 +1,5 @@
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
-#![doc(html_root_url = "https://docs.rs/geometrid/0.3.0")]
+#![doc(html_root_url = "https://docs.rs/geometrid/0.4.0")]
 // #![deny(missing_docs)]
 #![allow(warnings, dead_code, unused_imports, unused_mut)]
 #![warn(clippy::pedantic)]
