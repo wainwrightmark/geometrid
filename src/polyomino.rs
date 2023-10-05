@@ -175,7 +175,7 @@ impl<const T: usize> Polyomino<T> {
 
     /// The tiles of this polyomino
     pub fn tiles(&self) -> &[DynamicTile; T] {
-        self.tiles()
+        &self.0
     }
 
     /// Write the polyomino as an ascii string.
