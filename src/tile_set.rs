@@ -29,10 +29,18 @@ macro_rules! tile_set {
 
         impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> $name<WIDTH, HEIGHT, SIZE> {
 
+            /// The set where all tiles are missing
             pub const EMPTY: Self = {
                 Self::assert_legal();
                 Self(0)
             };
+
+            /// The set where all tiles are present
+            pub const ALL: Self = {
+                Self::EMPTY.negate()
+            };
+
+
 
             #[inline]
             const fn assert_legal() {
@@ -76,6 +84,12 @@ macro_rules! tile_set {
                 self.0
             }
 
+            #[must_use]
+            #[inline]
+            pub const fn is_empty(self)-> bool{
+                self.0 == Self::EMPTY.0
+            }
+
             #[inline]
             pub fn set_bit(&mut self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) {
                 if bit {
@@ -83,6 +97,20 @@ macro_rules! tile_set {
                 } else {
                     self.0 &= !(1 as $inner << tile.inner() as u32);
                 }
+            }
+
+            /// Returns a copy of self with the bit at `tile` set to `bit`
+            #[must_use]
+            #[inline]
+            pub const fn with_bit_set(&self, tile: &Tile<WIDTH, HEIGHT>, bit: bool)-> Self{
+                let inner =
+                if bit {
+                    self.0 | (1 as $inner << tile.inner() as u32)
+                } else {
+                    self.0 & !(1 as $inner << tile.inner() as u32)
+                };
+
+                Self(inner)
             }
 
             #[must_use]
@@ -174,8 +202,10 @@ macro_rules! tile_set {
             .map(|(i, x)| (Tile::try_from_usize(i).unwrap(), x))
     }
 
+
             #[must_use]
             pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> {
+                //todo more efficient method
                 self.iter()
                     .enumerate()
                     .flat_map(|(i, b)| b.then(|| Tile::try_from_usize(i).unwrap()))
@@ -483,4 +513,42 @@ mod tests {
         assert_eq!(scale_square, 25.0);
         assert_eq!(scale_rect, 16.666666)
     }
+
+    #[test]
+    fn test_all(){
+        type Grid = TileSet16<4, 3, 12>;
+        let all = Grid::ALL;
+
+        assert_eq!("****\n****\n****", all.to_string().as_str())
+    }
+
+    #[test]
+    fn test_is_empty(){
+        type Grid = TileSet16<4, 3, 12>;
+        assert!(Grid::EMPTY.is_empty());
+        assert!(!Grid::EMPTY.with_bit_set(&Tile::NORTH_EAST,true).is_empty())
+    }
+
+    #[test]
+    fn test_with_bit_set(){
+        type Grid = TileSet16<4, 3, 12>;
+        assert_eq!("*___\n____\n____", Grid::EMPTY.with_bit_set(&Tile::NORTH_WEST,true).to_string().as_str());
+        assert_eq!("_***\n****\n****", Grid::ALL.with_bit_set(&Tile::NORTH_WEST,false).to_string().as_str());
+    }
+
+    #[test]
+    fn test_iter_length(){
+        type Iter = TileSetIter16<2>;
+
+        let iter = Iter{
+            inner: 0,
+            bottom_index: 0,
+            top_index: 12,
+        };
+
+        let count = iter.len();
+
+        assert_eq!(count, 6)
+    }
+
 }

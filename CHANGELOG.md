@@ -12,6 +12,10 @@ Possible header types:
 
 [crates.io]: https://crates.io/crates/geometrid
 
+## v0.5.0 (2023-11-06)
+- Added `is_edge` and `is_corner` and `adjacent_tile_count` to tile
+- Added `ALL` and `is_empty` and `with_bit_set` to tile_set
+
 ## v0.4.0 (2023-10-05)
 
 - Fixed a bug in `Polyomino.tiles()`
