@@ -606,11 +606,10 @@ mod tests {
     }
 
     #[test]
-    fn test_true_iter_length(){
+    fn test_true_iter_length() {
         type Grid = TileSet16<4, 3, 12>;
 
         let mut iter = Grid::ALL.iter_true_tiles();
-
 
         assert_eq!(12, iter.len());
 

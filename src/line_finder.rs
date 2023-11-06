@@ -63,7 +63,9 @@ impl<'a, T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize, F: Fn(&T) -> b
                     let mut length = 1;
                     let mut current = self.position;
                     'len: loop {
-                        let Some(next) = current + direction else{break 'len;};
+                        let Some(next) = current + direction else {
+                            break 'len;
+                        };
                         current = next;
                         let item2 = &self.grid[next];
 
@@ -85,7 +87,9 @@ impl<'a, T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize, F: Fn(&T) -> b
                 }
                 self.direction_index = 0;
             }
-            let Some(new_position) = self.position.try_next() else{break 'items;};
+            let Some(new_position) = self.position.try_next() else {
+                break 'items;
+            };
             self.position = new_position
         }
 

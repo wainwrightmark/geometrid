@@ -850,9 +850,8 @@ impl<const P: usize> Iterator for RectangleIter<P> {
     type Item = Rectangle;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let Some(p1) = self.remaining_tiles.pop()
-        else{
-            return None
+        let Some(p1) = self.remaining_tiles.pop() else {
+            return None;
         };
         let mut min_x = p1.x;
         let mut max_x = p1.x;
