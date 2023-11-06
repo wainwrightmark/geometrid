@@ -86,18 +86,25 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
         if y >= HEIGHT {
             return None;
         }
-        let Some(i1) = y.checked_mul(WIDTH) else{return None};
-        let Some(i2) = i1.checked_add(x) else {return  None};
+        let Some(i1) = y.checked_mul(WIDTH) else {
+            return None;
+        };
+        let Some(i2) = i1.checked_add(x) else {
+            return None;
+        };
         Self::try_from_inner(i2)
     }
 
     #[must_use]
-    pub const fn try_from_dynamic(dynamic_tile: DynamicTile)-> Option<Self>{
-        if dynamic_tile.0.x.is_negative() || dynamic_tile.0.y.is_negative(){
+    pub const fn try_from_dynamic(dynamic_tile: DynamicTile) -> Option<Self> {
+        if dynamic_tile.0.x.is_negative() || dynamic_tile.0.y.is_negative() {
             return None;
         }
 
-        Self::try_new(dynamic_tile.0.x.unsigned_abs(), dynamic_tile.0.y.unsigned_abs())
+        Self::try_new(
+            dynamic_tile.0.x.unsigned_abs(),
+            dynamic_tile.0.y.unsigned_abs(),
+        )
     }
 
     #[must_use]
@@ -146,7 +153,9 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
 
     #[must_use]
     pub const fn try_next(&self) -> Option<Self> {
-        let Some(next) = self.inner().checked_add(1) else{ return  None;};
+        let Some(next) = self.inner().checked_add(1) else {
+            return None;
+        };
         Self::try_from_inner(next)
     }
 
@@ -197,8 +206,12 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
 
     #[must_use]
     pub const fn const_add(&self, vector: &Vector) -> Option<Self> {
-        let Some(c) = self.x().checked_add_signed(vector.x) else {return None;};
-        let Some(r) = self.y().checked_add_signed(vector.y) else {return None;};
+        let Some(c) = self.x().checked_add_signed(vector.x) else {
+            return None;
+        };
+        let Some(r) = self.y().checked_add_signed(vector.y) else {
+            return None;
+        };
 
         Self::try_new(c, r)
     }
@@ -220,9 +233,40 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
         Vertex::new_unchecked(self.x(), self.y())
     }
 
+    /// Returns the Manhattan distance between two tiles.
+    /// Also known as the taxicab distance, the Manhattan distance is the sum of the distances in the two axes.
     #[must_use]
     pub const fn manhattan_distance(&self, other: &Self) -> u8 {
         self.x().abs_diff(other.x()) + self.y().abs_diff(other.y())
+    }
+
+    /// Returns true if this is an edge tile (or corner tile)
+    #[must_use]
+    pub const fn is_edge(&self) -> bool {
+        (self.x() == 0 || self.x() == Self::MAX_COL) || (self.y() == 0 || self.y() == Self::MAX_ROW)
+    }
+
+    /// Returns true if this is a corner tile
+    #[must_use]
+    pub const fn is_corner(&self) -> bool {
+        Self::NORTH_EAST.0 == self.0
+            || Self::NORTH_WEST.0 == self.0
+            || Self::SOUTH_EAST.0 == self.0
+            || Self::SOUTH_WEST.0 == self.0
+    }
+
+    /// Returns the number of adjacent tiles
+    /// 3 for a corner tile
+    /// 5 for an edge tile
+    /// 8 otherwise
+    pub const fn adjacent_tile_count(&self) -> u8 {
+        if self.is_corner() {
+            return 3;
+        } else if self.is_edge() {
+            return 5;
+        } else {
+            return 8;
+        }
     }
 }
 
@@ -345,9 +389,9 @@ mod tests {
     }
 
     #[test]
-    fn test_manhattan(){
-        let a: Tile<3,3> = Tile::new_const::<0,0>();
-        let b: Tile<3,3> = Tile::new_const::<2,1>();
+    fn test_manhattan() {
+        let a: Tile<3, 3> = Tile::new_const::<0, 0>();
+        let b: Tile<3, 3> = Tile::new_const::<2, 1>();
 
         assert_eq!(a.manhattan_distance(&b), 3);
         assert_eq!(b.manhattan_distance(&a), 3);
@@ -484,27 +528,47 @@ mod tests {
         }
     }
 
-
     #[test]
-    fn test_from_dynamic(){
-        let pairs= [
-            ((0i8, 0i8), Some((0u8,0u8))),
-            ((1i8, 2i8), Some((1u8,2u8))),
+    fn test_from_dynamic() {
+        let pairs = [
+            ((0i8, 0i8), Some((0u8, 0u8))),
+            ((1i8, 2i8), Some((1u8, 2u8))),
             ((3i8, 0i8), None),
             ((0i8, 3i8), None),
             ((-1i8, 0i8), None),
             ((0i8, -1i8), None),
-
         ];
 
-        for ((dyn_x, dyn_y), tile_option) in pairs{
-            let expected = tile_option.map(|(x,y)| Tile::<3,3>::try_new(x, y).unwrap());
+        for ((dyn_x, dyn_y), tile_option) in pairs {
+            let expected = tile_option.map(|(x, y)| Tile::<3, 3>::try_new(x, y).unwrap());
 
             let dynamic_tile = DynamicTile(Vector { x: dyn_x, y: dyn_y });
 
-            let actual = Tile::<3,3>::try_from_dynamic(dynamic_tile);
+            let actual = Tile::<3, 3>::try_from_dynamic(dynamic_tile);
 
             assert_eq!(actual, expected);
         }
+    }
+
+    #[test]
+    fn test_is_corner() {
+        let corners: TileSet16<3, 4, 12> = TileSet16::from_fn(|tile| tile.is_corner());
+
+        assert_eq!("*_*\n___\n___\n*_*", corners.to_string())
+    }
+
+    #[test]
+    fn test_is_edge() {
+        let edges: TileSet16<3, 4, 12> = TileSet16::from_fn(|tile| tile.is_edge());
+
+        assert_eq!("***\n*_*\n*_*\n***", edges.to_string())
+    }
+
+    #[test]
+    fn test_adjacent_tile_count() {
+        let adjacencies: TileMap<u8, 3, 4, 12> =
+            TileMap::from_fn(|tile| tile.adjacent_tile_count());
+
+        assert_eq!("3|5|3\n5|8|5\n5|8|5\n3|5|3", adjacencies.to_string())
     }
 }
