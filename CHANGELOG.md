@@ -15,6 +15,8 @@ Possible header types:
 ## v0.5.0 (2023-11-06)
 - Added `is_edge` and `is_corner` and `adjacent_tile_count` to tile
 - Added `ALL` and `is_empty` and `with_bit_set` to tile_set
+- Bumped versions of dependencies
+- Huge performance improvements for tile_set `iter_true_tiles`, especially for sparse sets
 
 ## v0.4.0 (2023-10-05)
 

@@ -10,7 +10,7 @@ use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
 macro_rules! tile_set {
-    ($name:ident,$iter_name:ident, $inner: ty) => {
+    ($name:ident, $iter_name:ident, $true_iter_name:ident, $inner: ty) => {
 
         /// A grid
         /// A map from tiles to bools. Can store up to 256 tiles.
@@ -203,44 +203,86 @@ macro_rules! tile_set {
     }
 
 
-            #[must_use]
-            pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> {
-                //todo more efficient method
-                self.iter()
-                    .enumerate()
-                    .flat_map(|(i, b)| b.then(|| Tile::try_from_usize(i).unwrap()))
-            }
+    #[must_use]
+    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator {
+        $true_iter_name::new(self)
+    }
 
-            #[must_use]
-            pub const fn count(&self) -> u32 {
-                self.0.count_ones()
-            }
+    #[must_use]
+    pub const fn count(&self) -> u32 {
+        self.0.count_ones()
+    }
 
-            /// Get the scale to make the grid take up as much as possible of a given area
-            #[must_use]
-            pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
-                let x_multiplier = total_width / WIDTH as f32;
-                let y_multiplier = total_height / HEIGHT as f32;
+    /// Get the scale to make the grid take up as much as possible of a given area
+    #[must_use]
+    pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
+        let x_multiplier = total_width / WIDTH as f32;
+        let y_multiplier = total_height / HEIGHT as f32;
 
-                x_multiplier.min(y_multiplier)
-            }
+        x_multiplier.min(y_multiplier)
+    }
 
-            #[must_use]
-            pub const fn intersect(&self, rhs: &Self) -> Self {
-                Self(self.0 & rhs.0)
-            }
+    #[must_use]
+    pub const fn intersect(&self, rhs: &Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
 
-            #[must_use]
-            pub const fn union(&self, rhs: &Self) -> Self {
-                Self(self.0 | rhs.0)
-            }
+    #[must_use]
+    pub const fn union(&self, rhs: &Self) -> Self {
+        Self(self.0 | rhs.0)
+    }
 
-            #[must_use]
-            pub const fn negate(&self) -> Self {
-                let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
-                Self(!self.0 & mask)
-            }
+    #[must_use]
+    pub const fn negate(&self) -> Self {
+        let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
+        Self(!self.0 & mask)
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+struct $true_iter_name<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> {
+    inner: $inner,
+    last: u8
+}
+
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> ExactSizeIterator
+    for $true_iter_name<WIDTH, HEIGHT, SIZE>
+{
+    fn len(&self) -> usize {
+        self.inner.count_ones() as usize
+    }
+}
+
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
+    for $true_iter_name<WIDTH, HEIGHT, SIZE>
+{
+    type Item = Tile<WIDTH, HEIGHT>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.inner == 0 {
+            return None;
         }
+        let zeros = self.inner.trailing_zeros();
+        self.inner = self.inner.wrapping_shr(zeros + 1);
+        let ret = Tile::<WIDTH, HEIGHT>::try_from_inner(self.last + zeros as u8);
+        self.last += (zeros + 1) as u8;
+        ret
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let size = self.inner.count_zeros() as usize;
+        (size, Some(size))
+    }
+}
+
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> $true_iter_name<WIDTH, HEIGHT, SIZE> {
+    pub fn new(grid: & $name<WIDTH, HEIGHT, SIZE>) -> Self {
+        Self {
+            inner: grid.into_inner(),
+            last: 0,
+        }
+    }
+}
+
 
 
 #[derive(Copy, Clone, Debug)]
@@ -322,11 +364,11 @@ impl<const STEP: u8> DoubleEndedIterator for $iter_name<STEP> {
     };
 }
 
-tile_set!(TileSet8, TileSetIter8, u8);
-tile_set!(TileSet16, TileSetIter16, u16);
-tile_set!(TileSet32, TileSetIter32, u32);
-tile_set!(TileSet64, TileSetIter64, u64);
-tile_set!(TileSet128, TileSetIter128, u128);
+tile_set!(TileSet8, TileSetIter8, TrueTilesIter8, u8);
+tile_set!(TileSet16, TileSetIter16, TrueTilesIter16, u16);
+tile_set!(TileSet32, TileSetIter32, TrueTilesIter32, u32);
+tile_set!(TileSet64, TileSetIter64, TrueTilesIter64, u64);
+tile_set!(TileSet128, TileSetIter128, TrueTilesIter128, u128);
 
 #[cfg(test)]
 mod tests {
@@ -515,7 +557,7 @@ mod tests {
     }
 
     #[test]
-    fn test_all(){
+    fn test_all() {
         type Grid = TileSet16<4, 3, 12>;
         let all = Grid::ALL;
 
@@ -523,24 +565,36 @@ mod tests {
     }
 
     #[test]
-    fn test_is_empty(){
+    fn test_is_empty() {
         type Grid = TileSet16<4, 3, 12>;
         assert!(Grid::EMPTY.is_empty());
-        assert!(!Grid::EMPTY.with_bit_set(&Tile::NORTH_EAST,true).is_empty())
+        assert!(!Grid::EMPTY.with_bit_set(&Tile::NORTH_EAST, true).is_empty())
     }
 
     #[test]
-    fn test_with_bit_set(){
+    fn test_with_bit_set() {
         type Grid = TileSet16<4, 3, 12>;
-        assert_eq!("*___\n____\n____", Grid::EMPTY.with_bit_set(&Tile::NORTH_WEST,true).to_string().as_str());
-        assert_eq!("_***\n****\n****", Grid::ALL.with_bit_set(&Tile::NORTH_WEST,false).to_string().as_str());
+        assert_eq!(
+            "*___\n____\n____",
+            Grid::EMPTY
+                .with_bit_set(&Tile::NORTH_WEST, true)
+                .to_string()
+                .as_str()
+        );
+        assert_eq!(
+            "_***\n****\n****",
+            Grid::ALL
+                .with_bit_set(&Tile::NORTH_WEST, false)
+                .to_string()
+                .as_str()
+        );
     }
 
     #[test]
-    fn test_iter_length(){
+    fn test_iter_length() {
         type Iter = TileSetIter16<2>;
 
-        let iter = Iter{
+        let iter = Iter {
             inner: 0,
             bottom_index: 0,
             top_index: 12,
@@ -551,4 +605,16 @@ mod tests {
         assert_eq!(count, 6)
     }
 
+    #[test]
+    fn test_true_iter_length(){
+        type Grid = TileSet16<4, 3, 12>;
+
+        let mut iter = Grid::ALL.iter_true_tiles();
+
+
+        assert_eq!(12, iter.len());
+
+        let _ = iter.next();
+        assert_eq!(11, iter.len());
+    }
 }
