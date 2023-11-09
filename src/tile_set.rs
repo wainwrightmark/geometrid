@@ -235,6 +235,22 @@ macro_rules! tile_set {
     }
 
     #[must_use]
+    pub const fn is_subset(&self, rhs: &Self)-> bool{
+        self.intersect(rhs).0 == self.0
+    }
+
+    #[must_use]
+    pub const fn is_superset(&self, rhs: &Self)-> bool{
+        self.intersect(rhs).0 == rhs.0
+    }
+
+    /// Returns a new set containing all elements which belong to one set but not both
+    #[must_use]
+    pub const fn symmetric_difference(&self, rhs: &Self)-> Self{
+        Self(self.0 ^ rhs.0)
+    }
+
+    #[must_use]
     pub const fn negate(&self) -> Self {
         let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
         Self(!self.0 & mask)
@@ -418,7 +434,9 @@ mod tests {
 
         assert_eq!(
             grid_left.intersect(&grid_right).to_string(),
-            "___\n_*_\n___"
+            "___\n\
+             _*_\n\
+             ___"
         )
     }
 
@@ -427,7 +445,41 @@ mod tests {
         let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.x() == 0);
         let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.y() == 0);
 
-        assert_eq!(grid_left.union(&grid_top).to_string(), "***\n*__\n*__")
+        assert_eq!(grid_left.union(&grid_top).to_string(),
+        "***\n\
+         *__\n\
+         *__")
+    }
+
+    #[test]
+    fn test_symmetric_difference(){
+        let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.x() == 0);
+        let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.y() == 0);
+
+        assert_eq!(grid_left.symmetric_difference(&grid_top).to_string(),
+        "_**\n\
+         *__\n\
+         *__")
+    }
+
+    #[test]
+    fn test_subset(){
+        let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.y() == 0);
+        let all : TileSet16<3, 3, 9> = TileSet16::ALL;
+
+        assert!(grid_top.is_subset(&all));
+        assert!(grid_top.is_subset(&grid_top));
+        assert!(!all.is_subset(&grid_top));
+    }
+
+    #[test]
+    fn test_superset(){
+        let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.y() == 0);
+        let all : TileSet16<3, 3, 9> = TileSet16::ALL;
+
+        assert!(!grid_top.is_superset(&all));
+        assert!(grid_top.is_superset(&grid_top));
+        assert!(all.is_superset(&grid_top));
     }
 
     #[test]
@@ -618,4 +670,6 @@ mod tests {
         let _ = iter.next();
         assert_eq!(11, iter.len());
     }
+
+
 }
