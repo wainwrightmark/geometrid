@@ -32,6 +32,11 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         Self(U256::new(0))
     };
 
+    /// The set where all tiles are present
+    pub fn all() -> Self {
+        Self::EMPTY.negate()
+    }
+
     #[inline]
     const fn assert_legal() {
         debug_assert!(SIZE == (WIDTH as usize * HEIGHT as usize));
@@ -116,6 +121,13 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         self.0
     }
 
+    #[must_use]
+    #[inline]
+    pub const fn is_empty(self) -> bool {
+        let (h, l) = self.0.into_words();
+        h == 0 && l == 0
+    }
+
     #[inline]
     pub fn set_bit(&mut self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) {
         if bit {
@@ -129,6 +141,19 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     #[inline]
     pub fn get_bit(&self, tile: &Tile<WIDTH, HEIGHT>) -> bool {
         (self.0.shr(tile.inner())) & U256::ONE == U256::ONE
+    }
+
+    /// Returns a copy of self with the bit at `tile` set to `bit`
+    #[must_use]
+    #[inline]
+    pub fn with_bit_set(&self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) -> Self {
+        let inner = if bit {
+            self.0 | U256::ONE.shl(tile.inner())
+        } else {
+            self.0 & !(U256::ONE.shl(tile.inner()))
+        };
+
+        Self(inner)
     }
 
     #[must_use]
@@ -208,6 +233,30 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         let high = left_high | right_high;
         let low = left_low | right_low;
         Self(U256::from_words(high, low))
+    }
+
+    #[must_use]
+    pub const fn is_subset(&self, rhs: &Self) -> bool {
+        let (self_high, self_low) = self.0.into_words();
+        let intersect = self.intersect(rhs);
+        let (intersect_high, intersect_low) = intersect.0.into_words();
+
+        self_high == intersect_high && self_low == intersect_low
+    }
+
+    #[must_use]
+    pub const fn is_superset(&self, rhs: &Self) -> bool {
+        let (rhs_high, rhs_low) = rhs.0.into_words();
+        let intersect = self.intersect(rhs);
+        let (intersect_high, intersect_low) = intersect.0.into_words();
+
+        rhs_high == intersect_high && rhs_low == intersect_low
+    }
+
+    /// Returns a new set containing all elements which belong to one set but not both
+    #[must_use]
+    pub fn symmetric_difference(&self, rhs: &Self) -> Self {
+        Self(self.0 ^ rhs.0)
     }
 
     #[must_use]
@@ -370,6 +419,39 @@ mod tests {
     }
 
     #[test]
+    fn test_symmetric_difference() {
+        let grid_left: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.x() == 0);
+        let grid_top: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.y() == 0);
+
+        assert_eq!(
+            grid_left.symmetric_difference(&grid_top).to_string(),
+            "_**\n\
+         *__\n\
+         *__"
+        )
+    }
+
+    #[test]
+    fn test_subset() {
+        let grid_top: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.y() == 0);
+        let all: TileSet256<3, 3, 9> = TileSet256::all();
+
+        assert!(grid_top.is_subset(&all));
+        assert!(grid_top.is_subset(&grid_top));
+        assert!(!all.is_subset(&grid_top));
+    }
+
+    #[test]
+    fn test_superset() {
+        let grid_top: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.y() == 0);
+        let all: TileSet256<3, 3, 9> = TileSet256::all();
+
+        assert!(!grid_top.is_superset(&all));
+        assert!(grid_top.is_superset(&grid_top));
+        assert!(all.is_superset(&grid_top));
+    }
+
+    #[test]
     fn test_from_inner() {
         assert_eq!(
             TileSet256::<3, 3, 9>::from_inner(U256::from(3u128)).to_string(),
@@ -495,5 +577,39 @@ mod tests {
 
         assert_eq!(scale_square, 25.0);
         assert_eq!(scale_rect, 16.666666)
+    }
+
+    #[test]
+    fn test_all() {
+        type Grid = TileSet256<4, 3, 12>;
+        let all = Grid::all();
+
+        assert_eq!("****\n****\n****", all.to_string().as_str())
+    }
+
+    #[test]
+    fn test_is_empty() {
+        type Grid = TileSet256<4, 3, 12>;
+        assert!(Grid::EMPTY.is_empty());
+        assert!(!Grid::EMPTY.with_bit_set(&Tile::NORTH_EAST, true).is_empty())
+    }
+
+    #[test]
+    fn test_with_bit_set() {
+        type Grid = TileSet256<4, 3, 12>;
+        assert_eq!(
+            "*___\n____\n____",
+            Grid::EMPTY
+                .with_bit_set(&Tile::NORTH_WEST, true)
+                .to_string()
+                .as_str()
+        );
+        assert_eq!(
+            "_***\n****\n****",
+            Grid::all()
+                .with_bit_set(&Tile::NORTH_WEST, false)
+                .to_string()
+                .as_str()
+        );
     }
 }
