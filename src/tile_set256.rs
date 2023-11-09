@@ -9,6 +9,7 @@ use ethnum::U256;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
+//todo  all new methods from tile_set
 /// A grid
 /// A map from tiles to bools. Can contain
 #[must_use]

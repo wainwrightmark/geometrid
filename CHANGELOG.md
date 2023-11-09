@@ -12,6 +12,9 @@ Possible header types:
 
 [crates.io]: https://crates.io/crates/geometrid
 
+## v0.6.0 (2023-11-09)
+- Improved `rotate` for tile_map and added `with_rotate` and `with_flip`
+
 ## v0.5.0 (2023-11-06)
 - Added `is_edge` and `is_corner` and `adjacent_tile_count` to tile
 - Added `ALL` and `is_empty` and `with_bit_set` to tile_set

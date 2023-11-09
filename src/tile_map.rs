@@ -2,6 +2,7 @@ use core::{
     fmt::{self, Write},
     iter,
     ops::{Index, IndexMut},
+    panic,
 };
 
 use crate::prelude::*;
@@ -157,14 +158,24 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
 
 impl<T, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
     pub fn rotate(&mut self, quarter_turns: QuarterTurns) {
+        //todo const once const swap is stabilized
         match quarter_turns {
             QuarterTurns::Zero => {
                 return;
             }
             QuarterTurns::One => {
-                for y in 0..=(L / 2) {
-                    for x in y..=(L / 2) {
-                        let o_y = L - (1 + y);
+                let mut y = 0;
+                'y: loop {
+                    if y >= L / 2 {
+                        break 'y;
+                    }
+                    let mut x = y;
+                    let o_y = L - (1 + y);
+                    'x: loop {
+                        if x + y + 1 >= L {
+                            break 'x;
+                        };
+
                         let o_x = L - (1 + x);
                         if y != o_y || x != o_x {
                             let p0 = Tile::new_unchecked(x, y);
@@ -172,36 +183,42 @@ impl<T, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
                             let p2 = Tile::new_unchecked(o_x, o_y);
                             let p3 = Tile::new_unchecked(o_y, x);
 
+                            //println!("Rotate {p0} {p1} {p2} {p3}");
                             //0123
                             self.swap(p0, p3); //3120
                             self.swap(p0, p1); //1320
                             self.swap(p1, p2); //1230
                         }
+                        x += 1;
                     }
+                    y += 1;
                 }
             }
             QuarterTurns::Two => {
-                for y in 0..=(L / 2) {
-                    for x in y..=(L / 2) {
-                        let o_y = L - (1 + y);
+                for y in 0..((L + 1) / 2) {
+                    let o_y = L - (1 + y);
+                    let x_max = if (y * 2) + 1 == L { L / 2 } else { L };
+                    for x in 0..x_max {
                         let o_x = L - (1 + x);
-                        if y != o_y || x != o_x {
-                            let p0 = Tile::new_unchecked(x, y);
-                            let p1 = Tile::new_unchecked(y, o_x);
-                            let p2 = Tile::new_unchecked(o_y, x);
-                            let p3 = Tile::new_unchecked(o_x, o_y);
-
-                            //0123
-                            self.swap(p0, p3); //3120
-                            self.swap(p1, p2); //3210
-                        }
+                        let p0 = Tile::new_unchecked(x, y);
+                        let p3 = Tile::new_unchecked(o_x, o_y);
+                        self.swap(p0, p3);
                     }
                 }
             }
             QuarterTurns::Three => {
-                for y in 0..=(L / 2) {
-                    for x in y..=(L / 2) {
-                        let o_y = L - (1 + y);
+                let mut y = 0;
+                'y: loop {
+                    if y >= L / 2 {
+                        break 'y;
+                    }
+                    let mut x = y;
+                    let o_y = L - (1 + y);
+                    'x: loop {
+                        if x + y + 1 >= L {
+                            break 'x;
+                        };
+
                         let o_x = L - (1 + x);
                         if y != o_y || x != o_x {
                             let p0 = Tile::new_unchecked(x, y);
@@ -209,15 +226,38 @@ impl<T, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
                             let p2 = Tile::new_unchecked(o_x, o_y);
                             let p3 = Tile::new_unchecked(o_y, x);
 
+                            //println!("Rotate {p0} {p1} {p2} {p3}");
                             //0123
                             self.swap(p1, p2); //0213
                             self.swap(p0, p1); //2013
                             self.swap(p0, p3); //3012
                         }
+                        x += 1;
                     }
+                    y += 1;
                 }
             }
         }
+    }
+}
+
+impl<T: Clone, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
+    #[must_use]
+    pub fn with_rotate(&self, quarter_turns: QuarterTurns) -> Self {
+        let mut grid = self.clone();
+        grid.rotate(quarter_turns);
+        grid
+    }
+}
+
+impl<T: Clone, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize>
+    TileMap<T, WIDTH, HEIGHT, SIZE>
+{
+    #[must_use]
+    pub fn with_flip(&self, axes: FlipAxes) -> Self {
+        let mut grid = self.clone();
+        grid.flip(axes);
+        grid
     }
 }
 
@@ -307,6 +347,8 @@ impl<T: fmt::Display, const W: u8, const H: u8, const SIZE: usize> fmt::Display
 
 #[cfg(test)]
 mod tests {
+    use core::usize;
+
     use super::*;
     use crate::prelude::*;
     use itertools::Itertools;
@@ -322,101 +364,158 @@ mod tests {
     #[test]
     fn test_flip3() {
         for (axes, expected) in [
-            (FlipAxes::None, "0|1|2\n3|4|5\n6|7|8"),
-            (FlipAxes::Vertical, "6|7|8\n3|4|5\n0|1|2"),
-            (FlipAxes::Horizontal, "2|1|0\n5|4|3\n8|7|6"),
-            (FlipAxes::Both, "8|7|6\n5|4|3\n2|1|0"),
+            (
+                FlipAxes::None,
+                "0|1|2\n\
+                 3|4|5\n\
+                 6|7|8",
+            ),
+            (
+                FlipAxes::Vertical,
+                "6|7|8\n\
+                                  3|4|5\n\
+                                  0|1|2",
+            ),
+            (
+                FlipAxes::Horizontal,
+                "2|1|0\n\
+                                    5|4|3\n\
+                                    8|7|6",
+            ),
+            (
+                FlipAxes::Both,
+                "8|7|6\n\
+                              5|4|3\n\
+                              2|1|0",
+            ),
         ] {
-            let mut grid: TileMap<usize, 3, 3, 9> = TileMap::from_fn(|x| x.into());
-            grid.flip(axes);
+            let grid: TileMap<usize, 3, 3, 9> = TileMap::from_fn(|x| x.into()).with_flip(axes);
+
             assert_eq!(grid.to_string(), expected);
         }
     }
     #[test]
     fn test_flip4() {
         for (axes, expected) in [
-            (FlipAxes::None, "0|1|2|3\n4|5|6|7\n8|9|10|11\n12|13|14|15"),
+            (
+                FlipAxes::None,
+                "0|1|2|3\n\
+                  4|5|6|7\n\
+                  8|9|10|11\n\
+                  12|13|14|15",
+            ),
             (
                 FlipAxes::Vertical,
-                "12|13|14|15\n8|9|10|11\n4|5|6|7\n0|1|2|3",
+                "12|13|14|15\n\
+                 8|9|10|11\n\
+                 4|5|6|7\n\
+                 0|1|2|3",
             ),
             (
                 FlipAxes::Horizontal,
-                "3|2|1|0\n7|6|5|4\n11|10|9|8\n15|14|13|12",
+                "3|2|1|0\n\
+                 7|6|5|4\n\
+                 11|10|9|8\n\
+                 15|14|13|12",
             ),
-            (FlipAxes::Both, "15|14|13|12\n11|10|9|8\n7|6|5|4\n3|2|1|0"),
+            (
+                FlipAxes::Both,
+                "15|14|13|12\n\
+                  11|10|9|8\n\
+                  7|6|5|4\n\
+                  3|2|1|0",
+            ),
         ] {
-            let mut grid: TileMap<usize, 4, 4, 16> = TileMap::from_fn(|x| x.into());
-            grid.flip(axes);
+            let grid: TileMap<usize, 4, 4, 16> = TileMap::from_fn(|x| x.into()).with_flip(axes);
             assert_eq!(grid.to_string(), expected);
         }
     }
 
     #[test]
-    fn rotate_clockwise_3() {
-        let mut grid: TileMap<usize, 3, 3, 9> = TileMap::from_fn(|x| x.into());
-
-        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
-        grid.rotate(QuarterTurns::One);
-        assert_eq!(grid.to_string(), "6|3|0\n7|4|1\n8|5|2");
-        grid.rotate(QuarterTurns::One);
-        assert_eq!(grid.to_string(), "8|7|6\n5|4|3\n2|1|0");
-        grid.rotate(QuarterTurns::One);
-        assert_eq!(grid.to_string(), "2|5|8\n1|4|7\n0|3|6");
-        grid.rotate(QuarterTurns::One);
-        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
+    fn test_rotate_length_1() {
+        test_rotation::<1, 1>("0");
     }
 
     #[test]
-    fn rotate_clockwise_4() {
-        let mut grid: TileMap<usize, 4, 4, 16> = TileMap::from_fn(|x| x.into());
-
-        assert_eq!(grid.to_string(), "0|1|2|3\n4|5|6|7\n8|9|10|11\n12|13|14|15");
-        grid.rotate(QuarterTurns::One);
-        assert_eq!(grid.to_string(), "12|8|4|0\n13|6|10|1\n14|5|9|2\n15|11|7|3");
-        grid.rotate(QuarterTurns::One);
-        assert_eq!(grid.to_string(), "15|14|13|12\n11|10|9|8\n7|6|5|4\n3|2|1|0");
-        grid.rotate(QuarterTurns::One);
-        assert_eq!(grid.to_string(), "3|7|11|15\n2|9|5|14\n1|10|6|13\n0|4|8|12");
-        grid.rotate(QuarterTurns::One);
-        assert_eq!(grid.to_string(), "0|1|2|3\n4|5|6|7\n8|9|10|11\n12|13|14|15");
+    fn test_rotate_length_2() {
+        test_rotation::<2, 4>(
+            "2|0\n\
+            3|1",
+        );
     }
 
     #[test]
-    fn rotate_anticlockwise_3() {
-        let mut grid: TileMap<usize, 3, 3, 9> = TileMap::from_fn(|x| x.into());
-
-        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
-        grid.rotate(QuarterTurns::Three);
-        assert_eq!(grid.to_string(), "2|5|8\n1|4|7\n0|3|6");
-        grid.rotate(QuarterTurns::Three);
-        assert_eq!(grid.to_string(), "8|7|6\n5|4|3\n2|1|0");
-        grid.rotate(QuarterTurns::Three);
-        assert_eq!(grid.to_string(), "6|3|0\n7|4|1\n8|5|2");
-        grid.rotate(QuarterTurns::Three);
-        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
+    fn test_rotate_length_3() {
+        test_rotation::<3, 9>(
+            "6|3|0\n\
+             7|4|1\n\
+             8|5|2",
+        );
     }
 
     #[test]
-    fn rotate_half_3() {
-        let mut grid: TileMap<usize, 3, 3, 9> = TileMap::from_fn(|x| x.into());
-
-        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
-        grid.rotate(QuarterTurns::Two);
-        assert_eq!(grid.to_string(), "8|7|6\n5|4|3\n2|1|0");
-        grid.rotate(QuarterTurns::Two);
-        assert_eq!(grid.to_string(), "0|1|2\n3|4|5\n6|7|8");
+    fn test_rotate_length_4() {
+        test_rotation::<4, 16>(
+            "12|8|4|0\n\
+        13|9|5|1\n\
+        14|10|6|2\n\
+        15|11|7|3",
+        );
     }
 
     #[test]
-    fn rotate_half_4() {
-        let mut grid: TileMap<usize, 4, 4, 16> = TileMap::from_fn(|x| x.into());
+    fn test_rotate_length_5() {
+        test_rotation::<5, 25>(
+            "20|15|10|5|0\n\
+        21|16|11|6|1\n\
+        22|17|12|7|2\n\
+        23|18|13|8|3\n\
+        24|19|14|9|4",
+        );
+    }
 
-        assert_eq!(grid.to_string(), "0|1|2|3\n4|5|6|7\n8|9|10|11\n12|13|14|15");
-        grid.rotate(QuarterTurns::Two);
-        assert_eq!(grid.to_string(), "15|14|13|12\n11|10|9|8\n7|6|5|4\n3|2|1|0");
-        grid.rotate(QuarterTurns::Two);
-        assert_eq!(grid.to_string(), "0|1|2|3\n4|5|6|7\n8|9|10|11\n12|13|14|15");
+    #[test]
+    fn test_rotate_length_6() {
+        test_rotation::<6, 36>(
+            "30|24|18|12|6|0\n\
+            31|25|19|13|7|1\n\
+            32|26|20|14|8|2\n\
+            33|27|21|15|9|3\n\
+            34|28|22|16|10|4\n\
+            35|29|23|17|11|5",
+        );
+    }
+
+    fn test_rotation<const LENGTH: u8, const SIZE: usize>(e: &str) {
+        let original_grid: TileMap<usize, LENGTH, LENGTH, SIZE> = TileMap::from_fn(|x| x.into());
+
+        let rotated_0 = original_grid.with_rotate(QuarterTurns::Zero);
+        assert_eq!(original_grid, rotated_0);
+
+        let rotated_1 = original_grid.with_rotate(QuarterTurns::One);
+
+        assert_eq!(rotated_1.to_string(), e);
+
+        let rotated_2 = original_grid.with_rotate(QuarterTurns::Two);
+        let rotated_1x2 = original_grid
+            .with_rotate(QuarterTurns::One)
+            .with_rotate(QuarterTurns::One);
+
+        assert_eq!(rotated_1x2, rotated_2);
+
+        let rotated_3 = original_grid.with_rotate(QuarterTurns::Three);
+        let rotated_1x3 = original_grid
+            .with_rotate(QuarterTurns::One)
+            .with_rotate(QuarterTurns::One)
+            .with_rotate(QuarterTurns::One);
+        assert_eq!(rotated_1x3, rotated_3);
+
+        let rotated_1x4 = original_grid
+            .with_rotate(QuarterTurns::One)
+            .with_rotate(QuarterTurns::One)
+            .with_rotate(QuarterTurns::One)
+            .with_rotate(QuarterTurns::One);
+        assert_eq!(rotated_1x4, original_grid);
     }
 
     #[test]
@@ -428,7 +527,12 @@ mod tests {
         }
 
         let str = grid.to_string();
-        assert_eq!(str, "0|1|2\n3|4|5\n6|7|8");
+        assert_eq!(
+            str,
+            "0|1|2\n\
+                        3|4|5\n\
+                        6|7|8"
+        );
 
         let s_flat = grid.iter().join("|");
         assert_eq!(s_flat, "0|1|2|3|4|5|6|7|8");

@@ -9,6 +9,8 @@ use crate::prelude::*;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
+//TODO subset, superset etc
+
 macro_rules! tile_set {
     ($name:ident, $iter_name:ident, $true_iter_name:ident, $inner: ty) => {
 
