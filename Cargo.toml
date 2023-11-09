@@ -1,6 +1,6 @@
 [package]
 name = "geometrid"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Mark Wainwright <wainwrightml@gmail.com>"]
 description = "Everything you would ever need to work with constant sized square grids"
 documentation = "https://docs.rs/geometrid"
