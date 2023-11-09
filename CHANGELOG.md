@@ -16,6 +16,7 @@ Possible header types:
 - Improved `rotate` for tile_map and added `with_rotate` and `with_flip`
 - Added `is_subset`, `is_superset` and `symmetric difference` for tile_set and `tile_set256`
 - Added `ALL` and `is_empty` and `with_bit_set` to `tile_set256`
+- Improved performance of `iter_true_tiles` for `tile_set256`
 
 ## v0.5.0 (2023-11-06)
 - Added `is_edge` and `is_corner` and `adjacent_tile_count` to tile

@@ -193,10 +193,8 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     }
 
     #[must_use]
-    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> {
-        self.iter()
-            .enumerate()
-            .flat_map(|(i, b)| b.then(|| Tile::try_from_usize(i).unwrap()))
+    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator {
+        TrueTilesIter256::new(self)
     }
 
     #[must_use]
@@ -279,6 +277,52 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         Self(a & mask)
     }
 }
+
+
+#[derive(Copy, Clone, Debug)]
+struct TrueTilesIter256<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> {
+    inner: U256,
+    last: u8
+}
+
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> ExactSizeIterator
+    for TrueTilesIter256<WIDTH, HEIGHT, SIZE>
+{
+    fn len(&self) -> usize {
+        self.inner.count_ones() as usize
+    }
+}
+
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
+    for TrueTilesIter256<WIDTH, HEIGHT, SIZE>
+{
+    type Item = Tile<WIDTH, HEIGHT>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.inner == 0 {
+            return None;
+        }
+        let zeros = self.inner.trailing_zeros();
+        self.inner = self.inner.wrapping_shr(zeros + 1);
+        let ret = Tile::<WIDTH, HEIGHT>::try_from_inner(self.last + zeros as u8);
+        self.last += (zeros + 1) as u8;
+        ret
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let size = self.inner.count_zeros() as usize;
+        (size, Some(size))
+    }
+}
+
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TrueTilesIter256<WIDTH, HEIGHT, SIZE> {
+    pub fn new(grid: & TileSet256<WIDTH, HEIGHT, SIZE>) -> Self {
+        Self {
+            inner: grid.into_inner(),
+            last: 0,
+        }
+    }
+}
+
 
 #[derive(Copy, Clone, Debug)]
 pub struct TileSetIter256<const STEP: u8> {
