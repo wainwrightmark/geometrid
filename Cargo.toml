@@ -1,6 +1,6 @@
 [package]
 name = "geometrid"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Mark Wainwright <wainwrightml@gmail.com>"]
 description = "Everything you would ever need to work with constant sized square grids"
 documentation = "https://docs.rs/geometrid"
@@ -19,7 +19,7 @@ all-features = true
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-itertools = { version = "0.11", default-features = false }
+itertools = { version = "0.12", default-features = false }
 strum = { version = "0.25", default-features = false, features = ["derive"] }
 tinyvec = { version = "1.6.0", default-features = false, features = ["rustc_1_57"] }
 serde = {version = "1.0", features=["derive"], optional = true}
@@ -31,7 +31,7 @@ glam = {version= "0.24", optional = true, default-features = false, features=["s
 [dev-dependencies]
 version-sync = "0.9"
 insta = {version= "1.34", features=["json"] }
-itertools = { version = "0.11"}
+itertools = { version = "0.12"}
 serde_test = "1.0"
 serde = {version = "1.0", features=["derive"]}
 serde_arrays = {version = "0.1.0"}

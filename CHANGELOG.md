@@ -12,6 +12,9 @@ Possible header types:
 
 [crates.io]: https://crates.io/crates/geometrid
 
+## v0.7.0 (Unreleased)
+- Added `TileByRowIter`. Improved tile iterator methods
+
 ## v0.6.0 (2023-11-09)
 - Improved `rotate` for tile_map and added `with_rotate` and `with_flip`
 - Added `is_subset`, `is_superset` and `symmetric difference` for tile_set and `tile_set256`

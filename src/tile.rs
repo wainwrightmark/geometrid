@@ -160,14 +160,16 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
     }
 
     /// Iterate through all tiles by row
+    /// This method has better performance than `iter_by_col`
     #[must_use]
-    pub fn iter_by_row() -> impl Iterator<Item = Self> {
-        ((Self::NORTH_WEST.0)..=(Self::SOUTH_EAST.0)).map(|x| Self(x))
+    pub fn iter_by_row() -> TileByRowIter<WIDTH, HEIGHT> {
+        TileByRowIter::default()
     }
 
     /// Iterate through all tiles by column
+    /// This method has worse performance than `iter_by_row`
     #[must_use]
-    pub const fn iter_by_col() -> impl Iterator<Item = Self> {
+    pub const fn iter_by_col() -> TileByColumnIter<WIDTH, HEIGHT> {
         TileByColumnIter(Some(Self(0)))
     }
 
