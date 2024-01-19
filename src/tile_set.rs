@@ -255,6 +255,22 @@ macro_rules! tile_set {
         let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
         Self(!self.0 & mask)
     }
+
+    /// The first tile in this set
+    #[must_use]
+    pub const fn first(&self)-> Option<Tile<WIDTH, HEIGHT>>
+    {
+        Tile::<WIDTH, HEIGHT>::try_from_inner( self.0.trailing_zeros() as u8)
+    }
+
+    /// The last tile in this set
+    #[must_use]
+    pub const fn last(&self)-> Option<Tile<WIDTH, HEIGHT>>
+    {
+        let Some(index) = (<$inner>::BITS - 1).checked_sub( self.0.leading_zeros()) else{return None;};
+
+        Tile::<WIDTH, HEIGHT>::try_from_inner(index as u8)
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -669,6 +685,38 @@ mod tests {
 
         let _ = iter.next();
         assert_eq!(11, iter.len());
+    }
+
+    #[test]
+    fn test_first(){
+        let mut set = TileSet16::<4,3, 12>::from_fn(|tile|tile.x() > tile.y());
+
+        let expected: Vec<_> = Tile::<4,3>::iter_by_row().filter(|tile|tile.x() > tile.y()).collect();
+        let mut actual: Vec<Tile::<4,3>> = vec![];
+
+        while let Some(first) = set.first() {
+            set.set_bit(&first, false);
+            actual.push(first);
+        }
+
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_last(){
+        let mut set = TileSet16::<4,3, 12>::from_fn(|tile|tile.x() > tile.y());
+
+        let mut expected: Vec<_> = Tile::<4,3>::iter_by_row().filter(|tile|tile.x() > tile.y()).collect();
+        expected.reverse();
+        let mut actual: Vec<Tile::<4,3>> = vec![];
+
+        while let Some(last) = set.last() {
+            set.set_bit(&last, false);
+            actual.push(last);
+        }
+
+        assert_eq!(expected, actual);
     }
 
 

@@ -15,6 +15,7 @@ Possible header types:
 ## v0.7.0 (Unreleased)
 - Added `TileByRowIter`. Improved tile iterator methods
 - Bump Glam to 0.25.0
+- Add `first` and `last` to `tile_set`
 
 ## v0.6.0 (2023-11-09)
 - Improved `rotate` for tile_map and added `with_rotate` and `with_flip`
