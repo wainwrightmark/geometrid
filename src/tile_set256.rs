@@ -1,6 +1,6 @@
 use core::{
     fmt::{self, Write},
-    iter,
+    iter::{self, FusedIterator},
     ops::{Index, IndexMut, Shl, Shr},
 };
 
@@ -193,7 +193,12 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     }
 
     #[must_use]
-    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator {
+    pub fn iter_true_tiles(
+        &self,
+    ) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>>
+           + ExactSizeIterator
+           + FusedIterator
+           + DoubleEndedIterator {
         TrueTilesIter256::new(self)
     }
 
@@ -276,20 +281,39 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
         Self(a & mask)
     }
-}
 
+    /// The first tile in this set
+    #[must_use]
+    pub fn first(&self) -> Option<Tile<WIDTH, HEIGHT>> {
+        Tile::<WIDTH, HEIGHT>::try_from_usize(self.0.trailing_zeros() as usize)
+    }
+
+    /// The last tile in this set
+    #[must_use]
+    pub fn last(&self) -> Option<Tile<WIDTH, HEIGHT>> {
+        let Some(index) = (U256::BITS - 1).checked_sub(self.0.leading_zeros()) else {
+            return None;
+        };
+
+        Tile::<WIDTH, HEIGHT>::try_from_inner(index as u8)
+    }
+}
 
 #[derive(Copy, Clone, Debug)]
 struct TrueTilesIter256<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> {
-    inner: U256,
-    last: u8
+    inner: TileSet256<WIDTH, HEIGHT, SIZE>,
+}
+
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> FusedIterator
+    for TrueTilesIter256<WIDTH, HEIGHT, SIZE>
+{
 }
 
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> ExactSizeIterator
     for TrueTilesIter256<WIDTH, HEIGHT, SIZE>
 {
     fn len(&self) -> usize {
-        self.inner.count_ones() as usize
+        self.inner.count() as usize
     }
 }
 
@@ -299,30 +323,31 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
     type Item = Tile<WIDTH, HEIGHT>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.inner == 0 {
-            return None;
-        }
-        let zeros = self.inner.trailing_zeros();
-        self.inner = self.inner.wrapping_shr(zeros + 1);
-        let ret = Tile::<WIDTH, HEIGHT>::try_from_inner(self.last + zeros as u8);
-        self.last += (zeros + 1) as u8;
-        ret
+        let next = self.inner.first()?;
+        self.inner.set_bit(&next, false);
+        Some(next)
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let size = self.inner.count_zeros() as usize;
+        let size = self.len();
         (size, Some(size))
     }
 }
 
-impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TrueTilesIter256<WIDTH, HEIGHT, SIZE> {
-    pub fn new(grid: & TileSet256<WIDTH, HEIGHT, SIZE>) -> Self {
-        Self {
-            inner: grid.into_inner(),
-            last: 0,
-        }
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> DoubleEndedIterator
+    for TrueTilesIter256<WIDTH, HEIGHT, SIZE>
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        let next = self.inner.last()?;
+        self.inner.set_bit(&next, false);
+        Some(next)
     }
 }
 
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TrueTilesIter256<WIDTH, HEIGHT, SIZE> {
+    pub fn new(set: &TileSet256<WIDTH, HEIGHT, SIZE>) -> Self {
+        Self { inner: *set }
+    }
+}
 
 #[derive(Copy, Clone, Debug)]
 pub struct TileSetIter256<const STEP: u8> {
@@ -655,5 +680,53 @@ mod tests {
                 .to_string()
                 .as_str()
         );
+    }
+
+    #[test]
+    fn test_first() {
+        let mut set = TileSet256::<4, 3, 12>::from_fn(|tile| tile.x() > tile.y());
+
+        let expected: Vec<_> = Tile::<4, 3>::iter_by_row()
+            .filter(|tile| tile.x() > tile.y())
+            .collect();
+        let mut actual: Vec<Tile<4, 3>> = vec![];
+
+        while let Some(first) = set.first() {
+            set.set_bit(&first, false);
+            actual.push(first);
+        }
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_last() {
+        let mut set = TileSet256::<4, 3, 12>::from_fn(|tile| tile.x() > tile.y());
+
+        let mut expected: Vec<_> = Tile::<4, 3>::iter_by_row()
+            .filter(|tile| tile.x() > tile.y())
+            .collect();
+        expected.reverse();
+        let mut actual: Vec<Tile<4, 3>> = vec![];
+
+        while let Some(last) = set.last() {
+            set.set_bit(&last, false);
+            actual.push(last);
+        }
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_iter_true_rev() {
+        let mut set = TileSet256::<40, 4, 160>::from_fn(|tile| tile.x() > tile.y());
+
+        let mut expected: Vec<_> = Tile::<40, 4>::iter_by_row()
+            .filter(|tile| tile.x() > tile.y())
+            .collect();
+        expected.reverse();
+        let mut actual: Vec<Tile<40, 4>> = set.iter_true_tiles().rev().collect();
+
+        assert_eq!(expected, actual);
     }
 }
