@@ -7,13 +7,14 @@ Possible header types:
 - `Features` for any new features added, or for backwards-compatible
   changes to existing functionality.
 - `Bug Fixes` for any bug fixes.
-- `Breaking Changes` for any backwards-incompatible changes.#
+- `Breaking Changes` for any backwards-incompatible changes.
 
 
 [crates.io]: https://crates.io/crates/geometrid
 
 ## v0.7.0 (Unreleased)
 - Added `TileByRowIter`. Improved tile iterator methods
+- Bump Glam to 0.25.0
 
 ## v0.6.0 (2023-11-09)
 - Improved `rotate` for tile_map and added `with_rotate` and `with_flip`
