@@ -206,7 +206,7 @@ macro_rules! tile_set {
 
 
     #[must_use]
-    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator {
+    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator + core::iter::FusedIterator + DoubleEndedIterator {
         $true_iter_name::new(self)
     }
 
@@ -275,15 +275,17 @@ macro_rules! tile_set {
 
 #[derive(Copy, Clone, Debug)]
 struct $true_iter_name<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> {
-    inner: $inner,
-    last: u8
+    inner: $name::<WIDTH, HEIGHT, SIZE>,
 }
+
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::FusedIterator
+    for $true_iter_name<WIDTH, HEIGHT, SIZE>{}
 
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> ExactSizeIterator
     for $true_iter_name<WIDTH, HEIGHT, SIZE>
 {
     fn len(&self) -> usize {
-        self.inner.count_ones() as usize
+        self.inner.count() as usize
     }
 }
 
@@ -293,26 +295,29 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
     type Item = Tile<WIDTH, HEIGHT>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.inner == 0 {
-            return None;
-        }
-        let zeros = self.inner.trailing_zeros();
-        self.inner = self.inner.wrapping_shr(zeros + 1);
-        let ret = Tile::<WIDTH, HEIGHT>::try_from_inner(self.last + zeros as u8);
-        self.last += (zeros + 1) as u8;
-        ret
+        let next = self.inner.first()?;
+        self.inner.set_bit(&next, false);
+        Some(next)
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let size = self.inner.count_zeros() as usize;
+        let size = self.len();
         (size, Some(size))
     }
 }
 
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEndedIterator
+    for $true_iter_name<WIDTH, HEIGHT, SIZE>{
+        fn next_back(&mut self) -> Option<Self::Item> {
+            let next = self.inner.last()?;
+            self.inner.set_bit(&next, false);
+            Some(next)
+        }
+    }
+
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> $true_iter_name<WIDTH, HEIGHT, SIZE> {
-    pub fn new(grid: & $name<WIDTH, HEIGHT, SIZE>) -> Self {
+    pub fn new(set: & $name<WIDTH, HEIGHT, SIZE>) -> Self {
         Self {
-            inner: grid.into_inner(),
-            last: 0,
+            inner: set.clone()
         }
     }
 }
@@ -461,27 +466,31 @@ mod tests {
         let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.x() == 0);
         let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.y() == 0);
 
-        assert_eq!(grid_left.union(&grid_top).to_string(),
-        "***\n\
+        assert_eq!(
+            grid_left.union(&grid_top).to_string(),
+            "***\n\
          *__\n\
-         *__")
+         *__"
+        )
     }
 
     #[test]
-    fn test_symmetric_difference(){
+    fn test_symmetric_difference() {
         let grid_left: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.x() == 0);
         let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.y() == 0);
 
-        assert_eq!(grid_left.symmetric_difference(&grid_top).to_string(),
-        "_**\n\
+        assert_eq!(
+            grid_left.symmetric_difference(&grid_top).to_string(),
+            "_**\n\
          *__\n\
-         *__")
+         *__"
+        )
     }
 
     #[test]
-    fn test_subset(){
+    fn test_subset() {
         let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.y() == 0);
-        let all : TileSet16<3, 3, 9> = TileSet16::ALL;
+        let all: TileSet16<3, 3, 9> = TileSet16::ALL;
 
         assert!(grid_top.is_subset(&all));
         assert!(grid_top.is_subset(&grid_top));
@@ -489,9 +498,9 @@ mod tests {
     }
 
     #[test]
-    fn test_superset(){
+    fn test_superset() {
         let grid_top: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.y() == 0);
-        let all : TileSet16<3, 3, 9> = TileSet16::ALL;
+        let all: TileSet16<3, 3, 9> = TileSet16::ALL;
 
         assert!(!grid_top.is_superset(&all));
         assert!(grid_top.is_superset(&grid_top));
@@ -688,28 +697,31 @@ mod tests {
     }
 
     #[test]
-    fn test_first(){
-        let mut set = TileSet16::<4,3, 12>::from_fn(|tile|tile.x() > tile.y());
+    fn test_first() {
+        let mut set = TileSet16::<4, 3, 12>::from_fn(|tile| tile.x() > tile.y());
 
-        let expected: Vec<_> = Tile::<4,3>::iter_by_row().filter(|tile|tile.x() > tile.y()).collect();
-        let mut actual: Vec<Tile::<4,3>> = vec![];
+        let expected: Vec<_> = Tile::<4, 3>::iter_by_row()
+            .filter(|tile| tile.x() > tile.y())
+            .collect();
+        let mut actual: Vec<Tile<4, 3>> = vec![];
 
         while let Some(first) = set.first() {
             set.set_bit(&first, false);
             actual.push(first);
         }
 
-
         assert_eq!(expected, actual);
     }
 
     #[test]
-    fn test_last(){
-        let mut set = TileSet16::<4,3, 12>::from_fn(|tile|tile.x() > tile.y());
+    fn test_last() {
+        let mut set = TileSet16::<4, 3, 12>::from_fn(|tile| tile.x() > tile.y());
 
-        let mut expected: Vec<_> = Tile::<4,3>::iter_by_row().filter(|tile|tile.x() > tile.y()).collect();
+        let mut expected: Vec<_> = Tile::<4, 3>::iter_by_row()
+            .filter(|tile| tile.x() > tile.y())
+            .collect();
         expected.reverse();
-        let mut actual: Vec<Tile::<4,3>> = vec![];
+        let mut actual: Vec<Tile<4, 3>> = vec![];
 
         while let Some(last) = set.last() {
             set.set_bit(&last, false);
@@ -719,5 +731,16 @@ mod tests {
         assert_eq!(expected, actual);
     }
 
+    #[test]
+    fn test_iter_true_rev() {
+        let mut set = TileSet16::<4, 3, 12>::from_fn(|tile| tile.x() > tile.y());
 
+        let mut expected: Vec<_> = Tile::<4, 3>::iter_by_row()
+            .filter(|tile| tile.x() > tile.y())
+            .collect();
+        expected.reverse();
+        let mut actual: Vec<Tile<4, 3>> = set.iter_true_tiles().rev().collect();
+
+        assert_eq!(expected, actual);
+    }
 }

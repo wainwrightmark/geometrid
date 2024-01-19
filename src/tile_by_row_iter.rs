@@ -10,7 +10,7 @@ impl<const WIDTH: u8, const HEIGHT: u8> Iterator for TileByRowIter<WIDTH, HEIGHT
 
     fn next(&mut self) -> Option<Self::Item> {
         let ret = crate::tile::Tile::<WIDTH, HEIGHT>::try_from_inner(self.inner);
-        self.inner = self.inner.saturating_add(1);
+        self.inner = self.inner.saturating_add(1); //Note this will not loop forever because 255 is not a valid value for a tile
         ret
 
     }
