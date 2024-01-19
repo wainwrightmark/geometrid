@@ -9,21 +9,26 @@ Possible header types:
 - `Bug Fixes` for any bug fixes.
 - `Breaking Changes` for any backwards-incompatible changes.
 
-
 [crates.io]: https://crates.io/crates/geometrid
 
 ## v0.7.0 (Unreleased)
+
 - Added `TileByRowIter`. Improved tile iterator methods
 - Bump Glam to 0.25.0
-- Add `first` and `last` to `tile_set`
+- Add `first` and `last` to tile sets
+- More efficient `iter_true_tiles` in tile sets
+- More efficient `row_mask` and `col_mask` in tile sets
+- Tile set `iter_true_tiles` now implements `FusedIterator` and `DoubleEndedIterator`
 
 ## v0.6.0 (2023-11-09)
+
 - Improved `rotate` for tile_map and added `with_rotate` and `with_flip`
 - Added `is_subset`, `is_superset` and `symmetric difference` for tile_set and `tile_set256`
 - Added `ALL` and `is_empty` and `with_bit_set` to `tile_set256`
 - Improved performance of `iter_true_tiles` for `tile_set256`
 
 ## v0.5.0 (2023-11-06)
+
 - Added `is_edge` and `is_corner` and `adjacent_tile_count` to tile
 - Added `ALL` and `is_empty` and `with_bit_set` to tile_set
 - Bumped versions of dependencies
@@ -41,7 +46,6 @@ Possible header types:
 - Breaking Changes - all polyominos are now in normalized form
 - Breaking Changes - replaced `Point` with `glam::f32::Vec2`. This and the `HasCenter` trait are behind the `glam` feature.
 - Added `EnumIs` derives to all enums
-
 
 ## v0.2.0 (2023-7-02)
 

@@ -163,34 +163,45 @@ macro_rules! tile_set {
             Self(a & mask)
         }
 
-        #[must_use]
-    #[inline]
-    pub const fn row_mask(y: u8) -> Self {
-        Self::assert_legal();
+
+    const ROW_ZERO_MASK: $inner = {
         let mut inner : $inner = 0;
-        let mut tile = Tile::<WIDTH, HEIGHT>::try_new(0, y);
+        let mut tile = Some(Tile::<WIDTH, HEIGHT>::NORTH_WEST);
 
         while let Some(t) = tile {
             let i = t.inner();
             inner |= 1 << i;
             tile = t.const_add(&Vector::EAST);
         }
+        inner
+    };
+
+    #[must_use]
+    #[inline]
+    pub const fn row_mask(y: u8) -> Self { //TODO make a constant and shi
+        Self::assert_legal();
+        let inner = Self::ROW_ZERO_MASK << (y * WIDTH);
 
         Self(inner)
     }
 
-    #[must_use]
-    #[inline]
-    pub const fn col_mask(x: u8) -> Self {
-        Self::assert_legal();
+    const COL_ZERO_MASK: $inner = {
         let mut inner : $inner = 0;
-        let mut tile = Tile::<WIDTH, HEIGHT>::try_new(x,  0);
+        let mut tile = Some(Tile::<WIDTH, HEIGHT>::NORTH_WEST);
 
         while let Some(t) = tile {
             let i = t.inner();
             inner |= 1 << i;
             tile = t.const_add(&Vector::SOUTH);
         }
+        inner
+    };
+
+    #[must_use]
+    #[inline]
+    pub const fn col_mask(x: u8) -> Self {
+        Self::assert_legal();
+        let inner = Self::COL_ZERO_MASK << (x);
 
         Self(inner)
     }
