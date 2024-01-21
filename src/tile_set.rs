@@ -9,8 +9,6 @@ use crate::prelude::*;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
-//TODO subset, superset etc
-
 macro_rules! tile_set {
     ($name:ident, $iter_name:ident, $true_iter_name:ident, $inner: ty) => {
 
@@ -31,105 +29,110 @@ macro_rules! tile_set {
 
         impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> $name<WIDTH, HEIGHT, SIZE> {
 
-            /// The set where all tiles are missing
-            pub const EMPTY: Self = {
-                Self::assert_legal();
-                Self(0)
+        /// The set where all tiles are missing
+        pub const EMPTY: Self = {
+            Self::assert_legal();
+            Self(0)
+        };
+
+        /// The set where all tiles are present
+        pub const ALL: Self = {
+            Self::EMPTY.negate()
+        };
+
+
+
+        #[inline]
+        #[inline]
+        const fn assert_legal() {
+            debug_assert!(SIZE == (WIDTH as usize * HEIGHT as usize) );
+            debug_assert!(SIZE <= <$inner>::BITS as usize);
+        }
+
+        #[must_use]
+        #[inline]
+        pub fn from_fn<F: FnMut(Tile<WIDTH, HEIGHT>) -> bool>(mut cb: F) -> Self {
+            Self::assert_legal();
+
+            let mut result = Self::default();
+            for tile in Tile::<WIDTH, HEIGHT>::iter_by_row() {
+                if cb(tile) {
+                    result.set_bit(&tile, true);
+                }
+            }
+
+            result
+        }
+
+        #[must_use]
+        #[inline]
+        pub const fn from_inner(inner: $inner) -> Self {
+            Self::assert_legal();
+            Self(inner)
+        }
+
+        #[inline]
+        pub fn from_iter(iter: impl Iterator<Item = Tile<WIDTH, HEIGHT>>) -> Self {
+            Self::assert_legal();
+            let mut r = Self::default();
+            for x in iter {
+                r.set_bit(&x, true);
+            }
+            r
+        }
+
+        #[must_use]
+        #[inline]
+        pub const fn into_inner(self) -> $inner {
+            self.0
+        }
+
+        #[must_use]
+        #[inline]
+        pub const fn is_empty(self)-> bool{
+            self.0 == Self::EMPTY.0
+        }
+
+        #[inline]
+        pub fn set_bit(&mut self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) {
+            if bit {
+                self.0 |= (1 as $inner << tile.inner() as u32);
+            } else {
+                self.0 &= !(1 as $inner << tile.inner() as u32);
+            }
+        }
+
+        /// Returns a copy of self with the bit at `tile` set to `bit`
+        #[must_use]
+        #[inline]
+        pub const fn with_bit_set(&self, tile: &Tile<WIDTH, HEIGHT>, bit: bool)-> Self{
+            let inner =
+            if bit {
+                self.0 | (1 as $inner << tile.inner() as u32)
+            } else {
+                self.0 & !(1 as $inner << tile.inner() as u32)
             };
 
-            /// The set where all tiles are present
-            pub const ALL: Self = {
-                Self::EMPTY.negate()
-            };
+            Self(inner)
+        }
 
+        #[must_use]
+        #[inline]
+        pub const fn get_bit(&self, tile: &Tile<WIDTH, HEIGHT>) -> bool {
+            (self.0 >> tile.inner() as u32) & 1 == 1
+        }
 
-
-            #[inline]
-            const fn assert_legal() {
-                debug_assert!(SIZE == (WIDTH as usize * HEIGHT as usize) );
-                debug_assert!(SIZE <= <$inner>::BITS as usize);
+        #[must_use]
+        #[inline]
+        pub const fn iter(&self) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
+            $iter_name::<1> {
+                bottom_index: 0,
+                top_index: SIZE,
+                inner: self.0,
             }
+        }
 
-            #[must_use]
-            pub fn from_fn<F: FnMut(Tile<WIDTH, HEIGHT>) -> bool>(mut cb: F) -> Self {
-                Self::assert_legal();
-
-                let mut result = Self::default();
-                for tile in Tile::<WIDTH, HEIGHT>::iter_by_row() {
-                    if cb(tile) {
-                        result.set_bit(&tile, true);
-                    }
-                }
-
-                result
-            }
-
-            #[must_use]
-            #[inline]
-            pub const fn from_inner(inner: $inner) -> Self {
-                Self::assert_legal();
-                Self(inner)
-            }
-
-            pub fn from_iter(iter: impl Iterator<Item = Tile<WIDTH, HEIGHT>>) -> Self {
-                Self::assert_legal();
-                let mut r = Self::default();
-                for x in iter {
-                    r.set_bit(&x, true);
-                }
-                r
-            }
-
-            #[must_use]
-            #[inline]
-            pub const fn into_inner(self) -> $inner {
-                self.0
-            }
-
-            #[must_use]
-            #[inline]
-            pub const fn is_empty(self)-> bool{
-                self.0 == Self::EMPTY.0
-            }
-
-            #[inline]
-            pub fn set_bit(&mut self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) {
-                if bit {
-                    self.0 |= (1 as $inner << tile.inner() as u32);
-                } else {
-                    self.0 &= !(1 as $inner << tile.inner() as u32);
-                }
-            }
-
-            /// Returns a copy of self with the bit at `tile` set to `bit`
-            #[must_use]
-            #[inline]
-            pub const fn with_bit_set(&self, tile: &Tile<WIDTH, HEIGHT>, bit: bool)-> Self{
-                let inner =
-                if bit {
-                    self.0 | (1 as $inner << tile.inner() as u32)
-                } else {
-                    self.0 & !(1 as $inner << tile.inner() as u32)
-                };
-
-                Self(inner)
-            }
-
-            #[must_use]
-            #[inline]
-            pub const fn get_bit(&self, tile: &Tile<WIDTH, HEIGHT>) -> bool {
-                (self.0 >> tile.inner() as u32) & 1 == 1
-            }
-
-            #[must_use]
-            pub const fn iter(&self) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
-                $iter_name::<1> {
-                    bottom_index: 0,
-                    top_index: SIZE,
-                    inner: self.0,
-                }
-            }
-
+        #[inline]
         #[must_use]
         pub const fn row(&self, y: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
             $iter_name::<1> {
@@ -139,6 +142,7 @@ macro_rules! tile_set {
             }
         }
 
+        #[inline]
         #[must_use]
         pub const fn col(&self, x: u8) -> impl DoubleEndedIterator<Item = bool> + ExactSizeIterator {
 
@@ -149,13 +153,15 @@ macro_rules! tile_set {
             }
         }
 
+
+        #[inline]
         #[must_use]
         pub fn shift_north(&self, rows: u8)-> Self{
             let a =self.0.shr(rows * WIDTH);
             let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
             Self(a & mask)
         }
-
+        #[inline]
         #[must_use]
         pub fn shift_south(&self, rows: u8)-> Self{
             let a =self.0.shl(rows * WIDTH);
@@ -207,6 +213,7 @@ macro_rules! tile_set {
     }
 
     #[must_use]
+    #[inline]
     pub fn enumerate(
         &self,
     ) -> impl DoubleEndedIterator<Item = (Tile<WIDTH, HEIGHT>, bool)> + ExactSizeIterator {
@@ -217,17 +224,20 @@ macro_rules! tile_set {
 
 
     #[must_use]
+    #[inline]
     pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator + core::iter::FusedIterator + DoubleEndedIterator {
         $true_iter_name::new(self)
     }
 
     #[must_use]
+    #[inline]
     pub const fn count(&self) -> u32 {
         self.0.count_ones()
     }
 
     /// Get the scale to make the grid take up as much as possible of a given area
     #[must_use]
+    #[inline]
     pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
         let x_multiplier = total_width / WIDTH as f32;
         let y_multiplier = total_height / HEIGHT as f32;
@@ -236,32 +246,38 @@ macro_rules! tile_set {
     }
 
     #[must_use]
+    #[inline]
     pub const fn intersect(&self, rhs: &Self) -> Self {
         Self(self.0 & rhs.0)
     }
 
     #[must_use]
+    #[inline]
     pub const fn union(&self, rhs: &Self) -> Self {
         Self(self.0 | rhs.0)
     }
 
     #[must_use]
+    #[inline]
     pub const fn is_subset(&self, rhs: &Self)-> bool{
         self.intersect(rhs).0 == self.0
     }
 
     #[must_use]
+    #[inline]
     pub const fn is_superset(&self, rhs: &Self)-> bool{
         self.intersect(rhs).0 == rhs.0
     }
 
     /// Returns a new set containing all elements which belong to one set but not both
     #[must_use]
+    #[inline]
     pub const fn symmetric_difference(&self, rhs: &Self)-> Self{
         Self(self.0 ^ rhs.0)
     }
 
     #[must_use]
+    #[inline]
     pub const fn negate(&self) -> Self {
         let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
         Self(!self.0 & mask)
@@ -269,6 +285,7 @@ macro_rules! tile_set {
 
     /// The first tile in this set
     #[must_use]
+    #[inline]
     pub const fn first(&self)-> Option<Tile<WIDTH, HEIGHT>>
     {
         Tile::<WIDTH, HEIGHT>::try_from_inner( self.0.trailing_zeros() as u8)
@@ -276,6 +293,7 @@ macro_rules! tile_set {
 
     /// The last tile in this set
     #[must_use]
+    #[inline]
     pub const fn last(&self)-> Option<Tile<WIDTH, HEIGHT>>
     {
         let Some(index) = (<$inner>::BITS - 1).checked_sub( self.0.leading_zeros()) else{return None;};
@@ -295,6 +313,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::FusedIter
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> ExactSizeIterator
     for $true_iter_name<WIDTH, HEIGHT, SIZE>
 {
+    #[inline]
     fn len(&self) -> usize {
         self.inner.count() as usize
     }
@@ -305,11 +324,13 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
 {
     type Item = Tile<WIDTH, HEIGHT>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let next = self.inner.first()?;
         self.inner.set_bit(&next, false);
         Some(next)
     }
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let size = self.len();
         (size, Some(size))
@@ -318,6 +339,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
 
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEndedIterator
     for $true_iter_name<WIDTH, HEIGHT, SIZE>{
+        #[inline]
         fn next_back(&mut self) -> Option<Self::Item> {
             let next = self.inner.last()?;
             self.inner.set_bit(&next, false);
@@ -326,6 +348,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEnd
     }
 
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> $true_iter_name<WIDTH, HEIGHT, SIZE> {
+    #[inline]
     pub fn new(set: & $name<WIDTH, HEIGHT, SIZE>) -> Self {
         Self {
             inner: set.clone()
@@ -343,6 +366,7 @@ pub struct $iter_name<const STEP : u8> {
 }
 
 impl<const STEP: u8> ExactSizeIterator for $iter_name<STEP> {
+    #[inline]
     fn len(&self) -> usize {
         self.count()
     }
@@ -351,6 +375,7 @@ impl<const STEP: u8> ExactSizeIterator for $iter_name<STEP> {
 impl<const STEP: u8> Iterator for $iter_name<STEP> {
     type Item = bool;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
 
         if self.bottom_index  >= self.top_index {
@@ -362,10 +387,12 @@ impl<const STEP: u8> Iterator for $iter_name<STEP> {
         }
     }
 
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         (self.count(), Some(self.count()))
     }
 
+    #[inline]
     fn count(self) -> usize
     where
         Self: Sized,
@@ -377,6 +404,7 @@ impl<const STEP: u8> Iterator for $iter_name<STEP> {
 }
 
 impl<const STEP: u8> DoubleEndedIterator for $iter_name<STEP> {
+    #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.top_index == 0{
             return None;
