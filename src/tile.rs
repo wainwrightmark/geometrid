@@ -11,6 +11,12 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Tile<const WIDTH: u8, const HEIGHT: u8>(u8);
 
+impl<const WIDTH: u8, const HEIGHT: u8> From<Tile<WIDTH, HEIGHT>> for DynamicTile {
+    fn from(val: Tile<WIDTH, HEIGHT>) -> Self {
+        DynamicTile(Vector { x: val.x() as i8, y: val.y() as i8 })
+    }
+}
+
 impl<const WIDTH: u8, const HEIGHT: u8, V: AsRef<Vector>> Add<V> for Tile<WIDTH, HEIGHT> {
     type Output = Option<Self>;
 

@@ -1,6 +1,6 @@
 use core::{
     fmt::Debug,
-    ops::{Add, Mul, Neg},
+    ops::{Add, Mul, Neg, Sub},
 };
 
 #[cfg(any(test, feature = "serde"))]
@@ -98,6 +98,13 @@ impl Vector {
         }
     }
 
+    pub const fn const_sub(&self, rhs: &Self) -> Self {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+
     pub const fn flip(&self, axes: FlipAxes) -> Self {
         match axes {
             FlipAxes::None => *self,
@@ -188,6 +195,21 @@ impl Add for &Vector {
 
     fn add(self, rhs: Self) -> Self::Output {
         self.const_add(rhs)
+    }
+}
+
+impl Sub for Vector {
+    type Output = Vector;
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.const_sub(&rhs)
+    }
+}
+
+impl Sub for &Vector {
+    type Output = Vector;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.const_sub(rhs)
     }
 }
 
@@ -285,6 +307,9 @@ mod tests {
 
         assert_eq!(V::NORTH + V::EAST, V::NORTH_EAST);
         assert_eq!(&V::NORTH + &V::EAST, V::NORTH_EAST);
+
+        assert_eq!(V::NORTH - V::EAST, V::NORTH_WEST);
+        assert_eq!(&V::NORTH - &V::EAST, V::NORTH_WEST);
 
         assert_eq!(V::NORTH * -1i8, V::SOUTH);
         assert_eq!(V::NORTH * -1isize, V::SOUTH);

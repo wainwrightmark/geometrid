@@ -12,6 +12,12 @@ use crate::prelude::*;
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
 pub struct Vertex<const WIDTH: u8, const HEIGHT: u8>(u8);
 
+impl<const WIDTH: u8, const HEIGHT: u8> From<Vertex<WIDTH, HEIGHT>> for DynamicVertex {
+    fn from(val: Vertex<WIDTH, HEIGHT>) -> Self {
+        DynamicVertex(Vector { x: val.x() as i8, y: val.y() as i8 })
+    }
+}
+
 impl<const WIDTH: u8, const HEIGHT: u8, V: AsRef<Vector>> Add<V> for Vertex<WIDTH, HEIGHT> {
     type Output = Option<Self>;
 
