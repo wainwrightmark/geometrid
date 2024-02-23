@@ -326,7 +326,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let next = self.inner.first()?;
+        let next = self.inner.first()?; //TODO improve performance of this
         self.inner.set_bit(&next, false);
         Some(next)
     }
@@ -335,13 +335,15 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
         let size = self.len();
         (size, Some(size))
     }
+
+    //TODO implement other methods
 }
 
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEndedIterator
     for $true_iter_name<WIDTH, HEIGHT, SIZE>{
         #[inline]
         fn next_back(&mut self) -> Option<Self::Item> {
-            let next = self.inner.last()?;
+            let next = self.inner.last()?;//TODO improve performance of this
             self.inner.set_bit(&next, false);
             Some(next)
         }
@@ -427,7 +429,9 @@ impl<const STEP: u8> DoubleEndedIterator for $iter_name<STEP> {
 
                 for (i, e) in iter {
                     if i > 0 && i % (W as usize) == 0 {
-                        f.write_char('\n')?;
+                        if !f.alternate(){
+                            f.write_char('\n')?;
+                        }
                     }
                     if e {
                         f.write_char('*');
@@ -461,6 +465,7 @@ mod tests {
         let mut grid: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.inner() % 2 == 0);
 
         assert_eq!(grid.to_string(), "*_*\n_*_\n*_*");
+        assert_eq!(format!("{grid:#}"), "*_*_*_*_*");
 
         assert_eq!(grid.count(), 5);
 

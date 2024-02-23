@@ -332,7 +332,7 @@ impl<T: fmt::Display, const W: u8, const H: u8, const SIZE: usize> fmt::Display
 
         for (i, e) in iter {
             if i == 0 {
-            } else if i % (W as usize) == 0 {
+            } else if !f.alternate() && i % (W as usize) == 0 {
                 f.write_char('\n')?;
             } else {
                 f.write_char('|')?;
@@ -527,12 +527,15 @@ mod tests {
         }
 
         let str = grid.to_string();
+
         assert_eq!(
             str,
             "0|1|2\n\
                         3|4|5\n\
                         6|7|8"
         );
+
+        assert_eq!(format!("{grid:#}"), "0|1|2|3|4|5|6|7|8");
 
         let s_flat = grid.iter().join("|");
         assert_eq!(s_flat, "0|1|2|3|4|5|6|7|8");

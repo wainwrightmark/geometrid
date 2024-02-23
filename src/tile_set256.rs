@@ -412,7 +412,9 @@ impl<const W: u8, const H: u8, const SIZE: usize> fmt::Display for TileSet256<W,
 
         for (i, e) in iter {
             if i > 0 && i % (W as usize) == 0 {
-                f.write_char('\n')?;
+                if !f.alternate(){
+                    f.write_char('\n')?;
+                }
             }
             if e {
                 f.write_char('*');
@@ -442,6 +444,8 @@ mod tests {
         let mut grid: TileSet256<3, 3, 9> = TileSet256::from_fn(|x| x.inner() % 2 == 0);
 
         assert_eq!(grid.to_string(), "*_*\n_*_\n*_*");
+
+        assert_eq!(format!("{grid:#}"), "*_*_*_*_*");
 
         assert_eq!(grid.count(), 5);
 
