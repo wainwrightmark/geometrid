@@ -292,16 +292,27 @@ macro_rules! tile_set {
     }
 
     /// Removees the first tile in this set and returns it
+    /// Returns `None` if the set is empty
     pub fn pop(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
     {
         if self.0 == 0{
             return None;
         }
-        let tz = self.0.trailing_zeros() as $inner;
+        let index = self.0.trailing_zeros() as $inner;
+        self.0 &= !(1 as $inner << index);
+        Some(Tile::<WIDTH, HEIGHT>::from_inner_unchecked(index as u8))
+    }
 
-        self.0 &= !(1 as $inner << tz);
-
-        Some(Tile::<WIDTH, HEIGHT>::from_inner_unchecked(tz as u8))
+    /// Removees the first tile in this set and returns it
+    /// Returns `None` if the set is empty
+    pub fn pop_last(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
+    {
+        if self.0 == 0{
+            return None;
+        }
+        let index = <$inner>::BITS - 1 - self.0.leading_zeros();
+        self.0 &= !(1 as $inner << index);
+        Some(Tile::<WIDTH, HEIGHT>::from_inner_unchecked(index as u8))
     }
 
     /// The last tile in this set
@@ -311,7 +322,7 @@ macro_rules! tile_set {
     {
         let Some(index) = (<$inner>::BITS - 1).checked_sub( self.0.leading_zeros()) else{return None;};
 
-        Tile::<WIDTH, HEIGHT>::try_from_inner(index as u8)
+        Some(Tile::<WIDTH, HEIGHT>::from_inner_unchecked(index as u8))
     }
 }
 
@@ -347,6 +358,40 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
         (size, Some(size))
     }
 
+    #[inline]
+    fn count(self) -> usize
+    where
+        Self: Sized,
+    {
+        self.inner.count() as usize
+    }
+
+    #[inline]
+    fn last(mut self) -> Option<Self::Item>
+    where
+        Self: Sized,
+    {
+        self.inner.last()
+    }
+
+    #[inline]
+    fn max(self) -> Option<Self::Item>
+    where
+        Self: Sized,
+        Self::Item: Ord,
+    {
+        self.last()
+    }
+
+    #[inline]
+    fn min(mut self) -> Option<Self::Item>
+    where
+        Self: Sized,
+        Self::Item: Ord,
+    {
+        self.next()
+    }
+
     //TODO implement other methods
 }
 
@@ -354,9 +399,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEnd
     for $true_iter_name<WIDTH, HEIGHT, SIZE>{
         #[inline]
         fn next_back(&mut self) -> Option<Self::Item> {
-            let next = self.inner.last()?;//TODO improve performance of this
-            self.inner.set_bit(&next, false);
-            Some(next)
+            self.inner.pop_last()
         }
     }
 
