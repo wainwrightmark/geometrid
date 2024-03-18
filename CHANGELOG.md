@@ -14,10 +14,11 @@ Possible header types:
 ## v0.7.0 (Unreleased)
 
 - Added `TileByRowIter`. Improved tile iterator methods
-- Add `first` and `last` to tile sets
+- Add `first`, `pop`, `last`, `pop_last` to tile sets
 - More efficient `iter_true_tiles` in tile sets
 - More efficient `row_mask` and `col_mask` in tile sets
 - Tile set `iter_true_tiles` now implements `FusedIterator` and `DoubleEndedIterator`
+- Bumped glam to 0.25.0
 
 ## v0.6.0 (2023-11-09)
 

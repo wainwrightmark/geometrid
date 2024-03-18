@@ -225,7 +225,7 @@ macro_rules! tile_set {
 
     #[must_use]
     #[inline]
-    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator + core::iter::FusedIterator + DoubleEndedIterator {
+    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> + Clone + core::fmt::Debug + ExactSizeIterator + core::iter::FusedIterator + DoubleEndedIterator {
         $true_iter_name::new(self)
     }
 
@@ -291,7 +291,7 @@ macro_rules! tile_set {
         Tile::<WIDTH, HEIGHT>::try_from_inner( self.0.trailing_zeros() as u8)
     }
 
-    /// Removees the first tile in this set and returns it
+    /// Removes the first tile in this set and returns it
     /// Returns `None` if the set is empty
     pub fn pop(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
     {
@@ -303,7 +303,7 @@ macro_rules! tile_set {
         Some(Tile::<WIDTH, HEIGHT>::from_inner_unchecked(index as u8))
     }
 
-    /// Removees the first tile in this set and returns it
+    /// Removes the first tile in this set and returns it
     /// Returns `None` if the set is empty
     pub fn pop_last(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
     {
@@ -768,7 +768,7 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_length() {
+    fn test_iter_length_and_count() {
         type Iter = TileSetIter16<2>;
 
         let iter = Iter {
@@ -777,21 +777,38 @@ mod tests {
             top_index: 12,
         };
 
-        let count = iter.len();
+        let len = iter.len();
 
-        assert_eq!(count, 6)
+        assert_eq!(len, 6);
+
+        let count = iter.count();
+
+        assert_eq!(count, 6);
     }
 
     #[test]
-    fn test_true_iter_length() {
+    fn test_true_iter_length_and_count() {
         type Grid = TileSet16<4, 3, 12>;
 
         let mut iter = Grid::ALL.iter_true_tiles();
 
         assert_eq!(12, iter.len());
+        assert_eq!(12, iter.clone().count());
 
         let _ = iter.next();
         assert_eq!(11, iter.len());
+        assert_eq!(11, iter.count());
+    }
+
+    #[test]
+    fn test_true_iter_min_max_last() {
+        type Grid = TileSet16<4, 3, 12>;
+
+        let iter = Grid::from_fn(|x|x.inner() % 5 == 0).iter_true_tiles();
+
+        assert_eq!(0, iter.clone().min().unwrap().inner());
+        assert_eq!(10, iter.clone().max().unwrap().inner());
+        assert_eq!(10, iter.last().unwrap().inner());
     }
 
     #[test]
