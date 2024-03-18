@@ -184,7 +184,7 @@ macro_rules! tile_set {
 
     #[must_use]
     #[inline]
-    pub const fn row_mask(y: u8) -> Self { //TODO make a constant and shi
+    pub const fn row_mask(y: u8) -> Self {
         Self::assert_legal();
         let inner = Self::ROW_ZERO_MASK << (y * WIDTH);
 
@@ -286,9 +286,22 @@ macro_rules! tile_set {
     /// The first tile in this set
     #[must_use]
     #[inline]
-    pub const fn first(&self)-> Option<Tile<WIDTH, HEIGHT>>
+    pub const fn first(&self) -> Option<Tile<WIDTH, HEIGHT>>
     {
         Tile::<WIDTH, HEIGHT>::try_from_inner( self.0.trailing_zeros() as u8)
+    }
+
+    /// Removees the first tile in this set and returns it
+    pub fn pop(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
+    {
+        if self.0 == 0{
+            return None;
+        }
+        let tz = self.0.trailing_zeros() as $inner;
+
+        self.0 &= !(1 as $inner << tz);
+
+        Some(Tile::<WIDTH, HEIGHT>::from_inner_unchecked(tz as u8))
     }
 
     /// The last tile in this set
@@ -326,9 +339,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let next = self.inner.first()?; //TODO improve performance of this
-        self.inner.set_bit(&next, false);
-        Some(next)
+        self.inner.pop()
     }
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {

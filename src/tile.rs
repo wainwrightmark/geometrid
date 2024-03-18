@@ -13,7 +13,10 @@ pub struct Tile<const WIDTH: u8, const HEIGHT: u8>(u8);
 
 impl<const WIDTH: u8, const HEIGHT: u8> From<Tile<WIDTH, HEIGHT>> for DynamicTile {
     fn from(val: Tile<WIDTH, HEIGHT>) -> Self {
-        DynamicTile(Vector { x: val.x() as i8, y: val.y() as i8 })
+        DynamicTile(Vector {
+            x: val.x() as i8,
+            y: val.y() as i8,
+        })
     }
 }
 
@@ -135,6 +138,11 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
         } else {
             None
         }
+    }
+
+    #[must_use]
+    pub (crate) const fn from_inner_unchecked(inner: u8) -> Self {
+        Self(inner)
     }
 
     #[must_use]
