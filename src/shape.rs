@@ -1,9 +1,4 @@
-use core::{array, iter::Map};
-
 use crate::prelude::*;
-
-#[cfg(any(test, feature = "serde"))]
-use serde::{Deserialize, Serialize};
 
 /// A general shape made of tiles.
 pub trait Shape :// Flippable + Rotatable +

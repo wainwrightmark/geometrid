@@ -1,6 +1,5 @@
 use core::{
     fmt::{self, Write},
-    iter,
     ops::*,
 };
 
@@ -42,7 +41,6 @@ macro_rules! tile_set {
 
 
 
-        #[inline]
         #[inline]
         const fn assert_legal() {
             debug_assert!(SIZE == (WIDTH as usize * HEIGHT as usize) );
@@ -367,7 +365,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
     }
 
     #[inline]
-    fn last(mut self) -> Option<Self::Item>
+    fn last(self) -> Option<Self::Item>
     where
         Self: Sized,
     {
@@ -488,9 +486,9 @@ impl<const STEP: u8> DoubleEndedIterator for $iter_name<STEP> {
                         }
                     }
                     if e {
-                        f.write_char('*');
+                        f.write_char('*')?;
                     } else {
-                        f.write_char('_');
+                        f.write_char('_')?;
                     }
                 }
 
@@ -509,10 +507,7 @@ tile_set!(TileSet128, TileSetIter128, TrueTilesIter128, u128);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prelude::*;
     use itertools::Itertools;
-    #[cfg(any(test, feature = "serde"))]
-    use serde_test::{assert_tokens, Token};
 
     #[test]
     fn basic_tests() {
@@ -848,13 +843,13 @@ mod tests {
 
     #[test]
     fn test_iter_true_rev() {
-        let mut set = TileSet16::<4, 3, 12>::from_fn(|tile| tile.x() > tile.y());
+        let set = TileSet16::<4, 3, 12>::from_fn(|tile| tile.x() > tile.y());
 
         let mut expected: Vec<_> = Tile::<4, 3>::iter_by_row()
             .filter(|tile| tile.x() > tile.y())
             .collect();
         expected.reverse();
-        let mut actual: Vec<Tile<4, 3>> = set.iter_true_tiles().rev().collect();
+        let actual: Vec<Tile<4, 3>> = set.iter_true_tiles().rev().collect();
 
         assert_eq!(expected, actual);
     }

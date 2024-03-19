@@ -2,7 +2,6 @@ use core::{
     fmt::{self, Write},
     iter,
     ops::{Index, IndexMut},
-    panic,
 };
 
 use crate::prelude::*;
@@ -350,15 +349,15 @@ mod tests {
     use core::usize;
 
     use super::*;
-    use crate::prelude::*;
     use itertools::Itertools;
     #[cfg(any(test, feature = "serde"))]
     use serde_test::{assert_tokens, Token};
 
     #[test]
     #[should_panic(expected = "assertion failed")]
+    #[allow(unused_variables)]
     fn test_bad_grid() {
-        let mut grid: TileMap<usize, 3, 3, 10> = TileMap::default();
+        let grid: TileMap<usize, 3, 3, 10> = TileMap::default();
     }
 
     #[test]
@@ -520,7 +519,7 @@ mod tests {
 
     #[test]
     fn basic_tests() {
-        let mut grid: TileMap<usize, 3, 3, 9> = TileMap::from_fn(|x| x.into());
+        let grid: TileMap<usize, 3, 3, 9> = TileMap::from_fn(|x| x.into());
 
         for i in 0..9 {
             assert_eq!(grid[Tile::<3, 3>::try_from_usize(i).unwrap()], i)

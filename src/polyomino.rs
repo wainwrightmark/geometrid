@@ -1,8 +1,5 @@
-use core::ops::Sub;
-
 use crate::prelude::*;
 use itertools::Itertools;
-use strum::Display;
 
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
@@ -23,7 +20,7 @@ impl<const P: usize> Shape for Polyomino<P> {
     type RectangleIter = RectangleIter<P>;
 
     fn draw_outline(&self) -> Self::OutlineIter {
-        let mut arr = self.0;
+        let arr = self.0;
         OutlineIter {
             arr,
             next: Some((arr[0], Corner::NorthWest)),
@@ -833,14 +830,12 @@ impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
 
 /// Iterator for deconstructing polyominos to rectangles
 pub struct RectangleIter<const P: usize> {
-    shape: Polyomino<P>,
     remaining_tiles: ArrayVec<[DynamicTile; P]>,
 }
 
 impl<const P: usize> From<Polyomino<P>> for RectangleIter<P> {
     fn from(shape: Polyomino<P>) -> Self {
         Self {
-            shape,
             remaining_tiles: ArrayVec::from(shape.0),
         }
     }
@@ -862,7 +857,7 @@ impl<const P: usize> Iterator for RectangleIter<P> {
             .iter()
             .find_position(|p2| p2.y == min_y && (p2.x == max_x + 1 || p2.x == min_x - 1))
         {
-            self.remaining_tiles.swap_remove(index);
+            let _ = self.remaining_tiles.swap_remove(index);
             min_x = min_x.min(p2.x);
             max_x = max_x.max(p2.x);
         }
@@ -878,7 +873,7 @@ impl<const P: usize> Iterator for RectangleIter<P> {
                     while let Some((position, _)) =
                         self.remaining_tiles.iter().find_position(condition)
                     {
-                        self.remaining_tiles.swap_remove(position);
+                        let _ = self.remaining_tiles.swap_remove(position);
                     }
                     if is_max {
                         max_y += 1;
@@ -906,9 +901,7 @@ impl<const P: usize> Iterator for RectangleIter<P> {
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-    use crate::prelude::*;
     use itertools::Itertools;
 
     #[test]

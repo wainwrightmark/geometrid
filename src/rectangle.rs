@@ -1,4 +1,4 @@
-use core::{array, iter::Map};
+use core::array;
 
 use crate::prelude::*;
 
@@ -36,8 +36,8 @@ impl Rectangle {
 impl HasCenter for Rectangle {
     fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
         let mut center = self.north_west.get_center(scale);
-        center.x += (self.width as f32 * 0.5 * scale);
-        center.y += (self.height as f32 * 0.5 * scale);
+        center.x += self.width as f32 * 0.5 * scale;
+        center.y += self.height as f32 * 0.5 * scale;
         center
     }
 }
@@ -135,9 +135,7 @@ impl Iterator for RectangleIterator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tile::*;
     use itertools::Itertools;
-    use serde_test::{assert_tokens, Token};
 
     #[test]
     pub fn test_center() {

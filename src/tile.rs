@@ -326,7 +326,6 @@ impl<const C: u8, const R: u8> Iterator for TileByColumnIter<C, R> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tile::*;
     use itertools::Itertools;
     use serde_test::{assert_tokens, Token};
 

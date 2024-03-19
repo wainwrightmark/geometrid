@@ -1,6 +1,5 @@
 use core::{fmt, ops::Add};
 
-use itertools::Itertools;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
@@ -37,12 +36,12 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
     const HEIGHT: u8 = HEIGHT;
     pub const COUNT: usize = (WIDTH + 1) as usize * (HEIGHT + 1) as usize;
 
-    const NORTH_WEST: Self = Self(0);
-    const NORTH_EAST: Self = Self::new_unchecked(Self::MAX_COL, 0);
-    const SOUTH_WEST: Self = Self::new_unchecked(0, Self::MAX_ROW);
-    const SOUTH_EAST: Self = Self::new_unchecked(Self::MAX_COL, Self::MAX_ROW);
+    pub const NORTH_WEST: Self = Self(0);
+    pub const NORTH_EAST: Self = Self::new_unchecked(Self::MAX_COL, 0);
+    pub const SOUTH_WEST: Self = Self::new_unchecked(0, Self::MAX_ROW);
+    pub const SOUTH_EAST: Self = Self::new_unchecked(Self::MAX_COL, Self::MAX_ROW);
 
-    const CENTER: Self = Self::new_unchecked(WIDTH / 2, HEIGHT / 2);
+    pub const CENTER: Self = Self::new_unchecked(WIDTH / 2, HEIGHT / 2);
 
     const MAX_COL: u8 = WIDTH;
     const MAX_ROW: u8 = HEIGHT;
@@ -234,11 +233,9 @@ impl<const W: u8, const H: u8> From<&Vertex<W, H>> for usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::vertex::*;
     use itertools::Itertools;
     #[cfg(any(test, feature = "serde"))]
     use serde_test::{assert_tokens, Token};
-    use strum::*;
 
     #[test]
     fn test_iter_by_row() {
@@ -261,7 +258,7 @@ mod tests {
     #[test]
     fn test_flip_vertical() {
         let str = Vertex::<2, 2>::iter_by_row()
-            .map(|mut x| x.flip(FlipAxes::Vertical))
+            .map(|x| x.flip(FlipAxes::Vertical))
             .join("|");
 
         assert_eq!(str, "(0,2)|(1,2)|(2,2)|(0,1)|(1,1)|(2,1)|(0,0)|(1,0)|(2,0)")

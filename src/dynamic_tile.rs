@@ -3,7 +3,6 @@ use core::{
     ops::{Add, Deref, DerefMut},
 };
 
-use itertools::Itertools;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
 
@@ -124,9 +123,6 @@ impl DynamicTile {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tile::*;
-    use itertools::Itertools;
-    use serde_test::{assert_tokens, Token};
 
     #[test]
     pub fn test_rotate() {

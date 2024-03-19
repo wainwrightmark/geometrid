@@ -54,10 +54,6 @@ impl Add for QuarterTurns {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::vertex::*;
-    use itertools::Itertools;
-    #[cfg(any(test, feature = "serde"))]
-    use serde_test::{assert_tokens, Token};
 
     #[test]
     fn test_add() {

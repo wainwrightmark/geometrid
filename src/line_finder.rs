@@ -102,7 +102,6 @@ mod tests {
     use super::*;
     use crate::tile::*;
     use itertools::Itertools;
-    use serde_test::{assert_tokens, Token};
 
     #[test]
     pub fn test_line_finder_none() {

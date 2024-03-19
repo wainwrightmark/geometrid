@@ -1,7 +1,7 @@
 use core::{
     fmt::{self, Write},
-    iter::{self, FusedIterator},
-    ops::{Index, IndexMut, Shl, Shr},
+    iter::FusedIterator,
+    ops::{Shl, Shr},
 };
 
 use crate::prelude::*;
@@ -384,7 +384,7 @@ impl<const STEP: u8> Iterator for TileSetIter256<STEP> {
         Self: Sized,
     {
         let distance = (self.top_index.saturating_sub(self.bottom_index)) as usize;
-        let count = (distance / STEP as usize);
+        let count = distance / STEP as usize;
         count
     }
 }
@@ -412,14 +412,14 @@ impl<const W: u8, const H: u8, const SIZE: usize> fmt::Display for TileSet256<W,
 
         for (i, e) in iter {
             if i > 0 && i % (W as usize) == 0 {
-                if !f.alternate(){
+                if !f.alternate() {
                     f.write_char('\n')?;
                 }
             }
             if e {
-                f.write_char('*');
+                f.write_char('*')?;
             } else {
-                f.write_char('_');
+                f.write_char('_')?;
             }
         }
 
@@ -430,13 +430,12 @@ impl<const W: u8, const H: u8, const SIZE: usize> fmt::Display for TileSet256<W,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prelude::*;
     use itertools::Itertools;
-    use serde_test::{assert_tokens, Token};
 
     #[test]
+    #[allow(unused_variables)]
     fn test_possible() {
-        let mut grid: TileSet256<16, 16, 256> = TileSet256::default();
+        let grid: TileSet256<16, 16, 256> = TileSet256::default();
     }
 
     #[test]
@@ -723,13 +722,13 @@ mod tests {
 
     #[test]
     fn test_iter_true_rev() {
-        let mut set = TileSet256::<40, 4, 160>::from_fn(|tile| tile.x() > tile.y());
+        let set = TileSet256::<40, 4, 160>::from_fn(|tile| tile.x() > tile.y());
 
         let mut expected: Vec<_> = Tile::<40, 4>::iter_by_row()
             .filter(|tile| tile.x() > tile.y())
             .collect();
         expected.reverse();
-        let mut actual: Vec<Tile<40, 4>> = set.iter_true_tiles().rev().collect();
+        let actual: Vec<Tile<40, 4>> = set.iter_true_tiles().rev().collect();
 
         assert_eq!(expected, actual);
     }

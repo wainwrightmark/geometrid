@@ -250,12 +250,7 @@ impl HasCenter for Vector {
 
 #[cfg(test)]
 mod tests {
-    use core::f32::consts;
-
     use super::*;
-    use crate::prelude::*;
-    use itertools::Itertools;
-    use serde_test::{assert_tokens, Token};
     type V = Vector;
 
     #[test]

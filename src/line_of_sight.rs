@@ -107,7 +107,6 @@ mod tests {
     use super::*;
     use crate::tile::*;
     use itertools::Itertools;
-    use serde_test::{assert_tokens, Token};
     type Tile25 = Tile<5, 5>;
 
     #[test]

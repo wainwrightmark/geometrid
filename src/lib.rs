@@ -1,7 +1,7 @@
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
 #![doc(html_root_url = "https://docs.rs/geometrid/0.7.0")]
 // #![deny(missing_docs)]
-#![allow(warnings, dead_code, unused_imports, unused_mut)]
+#![deny(warnings, dead_code, unused_imports, unused_mut)]
 #![warn(clippy::pedantic)]
 
 pub mod corner;
