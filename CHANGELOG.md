@@ -11,7 +11,11 @@ Possible header types:
 
 [crates.io]: https://crates.io/crates/geometrid
 
-## v0.7.0 (Unreleased)
+## v0.8.0 (2024-21-03)
+
+- Implement `nth` and `nth_back` for tile set iterator
+
+## v0.7.0 (2024-19-03)
 
 - Added `TileByRowIter`. Improved tile iterator methods
 - Add `first`, `pop`, `last`, `pop_last` to tile sets

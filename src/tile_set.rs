@@ -291,6 +291,8 @@ macro_rules! tile_set {
 
     /// Removes the first tile in this set and returns it
     /// Returns `None` if the set is empty
+    #[must_use]
+    #[inline]
     pub fn pop(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
     {
         if self.0 == 0{
@@ -303,6 +305,8 @@ macro_rules! tile_set {
 
     /// Removes the first tile in this set and returns it
     /// Returns `None` if the set is empty
+    #[must_use]
+    #[inline]
     pub fn pop_last(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
     {
         if self.0 == 0{
@@ -390,7 +394,36 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
         self.next()
     }
 
-    //TODO implement other methods
+    #[inline]
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        let mut n = n as u32;
+        if self.inner.count() <= n{
+            self.inner.0 = Default::default(); // Empty the set
+            return None;
+        }
+
+        let  mut shift: u32 = 0;
+        loop {
+            let tz = self.inner.0.trailing_zeros();
+            shift += tz;
+            self.inner.0 >>= tz; //can't be all zeros as we checked the count
+
+            let to = self.inner.0.trailing_ones();
+            if let Some(new_n) = n.checked_sub(to) {
+                n = new_n;
+                self.inner.0 >>= to;
+                shift += to;
+            } else {
+                self.inner.0 >>= n + 1;
+                let r = Self::Item::try_from_inner((shift + n ) as u8);
+                self.inner.0 <<= shift + n + 1;
+
+                self.inner.0 = self.inner.0;
+
+                return r;
+            }
+        }
+    }
 }
 
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEndedIterator
@@ -398,6 +431,37 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEnd
         #[inline]
         fn next_back(&mut self) -> Option<Self::Item> {
             self.inner.pop_last()
+        }
+
+        #[inline]
+        fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+            let mut n = n as u32;
+            if self.inner.count() <= n{
+                self.inner.0 = Default::default(); // Empty the set
+                return None;
+            }
+
+            let  mut shift: u32 = 0;
+            loop {
+                let lz = self.inner.0.leading_zeros();
+                shift += lz;
+                self.inner.0 <<= lz; //can't be all zeros as we checked the count
+
+                let lo = self.inner.0.leading_ones();
+                if let Some(new_n) = n.checked_sub(lo) {
+                    n = new_n;
+                    self.inner.0 <<= lo;
+                    shift += lo;
+                } else {
+                    self.inner.0 <<= n + 1;
+                    let r = Self::Item::try_from_inner((<$inner>::BITS - (shift + n + 1)) as u8);
+                    self.inner.0 >>= shift + n + 1;
+
+                    self.inner.0 = self.inner.0;
+
+                    return r;
+                }
+            }
         }
     }
 
@@ -409,6 +473,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> $true_iter_name<WIDTH
         }
     }
 }
+
 
 
 
@@ -799,7 +864,7 @@ mod tests {
     fn test_true_iter_min_max_last() {
         type Grid = TileSet16<4, 3, 12>;
 
-        let iter = Grid::from_fn(|x|x.inner() % 5 == 0).iter_true_tiles();
+        let iter = Grid::from_fn(|x| x.inner() % 5 == 0).iter_true_tiles();
 
         assert_eq!(0, iter.clone().min().unwrap().inner());
         assert_eq!(10, iter.clone().max().unwrap().inner());
@@ -852,5 +917,45 @@ mod tests {
         let actual: Vec<Tile<4, 3>> = set.iter_true_tiles().rev().collect();
 
         assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_true_iter_nth() {
+        let set: TileSet64<9, 7, 63> = TileSet64::<9, 7, 63>::from_fn(|tile| tile.x() > tile.y());
+        let vec: Vec<_> = Tile::<9, 7>::iter_by_row()
+            .filter(|tile| tile.x() > tile.y())
+            .collect();
+
+        let mut set_iter = set.iter_true_tiles();
+        let mut vec_iter = vec.into_iter();
+
+        for n in [0usize, 1, 0, 5, 0, 1, 0, 40] {
+            assert_eq!(set_iter.len(), vec_iter.len());
+            let actual = set_iter.nth(n);
+            let expected = vec_iter.nth(n);
+            //println!("n: {n} actual: {actual:?} expected {expected:?}");
+            assert_eq!(actual, expected);
+        }
+        assert_eq!(set_iter.len(), vec_iter.len());
+    }
+
+    #[test]
+    fn test_true_iter_nth_back() {
+        let set: TileSet64<9, 7, 63> = TileSet64::<9, 7, 63>::from_fn(|tile| tile.x() > tile.y());
+        let vec: Vec<_> = Tile::<9, 7>::iter_by_row()
+            .filter(|tile| tile.x() > tile.y())
+            .collect();
+
+        let mut set_iter = set.iter_true_tiles();
+        let mut vec_iter = vec.into_iter();
+
+        for n in [0usize, 1, 0, 5, 0, 1, 0, 40] {
+            assert_eq!(set_iter.len(), vec_iter.len());
+            let actual = set_iter.nth_back(n);
+            let expected = vec_iter.nth_back(n);
+            //println!("n: {n} actual: {actual:?} expected {expected:?}");
+            assert_eq!(actual, expected);
+        }
+        assert_eq!(set_iter.len(), vec_iter.len());
     }
 }

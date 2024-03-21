@@ -29,6 +29,7 @@ pub mod prelude {
     pub use crate::dynamic_tile::*;
     pub use crate::dynamic_vertex::*;
     pub use crate::flip_axes::*;
+    #[cfg(any(test, feature = "glam"))]
     pub use crate::has_center::*;
     pub use crate::line_finder::*;
     pub use crate::line_of_sight::*;
