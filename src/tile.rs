@@ -189,14 +189,14 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
 
     /// Iterate through adjacent elements (includes diagonals)
     #[must_use]
-    pub fn iter_adjacent<'a>(&'a self) -> impl Iterator<Item = Self> + 'a {
-        Vector::UNITS.into_iter().flat_map(|v| *self + v)
+    pub fn iter_adjacent(self) -> impl Iterator<Item = Self> {
+        Vector::UNITS.into_iter().flat_map(move |v| self + v)
     }
 
     /// Iterate through contiguous elements (does not include diagonals)
     #[must_use]
-    pub fn iter_contiguous<'a>(&'a self) -> impl Iterator<Item = Self> + 'a {
-        Vector::CARDINALS.into_iter().flat_map(|v| *self + v)
+    pub fn iter_contiguous(self) -> impl Iterator<Item = Self> {
+        Vector::CARDINALS.into_iter().flat_map(move |v| self + v)
     }
 
     /// Whether two tiles are adjacent (includes diagonals)
