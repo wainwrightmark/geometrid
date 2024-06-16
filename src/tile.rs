@@ -74,12 +74,10 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
 
     pub const CENTER: Self = Self::new_unchecked(WIDTH / 2, HEIGHT / 2);
 
-    #[must_use]
     pub const fn new_const<const X: u8, const Y: u8>() -> Self {
         Self::new_unchecked(X, Y)
     }
 
-    #[must_use]
     pub(crate) const fn new_unchecked(x: u8, y: u8) -> Self {
         debug_assert!(x < WIDTH);
         debug_assert!(y < HEIGHT);
@@ -140,7 +138,6 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
         }
     }
 
-    #[must_use]
     pub(crate) const fn from_inner_unchecked(inner: u8) -> Self {
         Self(inner)
     }
@@ -154,14 +151,14 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
         Some(Self(inner))
     }
 
-    #[must_use]
     pub const fn flip(&self, axes: FlipAxes) -> Self {
-        use FlipAxes::*;
         match axes {
-            None => *self,
-            Horizontal => Self::new_unchecked(Self::MAX_COL - self.x(), self.y()),
-            Vertical => Self::new_unchecked(self.x(), Self::MAX_ROW - self.y()),
-            Both => Self::new_unchecked(Self::MAX_COL - self.x(), Self::MAX_ROW - self.y()),
+            FlipAxes::None => *self,
+            FlipAxes::Horizontal => Self::new_unchecked(Self::MAX_COL - self.x(), self.y()),
+            FlipAxes::Vertical => Self::new_unchecked(self.x(), Self::MAX_ROW - self.y()),
+            FlipAxes::Both => {
+                Self::new_unchecked(Self::MAX_COL - self.x(), Self::MAX_ROW - self.y())
+            }
         }
     }
 
@@ -175,19 +172,20 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
 
     /// Iterate through all tiles by row
     /// This method has better performance than `iter_by_col`
-    #[must_use]
-    pub fn iter_by_row() -> impl Iterator<Item = Self> + FusedIterator + Clone + ExactSizeIterator {
-        (0..(WIDTH * HEIGHT)).map(|x| Self(x))
+    pub fn iter_by_row() -> impl FusedIterator<Item = Self> + Clone + ExactSizeIterator {
+        (0..(WIDTH * HEIGHT)).map(Self)
     }
 
     /// Iterate through all tiles by column
     /// This method has worse performance than `iter_by_row`
-    #[must_use]
-    pub fn iter_by_col() -> impl Iterator<Item = Self> + FusedIterator + ExactSizeIterator + Clone {
-        Tile::<HEIGHT, WIDTH>::iter_by_row().map(|x| x.transpose())
+    pub fn iter_by_col() -> impl FusedIterator<Item = Self> + ExactSizeIterator + Clone {
+        Tile::<HEIGHT, WIDTH>::iter_by_row().map(Tile::transpose)
     }
 
     /// Return this tile in a transposed grid system (i.e. the height and width are swapped)
+    ///
+    /// # Panics
+    /// If the tile is invalid
     pub const fn transpose(self) -> Tile<HEIGHT, WIDTH> {
         if let Some(r) = Tile::try_new(self.y(), self.x()) {
             r
@@ -198,22 +196,24 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
 
     /// Iterate through adjacent elements (includes diagonals)
     #[must_use]
-    pub fn iter_adjacent(self) -> impl Iterator<Item = Self> {
-        Vector::UNITS.into_iter().flat_map(move |v| self + v)
+    pub fn iter_adjacent(self) -> impl FusedIterator<Item = Self> + Clone {
+        Vector::UNITS.into_iter().filter_map(move |v| self + v)
     }
 
     /// Iterate through contiguous elements (does not include diagonals)
     #[must_use]
-    pub fn iter_contiguous(self) -> impl Iterator<Item = Self> {
-        Vector::CARDINALS.into_iter().flat_map(move |v| self + v)
+    pub fn iter_contiguous(self) -> impl FusedIterator<Item = Self> + Clone {
+        Vector::CARDINALS.into_iter().filter_map(move |v| self + v)
     }
 
     /// Whether two tiles are adjacent (includes diagonals)
+    #[must_use]
     pub const fn is_adjacent_to(&self, rhs: &Self) -> bool {
         self.0 != rhs.0 && self.x().abs_diff(rhs.x()) <= 1 && self.y().abs_diff(rhs.y()) <= 1
     }
 
     /// Whether two tiles are contiguous (does not include diagonals)
+    #[must_use]
     pub const fn is_contiguous_with(&self, rhs: &Self) -> bool {
         if self.0 == rhs.0 {
             return false;
@@ -221,12 +221,10 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
         let c = self.x().abs_diff(rhs.x());
         let r = self.y().abs_diff(rhs.y());
 
-        if c <= 1 && r <= 1 {
-            if (c == 1) ^ (r == 1) {
-                return true;
-            }
+        if c <= 1 && r <= 1 && (c == 1) ^ (r == 1) {
+            return true;
         }
-        return false;
+        false
     }
 
     #[must_use]
@@ -243,17 +241,14 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
 
     #[must_use]
     pub const fn get_vertex(&self, corner: &Corner) -> Option<Vertex<WIDTH, HEIGHT>> {
-        use Corner::*;
-
         match corner {
-            NorthWest => Vertex::try_new(self.x(), self.y()),
-            NorthEast => Vertex::try_new(self.x() + 1, self.y()),
-            SouthWest => Vertex::try_new(self.x(), self.y() + 1),
-            SouthEast => Vertex::try_new(self.x() + 1, self.y() + 1),
+            Corner::NorthWest => Vertex::try_new(self.x(), self.y()),
+            Corner::NorthEast => Vertex::try_new(self.x() + 1, self.y()),
+            Corner::SouthWest => Vertex::try_new(self.x(), self.y() + 1),
+            Corner::SouthEast => Vertex::try_new(self.x() + 1, self.y() + 1),
         }
     }
 
-    #[must_use]
     pub const fn get_north_west_vertex(&self) -> Vertex<WIDTH, HEIGHT> {
         Vertex::new_unchecked(self.x(), self.y())
     }
@@ -284,13 +279,14 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
     /// 3 for a corner tile
     /// 5 for an edge tile
     /// 8 otherwise
+    #[must_use]
     pub const fn adjacent_tile_count(&self) -> u8 {
         if self.is_corner() {
-            return 3;
+            3
         } else if self.is_edge() {
-            return 5;
+            5
         } else {
-            return 8;
+            8
         }
     }
 }

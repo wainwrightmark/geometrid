@@ -1,7 +1,6 @@
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
-
-use strum::*;
+use strum::{Display, EnumCount, EnumIs, EnumIter};
 
 /// The axes across which to flip
 #[derive(

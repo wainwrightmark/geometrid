@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 /// A rectangle in a 2d space
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
+#[must_use]
 pub struct Rectangle {
     /// The north vest vertex of the rectangle
     pub north_west: DynamicVertex,
@@ -27,6 +28,7 @@ impl Rectangle {
     }
 
     /// The total number of tiles of the rectangle
+    #[must_use]
     pub fn area(&self) -> usize {
         self.width as usize * self.height as usize
     }
@@ -70,7 +72,7 @@ impl Shape for Rectangle {
     }
 
     fn deconstruct_into_rectangles(&self) -> Self::RectangleIter {
-        [self.clone()].into_iter()
+        [*self].into_iter()
     }
 }
 
@@ -120,7 +122,7 @@ impl Iterator for RectangleIterator {
                                 y: (next + Vector::SOUTH).y,
                             }
                             .into(),
-                        )
+                        );
                     }
                 } else {
                     self.next = Some(next + Vector::EAST);

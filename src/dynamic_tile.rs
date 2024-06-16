@@ -62,19 +62,17 @@ impl DynamicTile {
         Self(self.0.flip(axes))
     }
 
-    #[must_use]
     pub const fn const_add(&self, vector: &Vector) -> Self {
         Self(self.0.const_add(vector))
     }
 
-    #[must_use]
     pub const fn get_vertex(&self, corner: &Corner) -> DynamicVertex {
-        use Corner::*;
+
         let (x, y) = match corner {
-            NorthWest => (self.0.x, self.0.y),
-            NorthEast => (self.0.x + 1, self.0.y),
-            SouthWest => (self.0.x, self.0.y + 1),
-            SouthEast => (self.0.x + 1, self.0.y + 1),
+            Corner::NorthWest => (self.0.x, self.0.y),
+            Corner::NorthEast => (self.0.x + 1, self.0.y),
+            Corner::SouthWest => (self.0.x, self.0.y + 1),
+            Corner::SouthEast => (self.0.x + 1, self.0.y + 1),
         };
 
         DynamicVertex(Vector { x, y })

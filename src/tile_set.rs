@@ -1,6 +1,6 @@
 use core::{
     fmt::{self, Write},
-    ops::*,
+    ops::{FnMut, Shl, Shr},
 };
 
 use crate::prelude::*;
@@ -47,7 +47,7 @@ macro_rules! tile_set {
             debug_assert!(SIZE <= <$inner>::BITS as usize);
         }
 
-        #[must_use]
+
         #[inline]
         pub fn from_fn<F: FnMut(Tile<WIDTH, HEIGHT>) -> bool>(mut cb: F) -> Self {
             Self::assert_legal();
@@ -62,7 +62,6 @@ macro_rules! tile_set {
             result
         }
 
-        #[must_use]
         #[inline]
         pub const fn from_inner(inner: $inner) -> Self {
             Self::assert_legal();
@@ -501,7 +500,7 @@ impl<const STEP: u8> Iterator for $iter_name<STEP> {
             None
         } else {
             let r = (self.inner >> self.bottom_index) & 1 == 1;
-            self.bottom_index = self.bottom_index + (STEP as usize);
+            self.bottom_index +=  (STEP as usize);
             Some(r)
         }
     }

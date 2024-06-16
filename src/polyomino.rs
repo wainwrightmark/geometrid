@@ -104,6 +104,7 @@ const fn normalize_vectors<const N: usize>(mut arr: [Vector; N]) -> [Vector; N] 
 impl<const T: usize> Polyomino<T> {
     /// Create a new polyomino.
     /// Note that this will normalize and sort all of the vectors.
+    #[must_use]
     pub const fn new(vectors: [Vector; T]) -> Self {
         let vectors = normalize_vectors(vectors);
         let vectors = sort_vectors(vectors);
@@ -132,6 +133,9 @@ impl<const T: usize> Polyomino<T> {
     /// Tiles are represented by `#`. Empty tiles by `.`.
     /// Whitespace apart from newlines are ignored.
     /// Returns error if invalid
+    ///
+    /// # Errors
+    /// If there are too many tiles, too few tiles, or unexpected characters.
     pub const fn try_new_from_ascii(s: &str) -> Result<Self, &'static str> {
         let mut current = V::ZERO;
         let mut arr: [Vector; T] = [V::ZERO; T];
@@ -748,24 +752,23 @@ impl Corner {
         }
     }
 
+    #[must_use]
     pub const fn clockwise(&self) -> Self {
-        use Corner::*;
-
         match self {
-            NorthWest => NorthEast,
-            NorthEast => SouthEast,
-            SouthEast => SouthWest,
-            SouthWest => NorthWest,
+            Corner::NorthWest => Corner::NorthEast,
+            Corner::NorthEast => Corner::SouthEast,
+            Corner::SouthEast => Corner::SouthWest,
+            Corner::SouthWest => Corner::NorthWest,
         }
     }
 
+    #[must_use]
     pub fn anticlockwise(&self) -> Self {
-        use Corner::*;
         match self {
-            NorthWest => SouthWest,
-            SouthWest => SouthEast,
-            SouthEast => NorthEast,
-            NorthEast => NorthWest,
+            Corner::NorthWest => Corner::SouthWest,
+            Corner::SouthWest => Corner::SouthEast,
+            Corner::SouthEast => Corner::NorthEast,
+            Corner::NorthEast => Corner::NorthWest,
         }
     }
 }
@@ -787,9 +790,7 @@ impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
                     //perform an equivalency
                     next_coordinate = equivalent;
                     next_corner = next_corner.anticlockwise();
-                    if next_coordinate == coordinate_to_return {
-                        panic!("Infinite loop found in shape.")
-                    }
+                    assert!(next_coordinate != coordinate_to_return, "Infinite loop found in shape.");
                     if next_corner == Corner::NorthWest && next_coordinate == self.arr[0] {
                         break 'line;
                     }
@@ -845,9 +846,7 @@ impl<const P: usize> Iterator for RectangleIter<P> {
     type Item = Rectangle;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let Some(p1) = self.remaining_tiles.pop() else {
-            return None;
-        };
+        let p1 = self.remaining_tiles.pop()?;
         let mut min_x = p1.x;
         let mut max_x = p1.x;
         let mut min_y = p1.y;
@@ -893,8 +892,8 @@ impl<const P: usize> Iterator for RectangleIter<P> {
 
         Some(Rectangle {
             north_west,
-            height,
             width,
+            height,
         })
     }
 }

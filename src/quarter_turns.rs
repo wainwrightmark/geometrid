@@ -1,7 +1,7 @@
 use core::ops::Add;
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
-use strum::*;
+use strum::{Display, EnumCount, EnumIs, EnumIter};
 
 /// The number of quarter turns to rotate clockwise
 #[derive(
@@ -38,15 +38,19 @@ impl Add for QuarterTurns {
         match (self, rhs) {
             (QuarterTurns::Zero, r) => r,
             (l, QuarterTurns::Zero) => l,
-            (QuarterTurns::One, QuarterTurns::One) => QuarterTurns::Two,
-            (QuarterTurns::One, QuarterTurns::Two) => QuarterTurns::Three,
-            (QuarterTurns::One, QuarterTurns::Three) => QuarterTurns::Zero,
-            (QuarterTurns::Two, QuarterTurns::One) => QuarterTurns::Three,
-            (QuarterTurns::Two, QuarterTurns::Two) => QuarterTurns::Zero,
-            (QuarterTurns::Two, QuarterTurns::Three) => QuarterTurns::One,
-            (QuarterTurns::Three, QuarterTurns::One) => QuarterTurns::Zero,
-            (QuarterTurns::Three, QuarterTurns::Two) => QuarterTurns::One,
-            (QuarterTurns::Three, QuarterTurns::Three) => QuarterTurns::Two,
+            (QuarterTurns::One, QuarterTurns::One) | (QuarterTurns::Three, QuarterTurns::Three) => {
+                QuarterTurns::Two
+            }
+            (QuarterTurns::One, QuarterTurns::Two) | (QuarterTurns::Two, QuarterTurns::One) => {
+                QuarterTurns::Three
+            }
+            (QuarterTurns::One, QuarterTurns::Three)
+            | (QuarterTurns::Two, QuarterTurns::Two)
+            | (QuarterTurns::Three, QuarterTurns::One) => QuarterTurns::Zero,
+
+            (QuarterTurns::Three, QuarterTurns::Two) | (QuarterTurns::Two, QuarterTurns::Three) => {
+                QuarterTurns::One
+            }
         }
     }
 }

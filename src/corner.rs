@@ -1,6 +1,7 @@
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
-use strum::*;
+use strum::{Display, EnumCount, EnumIs, EnumIter};
+
 
 /// The Corner of a tile
 #[derive(

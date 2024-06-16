@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 /// A grid
 /// A map from tiles to values.
-/// If the values are just booleans, use TileSet instead
+/// If the values are just booleans, use `TileSet` instead
 #[must_use]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(any(test, feature = "serde"), derive(Serialize, Deserialize))]
@@ -35,7 +35,6 @@ impl<T: Default + Copy, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> De
 }
 
 impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, HEIGHT, SIZE> {
-    #[must_use]
     pub fn from_fn<F: FnMut(Tile<WIDTH, HEIGHT>) -> T>(mut cb: F) -> Self {
         debug_assert!(SIZE == (WIDTH * HEIGHT) as usize);
         let arr = core::array::from_fn(|i| cb(Tile::try_from_usize(i).unwrap()));
@@ -48,7 +47,6 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
         self.0
     }
 
-    #[must_use]
     #[inline]
     pub fn from_inner(inner: [T; SIZE]) -> Self {
         debug_assert!(SIZE == (WIDTH * HEIGHT) as usize);
@@ -107,8 +105,8 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
     /// Get the scale to make the grid take up as much as possible of a given area
     #[must_use]
     pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
-        let x_multiplier = total_width / WIDTH as f32;
-        let y_multiplier = total_height / HEIGHT as f32;
+        let x_multiplier = total_width / f32::from(WIDTH);
+        let y_multiplier = total_height / f32::from(HEIGHT);
 
         x_multiplier.min(y_multiplier)
     }
@@ -128,7 +126,7 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
             FlipAxes::Vertical => {
                 for y in 0..HEIGHT / 2 {
                     for x in 0..WIDTH {
-                        let p1 = Tile::<WIDTH, HEIGHT>::try_new(x, y).unwrap();
+                        let p1 = Tile::<WIDTH, HEIGHT>::new_unchecked(x, y);
                         let p2 = p1.flip(axes);
                         self.swap(p1, p2);
                     }
@@ -137,7 +135,7 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
             FlipAxes::Both => {
                 for y in 0..HEIGHT / 2 {
                     for x in 0..WIDTH {
-                        let p1 = Tile::<WIDTH, HEIGHT>::try_new(x, y).unwrap();
+                        let p1 = Tile::<WIDTH, HEIGHT>::new_unchecked(x, y);
                         let p2 = p1.flip(axes);
                         self.swap(p1, p2);
                     }
@@ -145,7 +143,7 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
 
                 if WIDTH % 2 != 0 {
                     for x in 0..(WIDTH / 2) {
-                        let p1 = Tile::<WIDTH, HEIGHT>::try_new(x, HEIGHT / 2).unwrap();
+                        let p1 = Tile::<WIDTH, HEIGHT>::new_unchecked(x, HEIGHT / 2);
                         let p2 = p1.flip(axes);
                         self.swap(p1, p2);
                     }
@@ -159,9 +157,7 @@ impl<T, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
     pub fn rotate(&mut self, quarter_turns: QuarterTurns) {
         //todo const once const swap is stabilized
         match quarter_turns {
-            QuarterTurns::Zero => {
-                return;
-            }
+            QuarterTurns::Zero => {}
             QuarterTurns::One => {
                 let mut y = 0;
                 'y: loop {
@@ -252,7 +248,6 @@ impl<T: Clone, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
 impl<T: Clone, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize>
     TileMap<T, WIDTH, HEIGHT, SIZE>
 {
-    #[must_use]
     pub fn with_flip(&self, axes: FlipAxes) -> Self {
         let mut grid = self.clone();
         grid.flip(axes);

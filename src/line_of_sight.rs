@@ -47,17 +47,15 @@ impl<const WIDTH: u8, const HEIGHT: u8> Iterator for LineOfSightTileIter<WIDTH, 
                         } else {
                             Vector::WEST
                         }
+                    } else if self.from.y() < self.to.y() {
+                        Vector::SOUTH
                     } else {
-                        if self.from.y() < self.to.y() {
-                            Vector::SOUTH
-                        } else {
-                            Vector::NORTH
-                        }
+                        Vector::NORTH
                     };
                     State::Parallel1(vector)
                 };
 
-                return Some(self.from);
+                Some(self.from)
             }
             State::Parallel1(vector) => {
                 let next = self.to;
@@ -72,20 +70,20 @@ impl<const WIDTH: u8, const HEIGHT: u8> Iterator for LineOfSightTileIter<WIDTH, 
 
                 self.to = (self.to + vector.const_neg()).unwrap();
 
-                return Some(next);
+                Some(next)
             }
             State::Diagonal1(vector) => {
                 self.state = State::Diagonal2(vector);
                 let next = (self.from + vector.horizontal_component()).unwrap();
-                return Some(next);
+                Some(next)
             }
             State::Diagonal2(vector) => {
                 self.state = State::Default;
                 let next = (self.from + vector.vertical_component()).unwrap();
                 self.from = (self.from + vector).unwrap();
-                return Some(next);
+                Some(next)
             }
-            State::Complete => return None,
+            State::Complete => None,
         }
     }
 }

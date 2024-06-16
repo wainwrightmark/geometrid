@@ -1,3 +1,5 @@
+use core::iter::FusedIterator;
+
 pub use crate::prelude::*;
 
 impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, HEIGHT, SIZE> {
@@ -11,7 +13,7 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
         LineFinder {
             grid: self,
             directions,
-            position: Default::default(),
+            position: Tile::default(),
             direction_index: 0,
             check_item,
             min_length,
@@ -42,8 +44,10 @@ pub struct Line<'a, T, const WIDTH: u8, const HEIGHT: u8> {
     pub length: usize,
 }
 
+/// # Panics
+/// If the line is invalid
 impl<'a, T, const WIDTH: u8, const HEIGHT: u8> Line<'a, T, WIDTH, HEIGHT> {
-    pub fn positions(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> + '_ {
+    pub fn positions(&self) -> impl FusedIterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator + Clone + '_ {
         (0..self.length).map(|x| (self.origin + (self.direction * x)).unwrap())
     }
 }
@@ -90,7 +94,7 @@ impl<'a, T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize, F: Fn(&T) -> b
             let Some(new_position) = self.position.try_next() else {
                 break 'items;
             };
-            self.position = new_position
+            self.position = new_position;
         }
 
         None

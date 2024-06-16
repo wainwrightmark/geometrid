@@ -160,9 +160,9 @@ impl Vector {
     /// Greater than operation that can be computed at compile time
     pub const fn const_gt(&self, other: &Self) -> bool {
         if self.x > other.x {
-            return true;
+            true
         } else if self.x < other.x {
-            return false;
+            false
         } else {
             self.y > other.y
         }

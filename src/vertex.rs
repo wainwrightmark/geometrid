@@ -1,4 +1,4 @@
-use core::{fmt, ops::Add};
+use core::{fmt, iter::FusedIterator, ops::Add};
 
 #[cfg(any(test, feature = "serde"))]
 use serde::{Deserialize, Serialize};
@@ -60,10 +60,12 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
         Self(x + ((Self::COLUMNS + 1) * y))
     }
 
+    #[must_use]
     pub const fn inner(&self) -> u8 {
         self.0
     }
 
+    #[must_use]
     pub const fn try_from_inner(inner: u8) -> Option<Self> {
         if inner <= Self::SOUTH_EAST.inner() {
             Some(Self(inner))
@@ -72,6 +74,7 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
         }
     }
 
+    #[must_use]
     pub const fn try_from_usize(value: usize) -> Option<Self> {
         if value >= Self::COUNT {
             return None;
@@ -80,6 +83,7 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
         Some(Self(inner))
     }
 
+    #[must_use]
     pub const fn try_new(x: u8, y: u8) -> Option<Self> {
         if x > WIDTH {
             return None;
@@ -136,8 +140,7 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
         Self::try_from_inner(next)
     }
 
-    #[must_use]
-    pub fn iter_by_row() -> impl Iterator<Item = Self> {
+    pub fn iter_by_row() -> impl FusedIterator<Item = Self> + ExactSizeIterator + Clone {
         ((Self::NORTH_WEST.0)..=(Self::SOUTH_EAST.0)).map(|x| Self(x))
     }
 
