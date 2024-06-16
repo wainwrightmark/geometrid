@@ -11,13 +11,13 @@ Possible header types:
 
 [crates.io]: https://crates.io/crates/geometrid
 
-## v0.9.0 Unreleased
+## v0.8.0 Unreleased
 
 ### Breaking Changes
 
 - Changed the signatures of `Tile` `iter_adjacent` and `iter_contiguous` to remove lifetimes
 
-## v0.8.0 (2024-21-03)
+### Added
 
 - Implement `nth` and `nth_back` for tile set iterator
 
