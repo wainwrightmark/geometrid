@@ -18,7 +18,6 @@ pub mod shape;
 pub mod tile;
 pub mod tile_map;
 pub mod tile_set;
-pub mod tile_by_row_iter;
 #[cfg(any(test, feature = "u256"))]
 pub mod tile_set256;
 pub mod vector;
@@ -40,7 +39,6 @@ pub mod prelude {
     pub use crate::tile::*;
     pub use crate::tile_map::*;
     pub use crate::tile_set::*;
-    pub use crate::tile_by_row_iter::*;
     #[cfg(any(test, feature = "u256"))]
     pub use crate::tile_set256::*;
     pub use crate::vector::*;

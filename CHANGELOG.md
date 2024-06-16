@@ -16,10 +16,13 @@ Possible header types:
 ### Breaking Changes
 
 - Changed the signatures of `Tile` `iter_adjacent` and `iter_contiguous` to remove lifetimes
+- Removed `TileByRowIter` and `TileByColIter`
+- `Tile` `iter_by_row` and `iter_by_col` are now not const and return type erased iterators
 
 ### Added
 
 - Implement `nth` and `nth_back` for tile set iterator
+- `transpose` to `Tile`
 
 ## v0.7.0 (2024-19-03)
 

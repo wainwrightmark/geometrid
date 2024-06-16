@@ -1,4 +1,4 @@
-use core::{fmt::Display, ops::Add};
+use core::{fmt::Display, iter::FusedIterator, ops::Add};
 
 use crate::prelude::*;
 
@@ -141,7 +141,7 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
     }
 
     #[must_use]
-    pub (crate) const fn from_inner_unchecked(inner: u8) -> Self {
+    pub(crate) const fn from_inner_unchecked(inner: u8) -> Self {
         Self(inner)
     }
 
@@ -176,15 +176,24 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
     /// Iterate through all tiles by row
     /// This method has better performance than `iter_by_col`
     #[must_use]
-    pub fn iter_by_row() -> TileByRowIter<WIDTH, HEIGHT> {
-        TileByRowIter::default()
+    pub fn iter_by_row() -> impl Iterator<Item = Self> + FusedIterator + Clone + ExactSizeIterator {
+        (0..(WIDTH * HEIGHT)).map(|x| Self(x))
     }
 
     /// Iterate through all tiles by column
     /// This method has worse performance than `iter_by_row`
     #[must_use]
-    pub const fn iter_by_col() -> TileByColumnIter<WIDTH, HEIGHT> {
-        TileByColumnIter(Some(Self(0)))
+    pub fn iter_by_col() -> impl Iterator<Item = Self> + FusedIterator + ExactSizeIterator + Clone {
+        Tile::<HEIGHT, WIDTH>::iter_by_row().map(|x| x.transpose())
+    }
+
+    /// Return this tile in a transposed grid system (i.e. the height and width are swapped)
+    pub const fn transpose(self) -> Tile<HEIGHT, WIDTH> {
+        if let Some(r) = Tile::try_new(self.y(), self.x()) {
+            r
+        } else {
+            panic!("Cannot transpose invalid tile")
+        }
     }
 
     /// Iterate through adjacent elements (includes diagonals)
@@ -304,22 +313,6 @@ impl<const C: u8, const R: u8> HasCenter for Tile<C, R> {
         let y = scale * ((self.y() as f32) + 0.5);
 
         glam::f32::Vec2 { x, y }
-    }
-}
-
-#[must_use]
-#[derive(Clone)]
-pub struct TileByColumnIter<const WIDTH: u8, const HEIGHT: u8>(Option<Tile<WIDTH, HEIGHT>>);
-
-impl<const C: u8, const R: u8> Iterator for TileByColumnIter<C, R> {
-    type Item = Tile<C, R>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let r = self.0?;
-
-        self.0 = (r + Vector::SOUTH).or_else(|| Tile::try_new(r.x() + 1, 0));
-
-        return Some(r);
     }
 }
 
