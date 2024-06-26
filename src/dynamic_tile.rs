@@ -67,7 +67,6 @@ impl DynamicTile {
     }
 
     pub const fn get_vertex(&self, corner: &Corner) -> DynamicVertex {
-
         let (x, y) = match corner {
             Corner::NorthWest => (self.0.x, self.0.y),
             Corner::NorthEast => (self.0.x + 1, self.0.y),

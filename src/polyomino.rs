@@ -790,7 +790,10 @@ impl<const POINTS: usize> Iterator for OutlineIter<POINTS> {
                     //perform an equivalency
                     next_coordinate = equivalent;
                     next_corner = next_corner.anticlockwise();
-                    assert!(next_coordinate != coordinate_to_return, "Infinite loop found in shape.");
+                    assert!(
+                        next_coordinate != coordinate_to_return,
+                        "Infinite loop found in shape."
+                    );
                     if next_corner == Corner::NorthWest && next_coordinate == self.arr[0] {
                         break 'line;
                     }

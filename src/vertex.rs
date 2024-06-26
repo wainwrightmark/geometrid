@@ -12,10 +12,12 @@ use crate::prelude::*;
 pub struct Vertex<const WIDTH: u8, const HEIGHT: u8>(u8);
 
 impl<const WIDTH: u8, const HEIGHT: u8> From<Vertex<WIDTH, HEIGHT>> for DynamicVertex {
-
     #[allow(clippy::cast_possible_wrap)]
     fn from(val: Vertex<WIDTH, HEIGHT>) -> Self {
-        DynamicVertex(Vector { x: val.x() as i8, y: val.y() as i8 })
+        DynamicVertex(Vector {
+            x: val.x() as i8,
+            y: val.y() as i8,
+        })
     }
 }
 
@@ -130,7 +132,9 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
             FlipAxes::None => *self,
             FlipAxes::Horizontal => Self::new_unchecked(Self::MAX_COL - self.x(), self.y()),
             FlipAxes::Vertical => Self::new_unchecked(self.x(), Self::MAX_ROW - self.y()),
-            FlipAxes::Both => Self::new_unchecked(Self::MAX_COL - self.x(), Self::MAX_ROW - self.y()),
+            FlipAxes::Both => {
+                Self::new_unchecked(Self::MAX_COL - self.x(), Self::MAX_ROW - self.y())
+            }
         }
     }
 
