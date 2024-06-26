@@ -11,7 +11,7 @@ Possible header types:
 
 [crates.io]: https://crates.io/crates/geometrid
 
-## v0.8.0 Unreleased
+## v0.8.0 (2024-26-06)
 
 ### Breaking Changes
 
