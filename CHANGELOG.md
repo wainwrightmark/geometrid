@@ -18,6 +18,10 @@ Possible header types:
 - Changed the signatures of `Tile` `iter_adjacent` and `iter_contiguous` to remove lifetimes
 - Removed `TileByRowIter` and `TileByColIter`
 - `Tile` `iter_by_row` and `iter_by_col` are now not const and return type erased iterators
+- Renamed `line_of_sight_tiles` to `iter_line_of_sight_tiles`
+- Renamed `RectangleIterator` to `CornersIter`
+- Replaced `TileSet` `from_iter` with a FromIterator implementation
+- Removed `Copy` implementation from `TileSetIter` and `TrueTilesIter`
 
 ### Added
 

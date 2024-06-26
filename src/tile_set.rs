@@ -68,16 +68,6 @@ macro_rules! tile_set {
             Self(inner)
         }
 
-        #[inline]
-        pub fn from_iter(iter: impl Iterator<Item = Tile<WIDTH, HEIGHT>>) -> Self {
-            Self::assert_legal();
-            let mut r = Self::default();
-            for x in iter {
-                r.set_bit(&x, true);
-            }
-            r
-        }
-
         #[must_use]
         #[inline]
         pub const fn into_inner(self) -> $inner {
@@ -93,14 +83,13 @@ macro_rules! tile_set {
         #[inline]
         pub fn set_bit(&mut self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) {
             if bit {
-                self.0 |= (1 as $inner << tile.inner() as u32);
+                self.0 |= (1 as $inner << u32::from(tile.inner()));
             } else {
-                self.0 &= !(1 as $inner << tile.inner() as u32);
+                self.0 &= !(1 as $inner << u32::from(tile.inner()));
             }
         }
 
         /// Returns a copy of self with the bit at `tile` set to `bit`
-        #[must_use]
         #[inline]
         pub const fn with_bit_set(&self, tile: &Tile<WIDTH, HEIGHT>, bit: bool)-> Self{
             let inner =
@@ -152,14 +141,15 @@ macro_rules! tile_set {
 
 
         #[inline]
-        #[must_use]
+        #[allow(clippy::cast_possible_truncation)]
         pub fn shift_north(&self, rows: u8)-> Self{
             let a =self.0.shr(rows * WIDTH);
             let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
             Self(a & mask)
         }
+
         #[inline]
-        #[must_use]
+        #[allow(clippy::cast_possible_truncation)]
         pub fn shift_south(&self, rows: u8)-> Self{
             let a =self.0.shl(rows * WIDTH);
             let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
@@ -179,7 +169,6 @@ macro_rules! tile_set {
         inner
     };
 
-    #[must_use]
     #[inline]
     pub const fn row_mask(y: u8) -> Self {
         Self::assert_legal();
@@ -200,7 +189,6 @@ macro_rules! tile_set {
         inner
     };
 
-    #[must_use]
     #[inline]
     pub const fn col_mask(x: u8) -> Self {
         Self::assert_legal();
@@ -219,10 +207,9 @@ macro_rules! tile_set {
             .map(|(i, x)| (Tile::try_from_usize(i).unwrap(), x))
     }
 
-
     #[must_use]
     #[inline]
-    pub fn iter_true_tiles(&self) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> + Clone + core::fmt::Debug + ExactSizeIterator + core::iter::FusedIterator + DoubleEndedIterator {
+    pub fn iter_true_tiles(&self) -> impl ExactSizeIterator<Item = Tile<WIDTH, HEIGHT>> + Clone + core::fmt::Debug  + core::iter::FusedIterator + DoubleEndedIterator {
         $true_iter_name::new(self)
     }
 
@@ -236,19 +223,17 @@ macro_rules! tile_set {
     #[must_use]
     #[inline]
     pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
-        let x_multiplier = total_width / WIDTH as f32;
-        let y_multiplier = total_height / HEIGHT as f32;
+        let x_multiplier = total_width / f32::from(WIDTH);
+        let y_multiplier = total_height / f32::from(HEIGHT);
 
         x_multiplier.min(y_multiplier)
     }
 
-    #[must_use]
     #[inline]
     pub const fn intersect(&self, rhs: &Self) -> Self {
         Self(self.0 & rhs.0)
     }
 
-    #[must_use]
     #[inline]
     pub const fn union(&self, rhs: &Self) -> Self {
         Self(self.0 | rhs.0)
@@ -267,14 +252,13 @@ macro_rules! tile_set {
     }
 
     /// Returns a new set containing all elements which belong to one set but not both
-    #[must_use]
     #[inline]
     pub const fn symmetric_difference(&self, rhs: &Self)-> Self{
         Self(self.0 ^ rhs.0)
     }
 
-    #[must_use]
     #[inline]
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn negate(&self) -> Self {
         let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
         Self(!self.0 & mask)
@@ -283,6 +267,7 @@ macro_rules! tile_set {
     /// The first tile in this set
     #[must_use]
     #[inline]
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn first(&self) -> Option<Tile<WIDTH, HEIGHT>>
     {
         Tile::<WIDTH, HEIGHT>::try_from_inner( self.0.trailing_zeros() as u8)
@@ -292,6 +277,8 @@ macro_rules! tile_set {
     /// Returns `None` if the set is empty
     #[must_use]
     #[inline]
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_lossless)]
     pub fn pop(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
     {
         if self.0 == 0{
@@ -306,6 +293,7 @@ macro_rules! tile_set {
     /// Returns `None` if the set is empty
     #[must_use]
     #[inline]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn pop_last(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
     {
         if self.0 == 0{
@@ -319,6 +307,7 @@ macro_rules! tile_set {
     /// The last tile in this set
     #[must_use]
     #[inline]
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn last(&self)-> Option<Tile<WIDTH, HEIGHT>>
     {
         let Some(index) = (<$inner>::BITS - 1).checked_sub( self.0.leading_zeros()) else{return None;};
@@ -327,7 +316,23 @@ macro_rules! tile_set {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> FromIterator<Tile<WIDTH, HEIGHT>> for $name<WIDTH, HEIGHT, SIZE>{
+
+    #[inline]
+    fn from_iter<T>(iter: T) -> Self
+        where T: IntoIterator<Item = Tile<WIDTH, HEIGHT>>
+     {
+        Self::assert_legal();
+        let mut r = Self::default();
+        for x in iter {
+            r.set_bit(&x, true);
+        }
+        r
+    }
+
+}
+
+#[derive(Clone, Debug)]
 struct $true_iter_name<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> {
     inner: $name::<WIDTH, HEIGHT, SIZE>,
 }
@@ -394,6 +399,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
     }
 
     #[inline]
+    #[allow(clippy::cast_possible_truncation)]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
         let mut n = n as u32;
         if self.inner.count() <= n{
@@ -417,8 +423,6 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
                 let r = Self::Item::try_from_inner((shift + n ) as u8);
                 self.inner.0 <<= shift + n + 1;
 
-                self.inner.0 = self.inner.0;
-
                 return r;
             }
         }
@@ -433,6 +437,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEnd
         }
 
         #[inline]
+        #[allow(clippy::cast_possible_truncation)]
         fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
             let mut n = n as u32;
             if self.inner.count() <= n{
@@ -456,8 +461,6 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEnd
                     let r = Self::Item::try_from_inner((<$inner>::BITS - (shift + n + 1)) as u8);
                     self.inner.0 >>= shift + n + 1;
 
-                    self.inner.0 = self.inner.0;
-
                     return r;
                 }
             }
@@ -476,7 +479,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> $true_iter_name<WIDTH
 
 
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct $iter_name<const STEP : u8> {
     inner: $inner,
     bottom_index: usize,
@@ -486,7 +489,7 @@ pub struct $iter_name<const STEP : u8> {
 impl<const STEP: u8> ExactSizeIterator for $iter_name<STEP> {
     #[inline]
     fn len(&self) -> usize {
-        self.count()
+        self.clone().count()
     }
 }
 
@@ -507,7 +510,8 @@ impl<const STEP: u8> Iterator for $iter_name<STEP> {
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.count(), Some(self.count()))
+        let count = self.clone().count();
+        (count, Some(count))
     }
 
     #[inline]

@@ -145,6 +145,7 @@ impl Vector {
         self.x.abs() <= 1 && self.y.abs() <= 1 && !self.is_zero()
     }
 
+    #[must_use]
     /// Returns true if this is a diagonal vector, having both an x and a y component
     pub const fn is_diagonal(&self) -> bool {
         self.x != 0 && self.y != 0
@@ -157,6 +158,8 @@ impl Vector {
     pub const fn vertical_component(&self) -> Self {
         Self { x: 0, y: self.y }
     }
+
+    #[must_use]
     /// Greater than operation that can be computed at compile time
     pub const fn const_gt(&self, other: &Self) -> bool {
         if self.x > other.x {
@@ -225,7 +228,7 @@ impl Mul<isize> for Vector {
     type Output = Vector;
 
     fn mul(self, rhs: isize) -> Self::Output {
-        self.const_mul(rhs as i8)
+        self.const_mul(rhs.try_into().expect("rhs is too big"))
     }
 }
 
@@ -233,7 +236,7 @@ impl Mul<usize> for Vector {
     type Output = Vector;
 
     fn mul(self, rhs: usize) -> Self::Output {
-        self.const_mul(rhs as i8)
+        self.const_mul(rhs.try_into().expect("rhs is too big"))
     }
 }
 

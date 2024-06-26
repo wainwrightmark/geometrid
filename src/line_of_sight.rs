@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 /// Iterates all tiles in a line between `from` and `to` in some order.
 /// The order in which the tiles are returned may be unstable.
-pub fn line_of_sight_tiles<const WIDTH: u8, const HEIGHT: u8>(
+pub fn iter_line_of_sight_tiles<const WIDTH: u8, const HEIGHT: u8>(
     from: &Tile<WIDTH, HEIGHT>,
     to: &Tile<WIDTH, HEIGHT>,
 ) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>> {
@@ -154,7 +154,7 @@ mod tests {
     }
 
     fn test_line_of_sight(from: Tile25, to: Tile25, expected: &str) {
-        let mut actual = line_of_sight_tiles(&from, &to).collect_vec();
+        let mut actual = iter_line_of_sight_tiles(&from, &to).collect_vec();
         actual.sort();
 
         assert_eq!(actual.into_iter().join("; "), expected,)

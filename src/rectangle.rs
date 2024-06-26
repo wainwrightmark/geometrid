@@ -78,10 +78,10 @@ impl Shape for Rectangle {
 
 impl IntoIterator for Rectangle {
     type Item = DynamicTile;
-    type IntoIter = RectangleIterator;
+    type IntoIter = CornersIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        RectangleIterator {
+        CornersIter {
             rectangle: self,
             next: Some(self.north_west.get_tile(&Corner::SouthEast)),
         }
@@ -89,12 +89,12 @@ impl IntoIterator for Rectangle {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct RectangleIterator {
+pub struct CornersIter {
     pub rectangle: Rectangle,
     pub next: Option<DynamicTile>,
 }
 
-impl Iterator for RectangleIterator {
+impl Iterator for CornersIter {
     type Item = DynamicTile;
 
     fn next(&mut self) -> Option<Self::Item> {

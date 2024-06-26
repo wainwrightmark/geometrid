@@ -12,6 +12,8 @@ use crate::prelude::*;
 pub struct Vertex<const WIDTH: u8, const HEIGHT: u8>(u8);
 
 impl<const WIDTH: u8, const HEIGHT: u8> From<Vertex<WIDTH, HEIGHT>> for DynamicVertex {
+
+    #[allow(clippy::cast_possible_wrap)]
     fn from(val: Vertex<WIDTH, HEIGHT>) -> Self {
         DynamicVertex(Vector { x: val.x() as i8, y: val.y() as i8 })
     }
@@ -46,12 +48,10 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
     const MAX_COL: u8 = WIDTH;
     const MAX_ROW: u8 = HEIGHT;
 
-    #[must_use]
     pub const fn new_const<const X: u8, const Y: u8>() -> Self {
         Self::new_unchecked(X, Y)
     }
 
-    #[must_use]
     #[inline]
     pub(crate) const fn new_unchecked(x: u8, y: u8) -> Self {
         debug_assert!(x <= Self::COLUMNS);
@@ -75,6 +75,7 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
     }
 
     #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn try_from_usize(value: usize) -> Option<Self> {
         if value >= Self::COUNT {
             return None;
@@ -114,21 +115,22 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
         )
     }
 
+    #[must_use]
     pub const fn x(&self) -> u8 {
         self.0 % (Self::COLUMNS + 1)
     }
 
+    #[must_use]
     pub const fn y(&self) -> u8 {
         self.0 / (Self::COLUMNS + 1)
     }
 
     pub const fn flip(&self, axes: FlipAxes) -> Self {
-        use FlipAxes::*;
         match axes {
-            None => *self,
-            Horizontal => Self::new_unchecked(Self::MAX_COL - self.x(), self.y()),
-            Vertical => Self::new_unchecked(self.x(), Self::MAX_ROW - self.y()),
-            Both => Self::new_unchecked(Self::MAX_COL - self.x(), Self::MAX_ROW - self.y()),
+            FlipAxes::None => *self,
+            FlipAxes::Horizontal => Self::new_unchecked(Self::MAX_COL - self.x(), self.y()),
+            FlipAxes::Vertical => Self::new_unchecked(self.x(), Self::MAX_ROW - self.y()),
+            FlipAxes::Both => Self::new_unchecked(Self::MAX_COL - self.x(), Self::MAX_ROW - self.y()),
         }
     }
 
@@ -140,8 +142,9 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
         Self::try_from_inner(next)
     }
 
+    #[must_use]
     pub fn iter_by_row() -> impl FusedIterator<Item = Self> + ExactSizeIterator + Clone {
-        ((Self::NORTH_WEST.0)..=(Self::SOUTH_EAST.0)).map(|x| Self(x))
+        ((Self::NORTH_WEST.0)..=(Self::SOUTH_EAST.0)).map(Self)
     }
 
     #[must_use]
@@ -158,10 +161,8 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
 
     #[must_use]
     pub const fn get_tile(&self, corner: &Corner) -> Option<Tile<WIDTH, HEIGHT>> {
-        use Corner::*;
-
         match corner {
-            NorthWest => {
+            Corner::NorthWest => {
                 let Some(x) = self.x().checked_sub(1) else {
                     return None;
                 };
@@ -170,19 +171,19 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
                 };
                 Tile::try_new(x, y)
             }
-            NorthEast => {
+            Corner::NorthEast => {
                 let Some(y) = self.y().checked_sub(1) else {
                     return None;
                 };
                 Tile::try_new(self.x(), y)
             }
-            SouthWest => {
+            Corner::SouthWest => {
                 let Some(x) = self.x().checked_sub(1) else {
                     return None;
                 };
                 Tile::try_new(x, self.y())
             }
-            SouthEast => Tile::try_new(self.x(), self.y()),
+            Corner::SouthEast => Tile::try_new(self.x(), self.y()),
         }
     }
 }

@@ -35,6 +35,7 @@ impl<T: Default + Copy, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> De
 }
 
 impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, HEIGHT, SIZE> {
+    #[allow(clippy::missing_panics_doc)]
     pub fn from_fn<F: FnMut(Tile<WIDTH, HEIGHT>) -> T>(mut cb: F) -> Self {
         debug_assert!(SIZE == (WIDTH * HEIGHT) as usize);
         let arr = core::array::from_fn(|i| cb(Tile::try_from_usize(i).unwrap()));
@@ -53,8 +54,8 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
         Self(inner)
     }
 
-    #[must_use]
     #[inline]
+    #[allow(clippy::missing_panics_doc)]
     pub fn enumerate(&self) -> impl iter::Iterator<Item = (Tile<WIDTH, HEIGHT>, &'_ T)> {
         self.0
             .iter()
@@ -67,13 +68,11 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
         self.0.swap(p1.into(), p2.into());
     }
 
-    #[must_use]
     #[inline]
     pub fn iter(&self) -> core::slice::Iter<'_, T> {
         self.0.iter()
     }
 
-    #[must_use]
     #[inline]
     pub fn iter_mut(&mut self) -> core::slice::IterMut<'_, T> {
         self.0.iter_mut()
@@ -237,7 +236,6 @@ impl<T, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
 }
 
 impl<T: Clone, const L: u8, const SIZE: usize> TileMap<T, L, L, SIZE> {
-    #[must_use]
     pub fn with_rotate(&self, quarter_turns: QuarterTurns) -> Self {
         let mut grid = self.clone();
         grid.rotate(quarter_turns);

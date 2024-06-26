@@ -44,10 +44,13 @@ pub struct Line<'a, T, const WIDTH: u8, const HEIGHT: u8> {
     pub length: usize,
 }
 
-/// # Panics
-/// If the line is invalid
 impl<'a, T, const WIDTH: u8, const HEIGHT: u8> Line<'a, T, WIDTH, HEIGHT> {
-    pub fn positions(&self) -> impl FusedIterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator + Clone + '_ {
+    #[must_use]
+    /// # Panics
+    /// If the line is invalid
+    pub fn positions(
+        &self,
+    ) -> impl FusedIterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator + Clone + '_ {
         (0..self.length).map(|x| (self.origin + (self.direction * x)).unwrap())
     }
 }

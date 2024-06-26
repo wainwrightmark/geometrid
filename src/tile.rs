@@ -14,8 +14,8 @@ pub struct Tile<const WIDTH: u8, const HEIGHT: u8>(u8);
 impl<const WIDTH: u8, const HEIGHT: u8> From<Tile<WIDTH, HEIGHT>> for DynamicTile {
     fn from(val: Tile<WIDTH, HEIGHT>) -> Self {
         DynamicTile(Vector {
-            x: val.x() as i8,
-            y: val.y() as i8,
+            x: val.x().try_into().unwrap(),
+            y: val.y().try_into().unwrap(),
         })
     }
 }
@@ -143,6 +143,7 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
     }
 
     #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn try_from_usize(value: usize) -> Option<Self> {
         if value >= Self::COUNT {
             return None;
