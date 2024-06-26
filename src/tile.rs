@@ -306,8 +306,8 @@ impl<const L: u8> Tile<L, L> {
 #[cfg(any(test, feature = "glam"))]
 impl<const C: u8, const R: u8> HasCenter for Tile<C, R> {
     fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
-        let x = scale * ((self.x() as f32) + 0.5);
-        let y = scale * ((self.y() as f32) + 0.5);
+        let x = scale * (f32::from(self.x()) + 0.5);
+        let y = scale * (f32::from(self.y()) + 0.5);
 
         glam::f32::Vec2 { x, y }
     }

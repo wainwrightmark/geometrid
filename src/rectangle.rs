@@ -38,8 +38,8 @@ impl Rectangle {
 impl HasCenter for Rectangle {
     fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
         let mut center = self.north_west.get_center(scale);
-        center.x += self.width as f32 * 0.5 * scale;
-        center.y += self.height as f32 * 0.5 * scale;
+        center.x += f32::from(self.width) * 0.5 * scale;
+        center.y += f32::from(self.height) * 0.5 * scale;
         center
     }
 }

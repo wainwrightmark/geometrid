@@ -43,7 +43,6 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         debug_assert!(SIZE <= <U256>::BITS as usize);
     }
 
-    #[must_use]
     pub fn from_fn<F: FnMut(Tile<WIDTH, HEIGHT>) -> bool>(mut cb: F) -> Self {
         Self::assert_legal();
 
@@ -57,7 +56,6 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         result
     }
 
-    #[must_use]
     #[inline]
     pub const fn row_mask(y: u8) -> Self {
         Self::assert_legal();
@@ -78,7 +76,6 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         Self(a)
     }
 
-    #[must_use]
     #[inline]
     pub const fn col_mask(x: u8) -> Self {
         Self::assert_legal();
@@ -99,21 +96,12 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         Self(a)
     }
 
-    #[must_use]
     #[inline]
     pub const fn from_inner(inner: U256) -> Self {
         Self::assert_legal();
         Self(inner)
     }
 
-    pub fn from_iter(iter: impl Iterator<Item = Tile<WIDTH, HEIGHT>>) -> Self {
-        Self::assert_legal();
-        let mut r = Self::default();
-        for x in iter {
-            r.set_bit(&x, true);
-        }
-        r
-    }
 
     #[must_use]
     #[inline]
@@ -144,7 +132,6 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     }
 
     /// Returns a copy of self with the bit at `tile` set to `bit`
-    #[must_use]
     #[inline]
     pub fn with_bit_set(&self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) -> Self {
         let inner = if bit {
@@ -183,6 +170,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         }
     }
 
+    #[allow(clippy::missing_panics_doc)]
     #[must_use]
     pub fn enumerate(
         &self,
@@ -195,29 +183,28 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     #[must_use]
     pub fn iter_true_tiles(
         &self,
-    ) -> impl Iterator<Item = Tile<WIDTH, HEIGHT>>
-           + ExactSizeIterator
+    ) -> impl ExactSizeIterator<Item = Tile<WIDTH, HEIGHT>>
            + FusedIterator
            + DoubleEndedIterator {
         TrueTilesIter256::new(self)
     }
 
     #[must_use]
+    #[allow(clippy::missing_panics_doc)]
     pub const fn count(&self) -> usize {
-        self.0.count_ones() as usize
+         self.0.count_ones() as usize
     }
 
     /// Get the scale to make the grid take up as much as possible of a given area
     #[must_use]
     pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
-        let x_multiplier = total_width / WIDTH as f32;
-        let y_multiplier = total_height / HEIGHT as f32;
+        let x_multiplier = total_width / f32::from(WIDTH);
+        let y_multiplier = total_height / f32::from(HEIGHT);
 
         x_multiplier.min(y_multiplier)
     }
 
     /// Return the set of tiles in both self and `rhs`.
-    #[must_use]
     pub const fn intersect(&self, rhs: &Self) -> Self {
         let (left_high, left_low) = self.0.into_words();
         let (right_high, right_low) = rhs.0.into_words();
@@ -228,7 +215,6 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     }
 
     /// Return the set of tiles in either self or `rhs` or both.
-    #[must_use]
     pub const fn union(&self, rhs: &Self) -> Self {
         let (left_high, left_low) = self.0.into_words();
         let (right_high, right_low) = rhs.0.into_words();
@@ -257,25 +243,24 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     }
 
     /// Returns a new set containing all elements which belong to one set but not both
-    #[must_use]
     pub fn symmetric_difference(&self, rhs: &Self) -> Self {
         Self(self.0 ^ rhs.0)
     }
 
-    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn negate(&self) -> Self {
         let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
         Self(!self.0 & mask)
     }
 
-    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn shift_north(&self, rows: u8) -> Self {
         let a = self.0.shr(rows * WIDTH);
         let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
         Self(a & mask)
     }
 
-    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn shift_south(&self, rows: u8) -> Self {
         let a = self.0.shl(rows * WIDTH);
         let mask: U256 = <U256>::MAX >> (<U256>::BITS - SIZE as u32);
@@ -290,16 +275,26 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
 
     /// The last tile in this set
     #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn last(&self) -> Option<Tile<WIDTH, HEIGHT>> {
-        let Some(index) = (U256::BITS - 1).checked_sub(self.0.leading_zeros()) else {
-            return None;
-        };
+        let index = (U256::BITS - 1).checked_sub(self.0.leading_zeros())?;
 
         Tile::<WIDTH, HEIGHT>::try_from_inner(index as u8)
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> FromIterator<Tile<WIDTH, HEIGHT>> for TileSet256<WIDTH, HEIGHT, SIZE>{
+    fn from_iter<T: IntoIterator<Item = Tile<WIDTH, HEIGHT>>>(iter: T) -> Self {
+        Self::assert_legal();
+        let mut r = Self::default();
+        for x in iter {
+            r.set_bit(&x, true);
+        }
+        r
+    }
+}
+
+#[derive(Clone, Debug)]
 struct TrueTilesIter256<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> {
     inner: TileSet256<WIDTH, HEIGHT, SIZE>,
 }
@@ -313,7 +308,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> ExactSizeIterator
     for TrueTilesIter256<WIDTH, HEIGHT, SIZE>
 {
     fn len(&self) -> usize {
-        self.inner.count() as usize
+        self.inner.count()
     }
 }
 
@@ -349,7 +344,7 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TrueTilesIter256<WIDT
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct TileSetIter256<const STEP: u8> {
     inner: U256,
     bottom_index: usize,
@@ -358,7 +353,7 @@ pub struct TileSetIter256<const STEP: u8> {
 
 impl<const STEP: u8> ExactSizeIterator for TileSetIter256<STEP> {
     fn len(&self) -> usize {
-        self.count()
+        self.clone().count()
     }
 }
 
@@ -370,22 +365,22 @@ impl<const STEP: u8> Iterator for TileSetIter256<STEP> {
             None
         } else {
             let r = (self.inner >> self.bottom_index) & 1 == 1;
-            self.bottom_index = self.bottom_index + (STEP as usize);
+            self.bottom_index += STEP as usize;
             Some(r)
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.count(), Some(self.count()))
+        let count = self.clone().count();
+        (count, Some(count))
     }
 
     fn count(self) -> usize
     where
         Self: Sized,
     {
-        let distance = (self.top_index.saturating_sub(self.bottom_index)) as usize;
-        let count = distance / STEP as usize;
-        count
+        let distance = self.top_index.saturating_sub(self.bottom_index);
+        distance / STEP as usize
     }
 }
 
@@ -411,10 +406,8 @@ impl<const W: u8, const H: u8, const SIZE: usize> fmt::Display for TileSet256<W,
         let iter = self.iter().enumerate();
 
         for (i, e) in iter {
-            if i > 0 && i % (W as usize) == 0 {
-                if !f.alternate() {
-                    f.write_char('\n')?;
-                }
+            if i > 0 && i % (W as usize) == 0 && !f.alternate() {
+                f.write_char('\n')?;
             }
             if e {
                 f.write_char('*')?;

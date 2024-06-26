@@ -79,8 +79,8 @@ impl DynamicVertex {
 
     /// Get the nearest vertex to this center.
     /// Will round away from 0.0
-    #[must_use]
     #[cfg(any(test, all(feature = "std", feature = "glam")))]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn from_center(center: &glam::f32::Vec2, scale: f32) -> Self {
         let x = center.x / scale;
         let y = center.y / scale;
@@ -97,8 +97,8 @@ impl DynamicVertex {
 impl HasCenter for DynamicVertex {
     #[must_use]
     fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
-        let x = scale * (self.0.x as f32);
-        let y = scale * (self.0.y as f32);
+        let x = scale * f32::from(self.0.x);
+        let y = scale * f32::from(self.0.y);
 
         glam::f32::Vec2 { x, y }
     }

@@ -196,8 +196,8 @@ impl<const WIDTH: u8, const HEIGHT: u8> Vertex<WIDTH, HEIGHT> {
 impl<const WIDTH: u8, const HEIGHT: u8> HasCenter for Vertex<WIDTH, HEIGHT> {
     #[must_use]
     fn get_center(&self, scale: f32) -> glam::f32::Vec2 {
-        let x = scale * (self.x() as f32);
-        let y = scale * (self.y() as f32);
+        let x = scale * f32::from(self.x());
+        let y = scale * f32::from(self.y());
 
         glam::f32::Vec2 { x, y }
     }

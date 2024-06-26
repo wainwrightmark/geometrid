@@ -503,7 +503,7 @@ impl<const STEP: u8> Iterator for $iter_name<STEP> {
             None
         } else {
             let r = (self.inner >> self.bottom_index) & 1 == 1;
-            self.bottom_index +=  (STEP as usize);
+            self.bottom_index += (STEP as usize);
             Some(r)
         }
     }
