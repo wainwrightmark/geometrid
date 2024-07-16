@@ -419,9 +419,14 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
                 self.inner.0 >>= to;
                 shift += to;
             } else {
-                self.inner.0 >>= n + 1;
                 let r = Self::Item::try_from_inner((shift + n ) as u8);
-                self.inner.0 <<= shift + n + 1;
+                if shift + n + 1 < <$inner>::BITS
+                {
+                    self.inner.0 >>= n + 1;
+                    self.inner.0 <<= shift + n + 1;
+                }else{
+                    self.inner.0 = 0;
+                }
 
                 return r;
             }
@@ -457,9 +462,17 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEnd
                     self.inner.0 <<= lo;
                     shift += lo;
                 } else {
-                    self.inner.0 <<= n + 1;
+
                     let r = Self::Item::try_from_inner((<$inner>::BITS - (shift + n + 1)) as u8);
-                    self.inner.0 >>= shift + n + 1;
+
+                    if shift + n + 1 < <$inner>::BITS
+                    {
+                        self.inner.0 <<= n + 1;
+                        self.inner.0 >>= shift + n + 1;
+                    }
+                    else{
+                        self.inner.0 = 0;
+                    }
 
                     return r;
                 }
@@ -940,6 +953,17 @@ mod tests {
             assert_eq!(actual, expected);
         }
         assert_eq!(set_iter.len(), vec_iter.len());
+    }
+
+    #[test]
+    fn test_true_iter_nth_2() {
+        let set: TileSet16<16, 1, 16> = TileSet16::ALL;
+
+        for n in 0..=17usize {
+            let actual = set.iter_true_tiles().nth(n);
+
+            assert_eq!(actual, Tile::try_from_usize(n))
+        }
     }
 
     #[test]
