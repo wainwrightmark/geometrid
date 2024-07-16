@@ -65,7 +65,7 @@ const fn sort_vectors<const N: usize>(mut arr: [Vector; N]) -> [Vector; N] {
     let mut i = 1;
     while i < N {
         let mut j = i;
-        while j > 0 && arr[j - 1].const_gt(&arr[j]) {
+        while j > 0 && arr[j - 1].const_gt(arr[j]) {
             let swap = arr[j - 1];
             arr[j - 1] = arr[j];
             arr[j] = swap;
@@ -149,11 +149,11 @@ impl<const T: usize> Polyomino<T> {
             let character = bytes[bytes_index];
             if character == b'\n' {
                 current.x = 0;
-                current = current.const_add(&V::SOUTH);
+                current = current.const_add(V::SOUTH);
             } else if character.is_ascii_whitespace() {
                 //Ignore other ascii whitespace
             } else if character == Self::ASCII_SPACE {
-                current = current.const_add(&V::EAST);
+                current = current.const_add(V::EAST);
             } else if character == Self::ASCII_TILE {
                 if index >= arr.len() {
                     return Err("Too Many Tiles");
@@ -161,7 +161,7 @@ impl<const T: usize> Polyomino<T> {
 
                 arr[index] = current;
                 index += 1;
-                current = current.const_add(&V::EAST);
+                current = current.const_add(V::EAST);
             } else {
                 return Err("Unexpected Character");
             }

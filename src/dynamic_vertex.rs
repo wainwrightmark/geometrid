@@ -62,7 +62,7 @@ impl DynamicVertex {
         Self(self.0.flip(axes))
     }
 
-    pub const fn const_add(&self, vector: &Vector) -> Self {
+    pub const fn const_add(&self, vector: Vector) -> Self {
         Self(self.0.const_add(vector))
     }
 
@@ -108,7 +108,7 @@ impl<V: AsRef<Vector>> Add<V> for DynamicVertex {
     type Output = Self;
 
     fn add(self, rhs: V) -> Self::Output {
-        self.const_add(rhs.as_ref())
+        self.const_add(*rhs.as_ref())
     }
 }
 

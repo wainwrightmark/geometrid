@@ -91,14 +91,14 @@ impl Vector {
         }
     }
 
-    pub const fn const_add(&self, rhs: &Self) -> Self { //todo don't take ref for const add
+    pub const fn const_add(&self, rhs: Self) -> Self {
         Self {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
         }
     }
 
-    pub const fn const_sub(&self, rhs: &Self) -> Self {
+    pub const fn const_sub(&self, rhs: Self) -> Self {
         Self {
             x: self.x - rhs.x,
             y: self.y - rhs.y,
@@ -159,11 +159,14 @@ impl Vector {
         Self { x: 0, y: self.y }
     }
 
-    //todo const_eq
+    #[must_use]
+    pub const fn const_eq(&self, other: Self) -> bool {
+        self.x == other.x && self.y == other.y
+    }
 
     #[must_use]
     /// Greater than operation that can be computed at compile time
-    pub const fn const_gt(&self, other: &Self) -> bool {
+    pub const fn const_gt(&self, other: Self) -> bool {
         if self.x > other.x {
             true
         } else if self.x < other.x {
@@ -191,7 +194,7 @@ impl Neg for &Vector {
 impl Add for Vector {
     type Output = Vector;
     fn add(self, rhs: Self) -> Self::Output {
-        self.const_add(&rhs)
+        self.const_add(rhs)
     }
 }
 
@@ -199,14 +202,14 @@ impl Add for &Vector {
     type Output = Vector;
 
     fn add(self, rhs: Self) -> Self::Output {
-        self.const_add(rhs)
+        self.const_add(*rhs)
     }
 }
 
 impl Sub for Vector {
     type Output = Vector;
     fn sub(self, rhs: Self) -> Self::Output {
-        self.const_sub(&rhs)
+        self.const_sub(rhs)
     }
 }
 
@@ -214,7 +217,7 @@ impl Sub for &Vector {
     type Output = Vector;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        self.const_sub(rhs)
+        self.const_sub(*rhs)
     }
 }
 
