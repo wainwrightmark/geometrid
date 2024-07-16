@@ -11,6 +11,16 @@ Possible header types:
 
 [crates.io]: https://crates.io/crates/geometrid
 
+## v0.9.0 (2024-16-07)
+
+### Breaking Changes
+
+- Changed the signatures of some const methods in `Vector` to not take references
+
+### Fixes
+
+- Fixed a bug when iterating through a tile set
+
 ## v0.8.0 (2024-26-06)
 
 ### Breaking Changes
@@ -73,4 +83,3 @@ Possible header types:
 
 - Initial Release on [crates.io] :tada:
 
-[crates.io]: https://crates.io/crates/geometrid

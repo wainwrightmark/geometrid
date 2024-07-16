@@ -102,7 +102,6 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         Self(inner)
     }
 
-
     #[must_use]
     #[inline]
     pub const fn into_inner(self) -> U256 {
@@ -183,16 +182,15 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     #[must_use]
     pub fn iter_true_tiles(
         &self,
-    ) -> impl ExactSizeIterator<Item = Tile<WIDTH, HEIGHT>>
-           + FusedIterator
-           + DoubleEndedIterator {
+    ) -> impl ExactSizeIterator<Item = Tile<WIDTH, HEIGHT>> + FusedIterator + DoubleEndedIterator
+    {
         TrueTilesIter256::new(self)
     }
 
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
     pub const fn count(&self) -> usize {
-         self.0.count_ones() as usize
+        self.0.count_ones() as usize
     }
 
     /// Get the scale to make the grid take up as much as possible of a given area
@@ -283,7 +281,9 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
     }
 }
 
-impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> FromIterator<Tile<WIDTH, HEIGHT>> for TileSet256<WIDTH, HEIGHT, SIZE>{
+impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> FromIterator<Tile<WIDTH, HEIGHT>>
+    for TileSet256<WIDTH, HEIGHT, SIZE>
+{
     fn from_iter<T: IntoIterator<Item = Tile<WIDTH, HEIGHT>>>(iter: T) -> Self {
         Self::assert_legal();
         let mut r = Self::default();
