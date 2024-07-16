@@ -91,7 +91,7 @@ impl Vector {
         }
     }
 
-    pub const fn const_add(&self, rhs: &Self) -> Self {
+    pub const fn const_add(&self, rhs: &Self) -> Self { //todo don't take ref for const add
         Self {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
@@ -158,6 +158,8 @@ impl Vector {
     pub const fn vertical_component(&self) -> Self {
         Self { x: 0, y: self.y }
     }
+
+    //todo const_eq
 
     #[must_use]
     /// Greater than operation that can be computed at compile time

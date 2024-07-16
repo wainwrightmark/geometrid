@@ -173,13 +173,13 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
 
     /// Iterate through all tiles by row
     /// This method has better performance than `iter_by_col`
-    pub fn iter_by_row() -> impl FusedIterator<Item = Self> + Clone + ExactSizeIterator {
+    pub fn iter_by_row() -> impl FusedIterator<Item = Self> + Clone + ExactSizeIterator + DoubleEndedIterator {
         (0..(WIDTH * HEIGHT)).map(Self)
     }
 
     /// Iterate through all tiles by column
     /// This method has worse performance than `iter_by_row`
-    pub fn iter_by_col() -> impl FusedIterator<Item = Self> + ExactSizeIterator + Clone {
+    pub fn iter_by_col() -> impl FusedIterator<Item = Self> + ExactSizeIterator + Clone + DoubleEndedIterator {
         Tile::<HEIGHT, WIDTH>::iter_by_row().map(Tile::transpose)
     }
 
