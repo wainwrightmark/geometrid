@@ -314,6 +314,20 @@ macro_rules! tile_set {
 
         Some(Tile::<WIDTH, HEIGHT>::from_inner_unchecked(index as u8))
     }
+
+    /// Returns the number of tiles in the set which are less than this tile.
+    /// Note that it returns the same result whether or not the given tile is in the set
+    pub const fn tiles_before(&self, tile: Tile<WIDTH, HEIGHT>)-> u32{
+        let s = self.0;
+
+        let shift = <$inner>::BITS - tile.inner() as u32;
+
+        match s.checked_shl(shift){
+            Some(x)=> x.count_ones(),
+            None=> 0
+        }
+
+    }
 }
 
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> FromIterator<Tile<WIDTH, HEIGHT>> for $name<WIDTH, HEIGHT, SIZE>{
@@ -633,6 +647,34 @@ mod tests {
              _*_\n\
              ___"
         )
+    }
+
+    #[test]
+    fn test_tiles_before() {
+        fn tiles_before_slow(tile: Tile<4, 4>, set: TileSet16<4, 4, 16>) -> usize {
+            set.iter_true_tiles().take_while(|x| x < &tile).count()
+        }
+
+        fn test_all_tiles(set: TileSet16<4, 4, 16>) {
+            for tile in Tile::<4, 4>::iter_by_row() {
+                let expected = tiles_before_slow(tile, set) as u32;
+                let actual = set.tiles_before(tile);
+
+                assert_eq!(
+                    expected,
+                    actual,
+                    "Set {:016b}. Index {}",
+                    set.into_inner(),
+                    tile.inner()
+                );
+            }
+        }
+
+        for inner in [0, 1, 2, 3, 3206, 9999, u16::MAX] {
+            let set = TileSet16::from_inner(inner);
+
+            test_all_tiles(set);
+        }
     }
 
     #[test]

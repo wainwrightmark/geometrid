@@ -11,6 +11,12 @@ Possible header types:
 
 [crates.io]: https://crates.io/crates/geometrid
 
+## Unreleased
+
+### Added
+
+- Added 'tiles_before' to tile sets
+
 ## v0.9.0 (2024-16-07)
 
 ### Breaking Changes

@@ -193,6 +193,20 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileSet256<WIDTH, HEI
         self.0.count_ones() as usize
     }
 
+    /// Returns the number of tiles in the set which are less than this tile.
+    /// Note that it returns the same result whether or not the given tile is in the set
+    pub fn tiles_before(&self, tile: Tile<WIDTH, HEIGHT>)-> u32{
+        let s = self.0;
+
+        let shift = U256::BITS - tile.inner() as u32;
+
+        match s.checked_shl(shift){
+            Some(x)=> x.count_ones(),
+            None=> 0
+        }
+
+    }
+
     /// Get the scale to make the grid take up as much as possible of a given area
     #[must_use]
     pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
