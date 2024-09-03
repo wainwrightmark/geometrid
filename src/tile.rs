@@ -199,13 +199,13 @@ impl<const WIDTH: u8, const HEIGHT: u8> Tile<WIDTH, HEIGHT> {
 
     /// Iterate through adjacent elements (includes diagonals)
     #[must_use]
-    pub fn iter_adjacent(self) -> impl FusedIterator<Item = Self> + Clone {
+    pub fn iter_adjacent(self) -> impl FusedIterator<Item = Self> + DoubleEndedIterator + Clone {
         Vector::UNITS.into_iter().filter_map(move |v| self + v)
     }
 
     /// Iterate through contiguous elements (does not include diagonals)
     #[must_use]
-    pub fn iter_contiguous(self) -> impl FusedIterator<Item = Self> + Clone {
+    pub fn iter_contiguous(self) -> impl FusedIterator<Item = Self> + DoubleEndedIterator + Clone {
         Vector::CARDINALS.into_iter().filter_map(move |v| self + v)
     }
 

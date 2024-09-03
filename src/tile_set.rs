@@ -1,6 +1,6 @@
 use core::{
     fmt::{self, Write},
-    ops::{FnMut, Shl, Shr},
+    ops::FnMut,
 };
 
 use crate::prelude::*;
@@ -35,9 +35,7 @@ macro_rules! tile_set {
         };
 
         /// The set where all tiles are present
-        pub const ALL: Self = {
-            Self::EMPTY.negate()
-        };
+        pub const ALL: Self =  Self(<$inner>::MAX >> (<$inner>::BITS - SIZE as u32));
 
 
 
@@ -142,20 +140,27 @@ macro_rules! tile_set {
 
         #[inline]
         #[allow(clippy::cast_possible_truncation)]
-        pub fn shift_north(&self, rows: u8)-> Self{
-            let a =self.0.shr(rows * WIDTH);
-            let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
-            Self(a & mask)
+        pub const fn shift_north(&self, rows: u8)-> Self{
+            let a =self.0 >> (rows * WIDTH);
+            Self(a & Self::ALL.0)
         }
 
         #[inline]
         #[allow(clippy::cast_possible_truncation)]
-        pub fn shift_south(&self, rows: u8)-> Self{
-            let a =self.0.shl(rows * WIDTH);
-            let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
-            Self(a & mask)
+        pub const fn shift_south(&self, rows: u8)-> Self{
+            let a =self.0 << (rows * WIDTH);
+            Self(a & Self::ALL.0)
         }
 
+    pub const fn shift_east(&self)-> Self{
+        let a = (self.0 << 1) & !Self::COL_ZERO_MASK;
+        Self(a & Self::ALL.0)
+    }
+
+    pub const fn shift_west(&self)-> Self{
+        let a = (self.0 >> 1) & !(Self::COL_ZERO_MASK << (WIDTH - 1));
+        Self(a & Self::ALL.0)
+    }
 
     const ROW_ZERO_MASK: $inner = {
         let mut inner : $inner = 0;
@@ -260,8 +265,7 @@ macro_rules! tile_set {
     #[inline]
     #[allow(clippy::cast_possible_truncation)]
     pub const fn negate(&self) -> Self {
-        let mask: $inner = <$inner>::MAX >> (<$inner>::BITS - SIZE as u32);
-        Self(!self.0 & mask)
+        Self(!self.0 & Self::ALL.0)
     }
 
     /// The first tile in this set
@@ -496,15 +500,12 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> core::iter::DoubleEnd
 
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> $true_iter_name<WIDTH, HEIGHT, SIZE> {
     #[inline]
-    pub fn new(set: & $name<WIDTH, HEIGHT, SIZE>) -> Self {
+    pub const fn new(set: & $name<WIDTH, HEIGHT, SIZE>) -> Self {
         Self {
-            inner: set.clone()
+            inner: *set
         }
     }
 }
-
-
-
 
 #[derive(Clone, Debug)]
 pub struct $iter_name<const STEP : u8> {
@@ -588,6 +589,12 @@ impl<const STEP: u8> DoubleEndedIterator for $iter_name<STEP> {
                 }
 
                 Ok(())
+            }
+        }
+
+        impl<const W: u8, const H: u8, const SIZE: usize> fmt::Binary for $name<W, H, SIZE> {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                fmt::Binary::fmt(&self.0, f)
             }
         }
     };
@@ -811,16 +818,20 @@ mod tests {
 
     #[test]
     fn test_shift() {
-        let full_grid = TileSet16::<2, 3, 6>::default().negate();
+        let full_grid = TileSet16::<2, 3, 6>::ALL;
 
         assert_eq!(full_grid.shift_north(0), full_grid);
         assert_eq!(full_grid.shift_south(0), full_grid);
 
-        assert_eq!(full_grid.shift_north(1).to_string(), "**\n**\n__");
-        assert_eq!(full_grid.shift_south(1).to_string(), "__\n**\n**");
+        assert_eq!(full_grid.shift_north(1).to_string(), "**\n**\n__", "Shift North 1");
+        assert_eq!(full_grid.shift_south(1).to_string(), "__\n**\n**", "Shift South 1");
 
-        assert_eq!(full_grid.shift_north(2).to_string(), "**\n__\n__");
-        assert_eq!(full_grid.shift_south(2).to_string(), "__\n__\n**");
+        assert_eq!(full_grid.shift_north(2).to_string(), "**\n__\n__", "Shift North 2");
+        assert_eq!(full_grid.shift_south(2).to_string(), "__\n__\n**", "Shift South 2");
+
+        assert_eq!(full_grid.shift_east().to_string(), "_*\n_*\n_*", "Shift East");
+        assert_eq!(full_grid.shift_west().to_string(), "*_\n*_\n*_", "Shift West");
+
     }
 
     #[test]

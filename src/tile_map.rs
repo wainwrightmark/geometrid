@@ -45,11 +45,12 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
     #[must_use]
     #[inline]
     pub fn into_inner(self) -> [T; SIZE] {
-        self.0
+        let Self(inner) = self;
+        inner
     }
 
     #[inline]
-    pub fn from_inner(inner: [T; SIZE]) -> Self {
+    pub const fn from_inner(inner: [T; SIZE]) -> Self {
         debug_assert!(SIZE == (WIDTH * HEIGHT) as usize);
         Self(inner)
     }
