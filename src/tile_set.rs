@@ -321,6 +321,8 @@ macro_rules! tile_set {
 
     /// Returns the number of tiles in the set which are less than this tile.
     /// Note that it returns the same result whether or not the given tile is in the set
+    #[must_use]
+    #[inline]
     pub const fn tiles_before(&self, tile: Tile<WIDTH, HEIGHT>)-> u32{
         let s = self.0;
 
@@ -330,8 +332,38 @@ macro_rules! tile_set {
             Some(x)=> x.count_ones(),
             None=> 0
         }
-
     }
+
+    /// Returns the nth tile in the set, if it is present
+    #[must_use]
+    #[inline]
+    pub const fn nth(&self, n: u32) -> Option<Tile<WIDTH, HEIGHT>> {
+
+        if n >= self.0.count_ones(){return None;}
+
+        let desired_ones = self.0.count_ones() - n;
+
+        let mut shifted_away = 0u32;
+        let mut remaining = self.0;
+
+        let mut chunk_size = <$inner>::BITS / 2;
+
+        //todo test a branchless version of this
+        loop {
+            let r = remaining >> chunk_size;
+            if r.count_ones() == desired_ones {
+                return Some(Tile::<WIDTH, HEIGHT>::from_inner_unchecked(
+                    (shifted_away + chunk_size + r.trailing_zeros()) as u8,
+                ));
+            }
+            let cmp = (r.count_ones() > desired_ones) as u32;
+            shifted_away += cmp * chunk_size;
+            remaining >>= chunk_size * cmp;
+            chunk_size /= 2;
+        }
+    }
+
+
 }
 
 impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> FromIterator<Tile<WIDTH, HEIGHT>> for $name<WIDTH, HEIGHT, SIZE>{
@@ -816,6 +848,7 @@ mod tests {
         );
     }
 
+    #[rustfmt::skip]
     #[test]
     fn test_shift() {
         let full_grid = TileSet16::<2, 3, 6>::ALL;
@@ -1037,5 +1070,35 @@ mod tests {
             assert_eq!(actual, expected);
         }
         assert_eq!(set_iter.len(), vec_iter.len());
+    }
+
+    #[test]
+    fn test_nth_u64() {
+        let set: TileSet64<9, 7, 63> = TileSet64::<9, 7, 63>::from_fn(|tile| tile.x() == 0);
+
+        let nth_elements = (0..8u32).map(|n| set.nth(n)).collect_vec();
+        let expected = set
+            .iter_true_tiles()
+            .map(|x| Some(x))
+            .chain(std::iter::repeat(None))
+            .take(8)
+            .collect_vec();
+
+        assert_eq!(nth_elements, expected)
+    }
+
+    #[test]
+    fn test_nth_u32() {
+        let set: TileSet32<4, 8, 32> = TileSet32::from_fn(|tile| tile.x() == 3);
+
+        let nth_elements = (0..8u32).map(|n| set.nth(n)).collect_vec();
+        let expected = set
+            .iter_true_tiles()
+            .map(|x| Some(x))
+            .chain(std::iter::repeat(None))
+            .take(8)
+            .collect_vec();
+
+        assert_eq!(nth_elements, expected)
     }
 }
