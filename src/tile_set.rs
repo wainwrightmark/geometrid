@@ -897,7 +897,7 @@ mod tests {
         let scale_rect = Grid::get_scale(100.0, 50.0);
 
         assert_eq!(scale_square, 25.0);
-        assert_eq!(scale_rect, 16.666666)
+        assert_eq!(scale_rect, 16.666_666)
     }
 
     #[test]

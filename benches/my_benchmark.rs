@@ -43,9 +43,7 @@ fn bench_tile_set_64_nth() -> u64 {
     let set = black_box(TileSet64::<8, 8, 64>::ALL);
 
     (0..64)
-        .into_iter()
-        .map(|n| set.iter_true_tiles().nth(n))
-        .flatten()
+        .filter_map(|n| set.iter_true_tiles().nth(n))
         .map(|x| x.inner() as u64)
         .sum()
 }

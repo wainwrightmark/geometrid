@@ -388,8 +388,9 @@ mod tests {
 
     #[test]
     fn test_get_tile() {
-        let vertex: Vertex<3, 3> = Vertex::new_const::<1, 1>();
         use Corner::*;
+        let vertex: Vertex<3, 3> = Vertex::new_const::<1, 1>();
+
         assert_eq!(vertex.get_tile(&NorthWest), Some(Tile::new_const::<0, 0>()));
         assert_eq!(vertex.get_tile(&NorthEast), Some(Tile::new_const::<1, 0>()));
         assert_eq!(vertex.get_tile(&SouthWest), Some(Tile::new_const::<0, 1>()));

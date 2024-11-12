@@ -291,16 +291,14 @@ mod tests {
 
     #[test]
     pub fn test_conditions() {
-        assert_eq!(V::ZERO.is_zero(), true);
-        assert_eq!(V::NORTH.is_zero(), false);
-
-        assert_eq!(V::ZERO.is_unit(), false);
-        assert_eq!(V::NORTH.is_unit(), true);
-        assert_eq!((V::NORTH.const_mul(2)).is_unit(), false);
-
-        assert_eq!(V::ZERO.is_diagonal(), false);
-        assert_eq!(V::NORTH.is_diagonal(), false);
-        assert_eq!(V::NORTH_EAST.is_diagonal(), true);
+        assert!(V::ZERO.is_zero());
+        assert!(!V::NORTH.is_zero());
+        assert!(!V::ZERO.is_unit());
+        assert!(V::NORTH.is_unit());
+        assert!(!(V::NORTH.const_mul(2)).is_unit());
+        assert!(!V::ZERO.is_diagonal());
+        assert!(!V::NORTH.is_diagonal());
+        assert!(V::NORTH_EAST.is_diagonal());
     }
 
     #[test]
