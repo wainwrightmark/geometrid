@@ -4,7 +4,7 @@ pub use crate::prelude::*;
 
 impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, HEIGHT, SIZE> {
     /// Find lines in the grid which meet particular conditions
-    pub fn get_lines<'a, F: Fn(&T) -> bool>(
+    pub const fn get_lines<'a, F: Fn(&T) -> bool>(
         &'a self,
         directions: &'a [Vector],
         check_item: F,
@@ -13,7 +13,7 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
         LineFinder {
             grid: self,
             directions,
-            position: Tile::default(),
+            position: Tile::NORTH_WEST,
             direction_index: 0,
             check_item,
             min_length,
@@ -49,8 +49,8 @@ impl<'a, T, const WIDTH: u8, const HEIGHT: u8> Line<'a, T, WIDTH, HEIGHT> {
     /// # Panics
     /// If the line is invalid
     pub fn positions(
-        &self,
-    ) -> impl FusedIterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator + Clone + '_ {
+        & self,
+    ) -> impl FusedIterator<Item = Tile<WIDTH, HEIGHT>> + ExactSizeIterator + Clone + use<'_, T, WIDTH, HEIGHT> {
         (0..self.length).map(|x| (self.origin + (self.direction * x)).unwrap())
     }
 }

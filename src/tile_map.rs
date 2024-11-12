@@ -96,7 +96,7 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
     }
 
     #[must_use]
-    pub fn column_iter(&self, column: u8) -> impl DoubleEndedIterator<Item = &T> + '_ {
+    pub fn column_iter(&self, column: u8) -> impl DoubleEndedIterator<Item = &T> + use<'_, T, WIDTH, HEIGHT, SIZE> {
         (0..HEIGHT)
             .map(move |y| column + (y * WIDTH))
             .map(|x| &self.0[x as usize])
@@ -105,8 +105,8 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
     /// Get the scale to make the grid take up as much as possible of a given area
     #[must_use]
     pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
-        let x_multiplier = total_width / f32::from(WIDTH);
-        let y_multiplier = total_height / f32::from(HEIGHT);
+        let x_multiplier = total_width / WIDTH as f32;
+        let y_multiplier = total_height / HEIGHT as f32;
 
         x_multiplier.min(y_multiplier)
     }

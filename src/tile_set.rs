@@ -214,7 +214,7 @@ macro_rules! tile_set {
 
     #[must_use]
     #[inline]
-    pub fn iter_true_tiles(&self) -> impl ExactSizeIterator<Item = Tile<WIDTH, HEIGHT>> + Clone + core::fmt::Debug  + core::iter::FusedIterator + DoubleEndedIterator {
+    pub const fn iter_true_tiles(&self) -> impl ExactSizeIterator<Item = Tile<WIDTH, HEIGHT>> + Clone + core::fmt::Debug  + core::iter::FusedIterator + DoubleEndedIterator {
         $true_iter_name::new(self)
     }
 
@@ -446,6 +446,11 @@ impl<const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> Iterator
         Self::Item: Ord,
     {
         self.next()
+    }
+
+    #[inline]
+    fn is_sorted(self)-> bool{
+        true
     }
 
     #[inline]

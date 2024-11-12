@@ -176,7 +176,7 @@ impl<const T: usize> Polyomino<T> {
     }
 
     /// The tiles of this polyomino
-    pub fn tiles(&self) -> &[DynamicTile; T] {
+    pub const fn tiles(&self) -> &[DynamicTile; T] {
         &self.0
     }
 
