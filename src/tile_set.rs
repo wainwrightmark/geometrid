@@ -32,7 +32,6 @@ macro_rules! tile_set {
                 Self(0)
             };
 
-
             /// The set where all tiles are present
             #[allow(clippy::cast_possible_truncation)]
             pub const ALL: Self = Self(<$inner>::MAX >> (<$inner>::BITS - SIZE as u32));
@@ -82,6 +81,23 @@ macro_rules! tile_set {
                 } else {
                     self.0 &= !((1 as $inner) << tile.inner() as u32);
                 }
+            }
+
+            #[inline]
+            pub const fn insert(&mut self, tile: &Tile<WIDTH, HEIGHT>) -> bool {
+                let mask = 1 << tile.inner() as u32;
+                let r = self.0 & mask == 0;
+
+                self.0 |= mask;
+                r
+            }
+
+            #[inline]
+            pub const fn remove(&mut self, tile: &Tile<WIDTH, HEIGHT>) -> bool {
+                let mask = 1 << tile.inner() as u32;
+                let r = self.0 & mask != 0;
+                self.0 &= !mask;
+                r
             }
 
             /// Returns a copy of self with the bit at `tile` set to `bit`
@@ -253,6 +269,11 @@ macro_rules! tile_set {
             #[inline]
             pub const fn union(&self, rhs: &Self) -> Self {
                 Self(self.0 | rhs.0)
+            }
+
+            #[inline]
+            pub const fn except(&self, rhs: &Self) -> Self {
+                self.intersect(&rhs.negate())
             }
 
             #[must_use]
@@ -687,6 +708,30 @@ mod tests {
         assert_eq!(grid.into_inner(), 325);
 
         assert_eq!(grid.negate().to_string(), "_*_\n***\n_*_");
+    }
+
+    #[test]
+    fn test_remove() {
+        let mut grid: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.inner() % 2 == 0);
+
+        for tile in Tile::iter_by_row() {
+            let removed = grid.remove(&tile);
+            assert_eq!(removed, tile.inner() % 2 == 0);
+            //removing for the second time
+            assert!(!grid.remove(&tile));
+        }
+    }
+
+    #[test]
+    fn test_insert() {
+        let mut grid: TileSet16<3, 3, 9> = TileSet16::from_fn(|x| x.inner() % 2 == 0);
+
+        for tile in Tile::iter_by_row() {
+            let inserted = grid.insert(&tile);
+            assert_eq!(!inserted, tile.inner() % 2 == 0);
+            //removing for the second time
+            assert!(!grid.insert(&tile));
+        }
     }
 
     #[test]
