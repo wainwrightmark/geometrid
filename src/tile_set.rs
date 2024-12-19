@@ -79,11 +79,11 @@ macro_rules! tile_set {
         }
 
         #[inline]
-        pub fn set_bit(&mut self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) {
+        pub const fn set_bit(&mut self, tile: &Tile<WIDTH, HEIGHT>, bit: bool) {
             if bit {
-                self.0 |= (1 as $inner << u32::from(tile.inner()));
+                self.0 |= ((1 as $inner) << tile.inner() as u32);
             } else {
-                self.0 &= !(1 as $inner << u32::from(tile.inner()));
+                self.0 &= !((1 as $inner) << tile.inner() as u32);
             }
         }
 
@@ -92,9 +92,9 @@ macro_rules! tile_set {
         pub const fn with_bit_set(&self, tile: &Tile<WIDTH, HEIGHT>, bit: bool)-> Self{
             let inner =
             if bit {
-                self.0 | (1 as $inner << tile.inner() as u32)
+                self.0 | ((1 as $inner) << tile.inner() as u32)
             } else {
-                self.0 & !(1 as $inner << tile.inner() as u32)
+                self.0 & !((1 as $inner) << tile.inner() as u32)
             };
 
             Self(inner)
@@ -227,11 +227,15 @@ macro_rules! tile_set {
     /// Get the scale to make the grid take up as much as possible of a given area
     #[must_use]
     #[inline]
-    pub fn get_scale(total_width: f32, total_height: f32) -> f32 {
-        let x_multiplier = total_width / f32::from(WIDTH);
-        let y_multiplier = total_height / f32::from(HEIGHT);
+    pub const fn get_scale(total_width: f32, total_height: f32) -> f32 {
+        let x_multiplier = total_width / (WIDTH as f32);
+        let y_multiplier = total_height / (HEIGHT as f32);
 
-        x_multiplier.min(y_multiplier)
+        if x_multiplier <= y_multiplier{
+            x_multiplier
+        }else{
+            y_multiplier
+        }
     }
 
     #[inline]
@@ -283,13 +287,13 @@ macro_rules! tile_set {
     #[inline]
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_lossless)]
-    pub fn pop(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
+    pub const fn pop(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
     {
         if self.0 == 0{
             return None;
         }
         let index = self.0.trailing_zeros() as $inner;
-        self.0 &= !(1 as $inner << index);
+        self.0 &= !((1 as $inner) << index);
         Some(Tile::<WIDTH, HEIGHT>::from_inner_unchecked(index as u8))
     }
 
@@ -298,13 +302,13 @@ macro_rules! tile_set {
     #[must_use]
     #[inline]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn pop_last(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
+    pub const fn pop_last(&mut self) -> Option<Tile<WIDTH, HEIGHT>>
     {
         if self.0 == 0{
             return None;
         }
         let index = <$inner>::BITS - 1 - self.0.leading_zeros();
-        self.0 &= !(1 as $inner << index);
+        self.0 &= !((1 as $inner) << index);
         Some(Tile::<WIDTH, HEIGHT>::from_inner_unchecked(index as u8))
     }
 
