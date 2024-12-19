@@ -13,9 +13,16 @@ Possible header types:
 
 ## Unreleased
 
+## v0.10.0 (2024-16-07)
+
+### Breaking Changes
+
+- Minimum supported rust version is now 1.83
+
 ### Added
 
-- Added 'tiles_before' to tile sets
+- Added 'tiles_before', `insert`, `remove` to tile sets
+- Made more tile set functions const
 
 ## v0.9.0 (2024-16-07)
 
