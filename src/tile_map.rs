@@ -96,7 +96,10 @@ impl<T, const WIDTH: u8, const HEIGHT: u8, const SIZE: usize> TileMap<T, WIDTH, 
     }
 
     #[must_use]
-    pub fn column_iter(&self, column: u8) -> impl DoubleEndedIterator<Item = &T> + use<'_, T, WIDTH, HEIGHT, SIZE> {
+    pub fn column_iter(
+        &self,
+        column: u8,
+    ) -> impl DoubleEndedIterator<Item = &T> + use<'_, T, WIDTH, HEIGHT, SIZE> {
         (0..HEIGHT)
             .map(move |y| column + (y * WIDTH))
             .map(|x| &self.0[x as usize])
